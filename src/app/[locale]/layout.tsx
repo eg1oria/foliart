@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import '../globals.css';
-// TODO: вернуть next-intl когда будет поддержка Next.js 16
-// import { NextIntlClientProvider } from 'next-intl';
-// import { getMessages } from 'next-intl/server';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
 import { notFound } from 'next/navigation';
 
@@ -35,17 +34,14 @@ export default async function RootLayout({
     notFound();
   }
 
-  // const messages = await getMessages();
+  const messages = await getMessages();
 
   return (
     <html
       lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        {/* TODO: вернуть NextIntlClientProvider когда будет поддержка Next.js 16 */}
-        {/* <NextIntlClientProvider messages={messages}> */}
-        {children}
-        {/* </NextIntlClientProvider> */}
+        <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
       </body>
     </html>
   );
