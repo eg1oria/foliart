@@ -111,7 +111,7 @@ export default function Header() {
                   </button>
                 ) : (
                   <Link
-                    href={item.href}
+                    href={'#'}
                     className="text-white text-sm hover:text-white/80 transition-colors">
                     {typeof item.name === 'string' ? item.name.toUpperCase() : item.name}
                   </Link>

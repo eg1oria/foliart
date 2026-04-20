@@ -19,7 +19,7 @@ export default function Footer() {
             <p className="text-center text-sm text-white/85 max-w-2xl" style={{ fontWeight: 100 }}>
               {t('slogan')}
             </p>
-            <Link href="/processing" className="text-sm underline text-white/80">
+            <Link href="#" className="text-sm underline text-white/80">
               {t('privacy')}
             </Link>
           </div>
