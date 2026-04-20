@@ -3,7 +3,7 @@ import Complexs from '@/components/Complexs';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/lib/mock-intl'; // TODO: вернуть 'next-intl'
 
 export default function Home() {
   const t = useTranslations('Home');

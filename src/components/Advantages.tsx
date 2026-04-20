@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/lib/mock-intl'; // TODO: вернуть 'next-intl'
 
 export default function Advantages() {
   const t = useTranslations('Advantages');

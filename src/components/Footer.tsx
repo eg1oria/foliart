@@ -1,6 +1,6 @@
 import Image from 'next/image';
-import { Link } from '@/i18n/routing';
-import { useTranslations } from 'next-intl';
+import Link from 'next/link'; // TODO: вернуть import { Link } from '@/i18n/routing'
+import { useTranslations } from '@/lib/mock-intl'; // TODO: вернуть 'next-intl'
 
 export default function Footer() {
   const t = useTranslations('Footer');

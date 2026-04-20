@@ -1,25 +1,21 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect } from 'react';
 import { BsTelephoneInbound } from 'react-icons/bs';
 import { RxHamburgerMenu } from 'react-icons/rx';
-import { Link, usePathname, useRouter } from '@/i18n/routing';
-import { useTranslations, useLocale } from 'next-intl';
+import Link from 'next/link'; // TODO: вернуть import { Link } from '@/i18n/routing'
+import { useTranslations } from '@/lib/mock-intl'; // TODO: вернуть 'next-intl'
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const t = useTranslations('Header');
-  const locale = useLocale();
-  const router = useRouter();
-  const pathname = usePathname();
-  const [isPending, startTransition] = useTransition();
+  const locale = 'ru'; // TODO: вернуть useLocale() из next-intl
 
   const toggleLocale = () => {
-    const nextLocale = locale === 'ru' ? 'en' : 'ru';
-    startTransition(() => {
-      router.replace(pathname, { locale: nextLocale, scroll: false });
-    });
+    // TODO: вернуть переключение локали через next-intl
+    // const nextLocale = locale === 'ru' ? 'en' : 'ru';
+    // startTransition(() => { router.replace(pathname, { locale: nextLocale, scroll: false }); });
   };
 
   const navItems = [
@@ -84,7 +80,6 @@ export default function Header() {
           <div className="flex items-center gap-9">
             <button
               onClick={toggleLocale}
-              disabled={isPending}
               className="text-ls text-white/85 hover:text-white transition-colors uppercase cursor-pointer">
               {locale === 'ru' ? 'EN' : 'RU'}
             </button>
@@ -147,7 +142,6 @@ export default function Header() {
         <div className="flex items-center gap-9">
           <button
             onClick={toggleLocale}
-            disabled={isPending}
             className="text-ls text-white/85 hover:text-white transition-colors uppercase cursor-pointer">
             {locale === 'ru' ? 'EN' : 'RU'}
           </button>
