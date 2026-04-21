@@ -121,7 +121,7 @@ export default function Header() {
         </div>
 
         <nav className="border-b-3  border-white/20 px-5">
-          <ul className="flex space-x-6 justify-between mt-4 md:mt-0 hidden md:flex">
+          <ul className="flex items-center space-x-6 justify-between mt-4 md:mt-0 hidden md:flex">
             {navItems.map((item, idx) => (
               <li
                 key={idx}
@@ -129,7 +129,7 @@ export default function Header() {
                 {item.href === '#' ? (
                   <button
                     onClick={(e) => e.preventDefault()}
-                    className="text-white text-sm hover:text-white/80 transition-colors flex items-center cursor-pointer bg-transparent border-0 p-0">
+                    className="text-white text-sm hover:text-white/80 transition-colors flex items-center cursor-pointer bg-transparent border-0 p-4">
                     {item.name}
                   </button>
                 ) : (
