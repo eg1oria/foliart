@@ -2,19 +2,19 @@ networks:
   dev:
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: rolli
-      POSTGRES_PASSWORD: rolli_secret
-      POSTGRES_DB: rolli
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    expose:
-      - '5432'
-    networks:
-      - dev
-    restart: unless-stopped
+  # postgres:
+  #   image: postgres:16-alpine
+  #   environment:
+  #     POSTGRES_USER: rolli
+  #     POSTGRES_PASSWORD: rolli_secret
+  #     POSTGRES_DB: rolli
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   expose:
+  #     - '5432'
+  #   networks:
+  #     - dev
+  #   restart: unless-stopped
 
   nginx:
     image: nginx:alpine
@@ -26,7 +26,7 @@ services:
       - '/etc/letsencrypt:/etc/letsencrypt:ro'
       - 'certbot_www:/var/www/certbot:ro'
     depends_on:
-      - backend
+      # - backend
       - frontend
     networks:
       - dev
@@ -41,24 +41,24 @@ services:
     networks:
       - dev
 
-  backend:
-    build:
-      context: ./backend
-    expose:
-      - '5000'
-    env_file:
-      - ./backend/.env
-    environment:
-      - PORT=5000
-      - FRONTEND_URL=https://nataliagorlach.kz,https://www.nataliagorlach.kz
-      - DATABASE_URL=postgresql://rolli:rolli_secret@postgres:5432/rolli
-    volumes:
-      - backend_uploads:/app/uploads
-    depends_on:
-      - postgres
-    networks:
-      - dev
-    restart: unless-stopped
+  # backend:
+  #   build:
+  #     context: ./backend
+  #   expose:
+  #     - '5000'
+  #   env_file:
+  #     - ./backend/.env
+  #   environment:
+  #     - PORT=5000
+  #     - FRONTEND_URL=https://nataliagorlach.kz,https://www.nataliagorlach.kz
+  #     - DATABASE_URL=postgresql://rolli:rolli_secret@postgres:5432/rolli
+  #   volumes:
+  #     - backend_uploads:/app/uploads
+  #   depends_on:
+  #     - postgres
+  #   networks:
+  #     - dev
+  #   restart: unless-stopped
 
   frontend:
     build:
@@ -72,6 +72,6 @@ services:
     restart: unless-stopped
 
 volumes:
-  backend_uploads:
-  postgres_data:
+  # backend_uploads:
+  # postgres_data:
   certbot_www:
