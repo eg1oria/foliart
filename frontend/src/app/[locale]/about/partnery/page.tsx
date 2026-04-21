@@ -20,8 +20,8 @@ export default function Partners() {
         </h1>
       </div>
 
-      <div className="px-93 py-16 flex gap-12 ">
-        <div className="p-8 border-5 border-gray-400 flex flex-col items-center gap-4 text-center min-w-[260px]">
+      <div className="px-93 py-26 flex gap-12 ">
+        <div className="p-10 border-5 border-gray-400 flex flex-col items-center gap-4 text-center ">
           <Image src="/partners2.png" alt="Партнер 1" width={220} height={150} />
           <p className="text-blue-600 font-medium">ООО &quot;ЭкоГрин&quot;</p>
           <span className="text-black/65 font-bold">г.Краснодар</span>
@@ -50,7 +50,7 @@ export default function Partners() {
             https://ecogreen.ru
           </a>
         </div>
-        <div className="p-8 border-5 pb-20 border-gray-400 flex flex-col items-center gap-4 text-center min-w-[260px]">
+        <div className="p-10 border-5 pb-20 border-gray-400 flex flex-col items-center gap-4 text-center">
           <Image src="/partners1.png" alt="Партнер 2" width={120} height={150} />
           <p className="text-blue-600 font-medium">ООО &quot;Империя Агро Крым&quot;</p>
           <span className="text-black/65 font-bold">г. Симферополь</span>

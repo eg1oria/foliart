@@ -20,7 +20,7 @@ export default function About() {
           {t('title')}
         </h1>
         <p className="text-base text-xl text-white/70  mb-2">{t('subtitle')}</p>
-        <Image src="/logo.png" alt="Фолиарт" width={130} height={40} />
+        <Image src="/logo5.png" alt="Фолиарт" width={130} height={40} />
       </div>
       <div className="px-90  flex gap-30 px-20 py-16">
         <aside className="sticky top-24 self-start min-w-[180px]">
@@ -74,6 +74,8 @@ export default function About() {
               <ContactForm />
             </div>
             <div className="">
+              <div className="h-1 w-[40%] bg-gray-400 rounded-sm mb-5" />
+
               <h2 className="text-xl font-bold text-white mb-4">{t('formTitle')}</h2>
               <p className="text-white/90 italic">{t('formSubtitle')}</p>
             </div>

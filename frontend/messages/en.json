@@ -22,7 +22,13 @@
       "office": "Office in Krasnodar",
       "feedback": "Feedback",
       "back": "Back"
-    }
+    },
+    "formTitle": "We are always happy to answer your questions and suggestions!",
+    "formSubtitle": "Use the form on the left to ask your question, leave feedback, or make a suggestion.",
+    "officeLabel": "Main office",
+    "officePhone": "+7(918)434-18-91",
+    "officeEmail": "mail@foliart.me",
+    "officeAddress": "350072, Krasnodar Territory, Krasnodar, Solnechnaya St., 10/3, office No. 31, floor 2"
   },
   "Home": {
     "catalogButton": "Fertilizers Catalog"
@@ -85,6 +91,14 @@
   },
   "Partners": {
     "title": "Our partners"
+  },
+  "ContactForm": {
+    "namePlaceholder": "Name",
+    "phonePlaceholder": "Phone",
+    "commentPlaceholder": "Comment",
+    "submit": "Send",
+    "consent": "I give my consent to the lawful processing of personal data.",
+    "consentLink": "compiled in accordance with the requirements of Federal Law No. 152-FZ of 27.07.2006 \"On Personal Data\""
   },
   "Footer": {
     "callOrder": "Request a call",
