@@ -7,7 +7,7 @@ export default function Footer() {
 
   return (
     <footer className="relative overflow-hidden">
-      <Image src="/footer2.jpg" alt="Фон футера" fill className="object-cover" />
+      <Image src="/footer3.png" alt="Фон футера" fill className="object-cover" />
       <div className="absolute inset-0 bg-black/35" />
 
       <div className="px-90 py-5 relative z-10 flex flex-col items-start gap-6">

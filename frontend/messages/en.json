@@ -1,0 +1,95 @@
+{
+  "Header": {
+    "home": "Home",
+    "catalog": "Fertilizers Catalog",
+    "about": "About Us",
+    "articles": "Useful Articles",
+    "calendar": "Calendar",
+    "contacts": "Contacts",
+    "partners": "Partners",
+    "wheat": "Winter wheat",
+    "corn": "Corn",
+    "beet": "Sugar beet",
+    "soybeans": "Soybeans",
+    "sunflower": "Sunflower"
+  },
+  "Contacts": {
+    "title": "Contact Information",
+    "subtitle": "We are constantly working to improve our products, so your feedback is very important to us",
+    "officeTitle": "Central office in Krasnodar",
+    "officeHours": "Working hours Mon-Fri 8:00 to 17:00",
+    "nav": {
+      "office": "Office in Krasnodar",
+      "feedback": "Feedback",
+      "back": "Back"
+    }
+  },
+  "Home": {
+    "catalogButton": "Fertilizers Catalog"
+  },
+  "Hero": {
+    "title": "There is no system in the world more perfect than the one created by nature.",
+    "items": {
+      "item1": "No animal-derived components",
+      "item2": "No formation of phytotoxic breakdown products",
+      "item3": "Working systems that allow achieving results",
+      "item4": "Laboratory support"
+    }
+  },
+  "Complexs": {
+    "title": "Organo-mineral complexes \"Foliart\"",
+    "desc1": "The consumption of nutrients is a complex chain of sequential processes. If even one of its links is damaged, the whole chain is destroyed.",
+    "desc2": "A healthy cell is an example of an impeccable balance of all processes and components. The substances contained in it are in perfect harmony. Therefore, the main task in developing technologies for fertilizers and feeding is not to disrupt the natural order. Not a single nutrient, no hormone or amino acid is absorbed by plants just because they are available."
+  },
+  "Advantages": {
+    "title": "Advantages of \"Foliart\"",
+    "subtitle": "organo-mineral complexes",
+    "items": {
+      "item1": {
+        "title": "No animal-derived components"
+      },
+      "item2": {
+        "title": "High efficiency",
+        "desc": "is provided by direct action simultaneously on all organs and systems of plants: shoot, root, vascular, reproductive, enzymatic, hormonal, immune. While other products on the market affect only individual “links” of the absorption and processing chains and are unable to control a single process."
+      },
+      "item3": {
+        "title": "No phytotoxic breakdown products of drugs are formed inside plant cells",
+        "desc": "in contrast to the use of salt forms of fertilizing."
+      },
+      "item4": {
+        "title": "Laboratory support of the farm",
+        "desc": "Presence of specialized specialists on staff: phytopathologist, plant physiologist, agrochemist, entomologist."
+      },
+      "item5": {
+        "title": "No specific product has magical properties. Therefore, we do not sell fertilizers, we sell working systems that allow achieving results"
+      }
+    }
+  },
+  "About": {
+    "title": "Our Company LLC «Astoria»",
+    "subtitle": "We are a Russian manufacturer of complex organo-mineral complexes for agricultural needs",
+    "nav": {
+      "description": "Description",
+      "feedback": "Feedback",
+      "back": "Back"
+    },
+    "p1": "We are a Russian manufacturer of complex organo-mineral complexes for agricultural needs. Our approach to each farm is based on years of scientific and production practice and includes a regularly updated knowledge base of global research. No product will reach your field without prior laboratory testing and precisely defined objectives to be addressed.",
+    "p2": "The relevance of our work is driven by the ever-growing pace of crop production development, in conditions where the impact of adverse factors is sharply increasing — widespread use of pesticides, climate change, intensification of varieties and hybrids — all of which negatively affect profitability. Our goal is the competent calculation of production resources to achieve specific objectives: increasing gross yields, achieving target quality indicators of the final product, reducing the share of crop protection costs, stabilizing the physiological condition of plants, improving soil fertility levels, selecting effective methods of monitoring field productivity, and much more.",
+    "p3": "We do not sell fertilizers. In collaboration with leading laboratories and experts in Russia and worldwide, we offer you a working system for a specific crop tailored to your defined objectives, budget, and cultivation conditions.",
+    "p4": "We do not promise 'final solutions' through our products alone, as we understand that it is impossible to cover everything — but we strive to research and continuously discover something new and better, improving our offerings. We have excellent solutions today, and we strive for even better results in the future.",
+    "p5": "The Foliart team, consisting of highly qualified specialists with academic degrees, strives not to overcome natural factors, but to perfect the art of interacting with them. Our nutrition programs help realize the potential of plants and minimize the impact of yield-limiting factors: overcoming the pesticide pit, proper preparation for stress factors (including protection from low and high temperatures at the cellular level), slowing aging and wear processes, eliminating deficiencies and balancing incoming nutrients, eliminating physiological and chemical unavailability of nutrients, enhancing immune status, and controlling hormonal and enzymatic systems.",
+    "p6": "We provide laboratory support for the farm at all stages: from pre-sowing preparation or seedling cultivation to post-harvest activities.",
+    "p7": "We believe that our success will be the success of our agricultural business partners.",
+    "formTitle": "Our regional managers will be happy to provide you with consultations and tell you more about our activities.",
+    "formSubtitle": "Use the form on the left to ask your question, leave feedback or a suggestion. Your feedback is very important to us!"
+  },
+  "Partners": {
+    "title": "Our partners"
+  },
+  "Footer": {
+    "callOrder": "Request a call",
+    "slogan": "FOLIART - THE ART OF FERTILIZATION",
+    "privacy": "Personal data processing",
+    "copyright": "© LLC \"ASTORIA\", 2023"
+  }
+}
