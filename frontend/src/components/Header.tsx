@@ -16,8 +16,8 @@ export default function Header() {
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
 
-  const toggleLocale = () => {
-    const nextLocale = locale === 'ru' ? 'en' : 'ru';
+  const changeLocale = (nextLocale: string) => {
+    if (nextLocale === locale) return;
     startTransition(() => {
       router.replace(pathname, { locale: nextLocale, scroll: false });
     });
@@ -106,11 +106,30 @@ export default function Header() {
             className="w-[135px] h-auto"
           />
           <div className="flex items-center gap-9">
-            <button
-              onClick={toggleLocale}
-              className="text-ls text-white/85 hover:text-white transition-colors uppercase cursor-pointer">
-              {locale === 'ru' ? 'EN' : 'RU'}
-            </button>
+            <div className="relative group cursor-pointer z-[100]">
+              <div className="flex flex-row items-center gap-1 text-[15px] p-2 text-white/85 hover:text-white transition-colors uppercase">
+                {locale}
+                <FiChevronDown size={14} className="mt-0.5" />
+              </div>
+              <ul className="absolute left-1/2 -translate-x-1/2 top-full mt-0 bg-white shadow-xl min-w-[70px] invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-[100] border border-gray-100 rounded-sm">
+                <li className="border-b border-gray-200 hover:bg-gray-100 transition-colors">
+                  <button
+                    onClick={() => changeLocale('ru')}
+                    disabled={isPending}
+                    className={`block w-full text-center px-4 py-2 text-sm ${locale === 'ru' ? 'font-bold text-[#074031]' : 'text-gray-700'} cursor-pointer`}>
+                    RU
+                  </button>
+                </li>
+                <li className="hover:bg-gray-100 transition-colors">
+                  <button
+                    onClick={() => changeLocale('en')}
+                    disabled={isPending}
+                    className={`block w-full text-center px-4 py-2 text-sm ${locale === 'en' ? 'font-bold text-[#074031]' : 'text-gray-700'} cursor-pointer`}>
+                    EN
+                  </button>
+                </li>
+              </ul>
+            </div>
 
             <div
               className="p-3 rounded-full text-white cursor-pointer hover:bg-[#074031]/80 transition-colors"
@@ -188,12 +207,30 @@ export default function Header() {
           />
         </div>
         <div className="flex items-center gap-9">
-          <button
-            onClick={toggleLocale}
-            disabled={isPending}
-            className="text-ls text-white/85 hover:text-white transition-colors uppercase cursor-pointer">
-            {locale === 'ru' ? 'EN' : 'RU'}
-          </button>
+          <div className="relative group cursor-pointer z-[100]">
+            <div className="flex flex-row items-center gap-1 text-[15px] p-2 text-white/85 hover:text-white transition-colors uppercase">
+              {locale}
+              <FiChevronDown size={14} className="mt-0.5" />
+            </div>
+            <ul className="absolute left-1/2 -translate-x-1/2 top-full mt-0 bg-white shadow-xl min-w-[70px] invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-[100] border border-gray-100 rounded-sm">
+              <li className="border-b border-gray-200 hover:bg-gray-100 transition-colors">
+                <button
+                  onClick={() => changeLocale('ru')}
+                  disabled={isPending}
+                  className={`block w-full text-center px-4 py-2 text-sm ${locale === 'ru' ? 'font-bold text-[#074031]' : 'text-gray-700'} cursor-pointer`}>
+                  RU
+                </button>
+              </li>
+              <li className="hover:bg-gray-100 transition-colors">
+                <button
+                  onClick={() => changeLocale('en')}
+                  disabled={isPending}
+                  className={`block w-full text-center px-4 py-2 text-sm ${locale === 'en' ? 'font-bold text-[#074031]' : 'text-gray-700'} cursor-pointer`}>
+                  EN
+                </button>
+              </li>
+            </ul>
+          </div>
           <div
             className="p-3 rounded-full text-white cursor-pointer hover:bg-[#074031]/80 transition-colors"
             style={{ backgroundColor: '#074031' }}>
