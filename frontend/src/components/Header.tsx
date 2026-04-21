@@ -99,7 +99,7 @@ export default function Header() {
         style={{ backgroundColor: 'rgba(7,64,49, 0.1)' }}>
         <div className="flex justify-between items-center">
           <Image
-            src={'/logo.png'}
+            src={'/logo5.PNG'}
             alt="Logo"
             width={135}
             height={30}
@@ -180,7 +180,7 @@ export default function Header() {
           </div>
 
           <Image
-            src={'/logo.png'}
+            src={'/logo5.PNG'}
             alt="Logo"
             width={110}
             height={30}
