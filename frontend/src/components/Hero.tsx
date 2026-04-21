@@ -27,7 +27,7 @@ export default function Hero() {
     <section className="relative px-90 py-40 flex flex-col items-center justify-center min-h-screen">
       <Image src="/hero.png" alt="" fill className="object-cover -z-10" priority />
       <div className="absolute inset-0 bg-black/50 -z-10" />
-      <Image src="/logo5.png" alt="Logo" width={500} height={80} className="mt-20" />
+      <Image src="/logo5.PNG" alt="Logo" width={500} height={80} className="mt-20" />
       <h1 className="text-xl text-center text-white/85" style={{ fontWeight: 100 }}>
         {t('title')}
       </h1>

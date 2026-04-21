@@ -20,7 +20,7 @@ export default function About() {
           {t('title')}
         </h1>
         <p className="text-base text-xl text-white/70  mb-2">{t('subtitle')}</p>
-        <Image src="/logo5.png" alt="Фолиарт" width={130} height={40} />
+        <Image src="/logo5.PNG" alt="Фолиарт" width={130} height={40} />
       </div>
       <div className="px-90  flex gap-30 px-20 py-16">
         <aside className="sticky top-24 self-start min-w-[180px]">
