@@ -3,7 +3,6 @@ import { Link } from '@/i18n/routing';
 import { ApiError, getCategory, getProducts } from '@/lib/api';
 import { formatProductCount, getCatalogCopy, parseEntityId } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
-import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { FiInfo } from 'react-icons/fi';
 
