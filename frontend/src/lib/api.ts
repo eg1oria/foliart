@@ -1,18 +1,29 @@
 export type Category = {
   id: number;
   name: string;
+  nameEn: string;
   description: string;
+  descriptionEn: string;
   imageUrl: string;
   productCount: number;
+  slugSourceName?: string;
 };
 
 export type Product = {
   id: number;
   categoryId: number;
   name: string;
+  nameEn: string;
   description: string;
+  descriptionEn: string;
   advantages: string;
+  advantagesEn: string;
+  composition: string;
+  compositionEn: string;
+  application: string;
+  applicationEn: string;
   imageUrl: string;
+  slugSourceName?: string;
 };
 
 export class ApiError extends Error {
@@ -39,18 +50,26 @@ async function fetchJson<T>(path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export async function getCategories(): Promise<Category[]> {
-  return fetchJson<Category[]>('/api/categories');
+function buildLocalizedPath(path: string, locale?: string) {
+  if (!locale) {
+    return path;
+  }
+
+  const separator = path.includes('?') ? '&' : '?';
+  return `${path}${separator}locale=${encodeURIComponent(locale)}`;
 }
 
-export async function getCategory(categoryId: number): Promise<Category> {
-  return fetchJson<Category>(`/api/categories/${categoryId}`);
+export async function getCategories(locale?: string): Promise<Category[]> {
+  return fetchJson<Category[]>(buildLocalizedPath('/api/categories', locale));
 }
 
-export async function getProducts(categoryId?: number): Promise<Product[]> {
-  const url = categoryId
-    ? `${baseUrl}/api/products?categoryId=${categoryId}`
-    : `${baseUrl}/api/products`;
+export async function getCategory(categoryId: number, locale?: string): Promise<Category> {
+  return fetchJson<Category>(buildLocalizedPath(`/api/categories/${categoryId}`, locale));
+}
+
+export async function getProducts(categoryId?: number, locale?: string): Promise<Product[]> {
+  const path = categoryId ? `/api/products?categoryId=${categoryId}` : '/api/products';
+  const url = `${baseUrl}${buildLocalizedPath(path, locale)}`;
   const res = await fetch(url, defaultFetchOptions);
   if (!res.ok) {
     throw new ApiError('Failed to fetch products', res.status);
@@ -58,6 +77,6 @@ export async function getProducts(categoryId?: number): Promise<Product[]> {
   return res.json();
 }
 
-export async function getProduct(productId: number): Promise<Product> {
-  return fetchJson<Product>(`/api/products/${productId}`);
+export async function getProduct(productId: number, locale?: string): Promise<Product> {
+  return fetchJson<Product>(buildLocalizedPath(`/api/products/${productId}`, locale));
 }

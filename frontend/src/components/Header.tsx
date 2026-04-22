@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import type { ReactNode } from 'react';
 import { useState, useEffect, useTransition } from 'react';
 import { BsTelephoneInbound } from 'react-icons/bs';
 import { RxHamburgerMenu } from 'react-icons/rx';
@@ -8,7 +9,22 @@ import { FiChevronDown } from 'react-icons/fi';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { useTranslations, useLocale } from 'next-intl';
 
-export default function Header() {
+type HeaderChildItem = {
+  name: string;
+  href: string;
+};
+
+type HeaderNavItem = {
+  name: string | ReactNode;
+  href: string;
+  children?: HeaderChildItem[];
+};
+
+type HeaderProps = {
+  catalogChildren?: HeaderChildItem[];
+};
+
+export default function Header({ catalogChildren = [] }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const t = useTranslations('Header');
   const locale = useLocale();
@@ -23,7 +39,7 @@ export default function Header() {
     });
   };
 
-  const navItems = [
+  const navItems: HeaderNavItem[] = [
     {
       name: <RxHamburgerMenu size={26} color="white" />,
       href: '#',
@@ -35,6 +51,7 @@ export default function Header() {
     {
       name: t('catalog'),
       href: '/catalog',
+      children: catalogChildren.length > 0 ? catalogChildren : undefined,
     },
     {
       name: t('about'),
@@ -157,11 +174,11 @@ export default function Header() {
                       href={item.href}
                       className={`inline-flex items-center gap-1 text-white text-sm hover:text-white/80 transition-colors p-4 ${item.children ? 'hover:bg-[#074031]' : ''}`}>
                       {typeof item.name === 'string' ? item.name.toUpperCase() : item.name}
-                      {'children' in item && item.children && (
+                      {item.children && (
                         <FiChevronDown size={14} className="mt-0.5" />
                       )}
                     </Link>
-                    {'children' in item && item.children && (
+                    {item.children && (
                       <ul className="absolute left-0 top-full bg-white shadow-md min-w-[180px] invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-50">
                         {item.children.map((child, childIdx) => (
                           <li

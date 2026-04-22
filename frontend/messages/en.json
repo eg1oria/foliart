@@ -30,6 +30,14 @@
     "officeEmail": "mail@foliart.me",
     "officeAddress": "350072, Krasnodar Territory, Krasnodar, Solnechnaya St., 10/3, office No. 31, floor 2"
   },
+  "Specialist": {
+    "eyebrow": "PLANT NUTRITION SPECIALIST",
+    "name": "Arseniy",
+    "caption": "Expert help in choosing fertilizers",
+    "description": "Our highly qualified specialist analyzes the soil and determines its chemical composition. Based on the results, Arseniy can recommend the best fertilizer for a specific soil type and crop. His knowledge of soil chemistry and nutrients helps develop tailored fertilizer formulas that improve yields and plant health while also reducing the environmental impact. He will be happy to answer your questions.",
+    "action": "Ask a question",
+    "imageAlt": "Arseniy, plant nutrition specialist"
+  },
   "Home": {
     "catalogButton": "Fertilizers Catalog"
   },

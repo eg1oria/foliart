@@ -1,7 +1,7 @@
 'use client';
 
 import Image, { type ImageProps } from 'next/image';
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useState } from 'react';
 
 type MediaImageProps = Omit<ImageProps, 'src'> & {
   src?: string | null;
@@ -16,16 +16,15 @@ export default function MediaImage({
   alt,
   ...props
 }: MediaImageProps) {
-  const [currentSrc, setCurrentSrc] = useState<string | null>(
-    src ?? fallbackSrc ?? null,
-  );
-  const [showPlaceholder, setShowPlaceholder] = useState(!src && !fallbackSrc);
-
-  useEffect(() => {
-    const nextSource = src ?? fallbackSrc ?? null;
-    setCurrentSrc(nextSource);
-    setShowPlaceholder(!nextSource);
-  }, [fallbackSrc, src]);
+  const [failedSource, setFailedSource] = useState<{
+    key: string;
+    stage: 'primary' | 'fallback';
+  } | null>(null);
+  const sourceKey = `${src ?? ''}|${fallbackSrc ?? ''}`;
+  const failureStage = failedSource?.key === sourceKey ? failedSource.stage : null;
+  const currentSrc =
+    failureStage === 'primary' ? fallbackSrc ?? null : src ?? fallbackSrc ?? null;
+  const showPlaceholder = !currentSrc || failureStage === 'fallback';
 
   if (!currentSrc || showPlaceholder) {
     return <>{emptyState}</>;
@@ -37,12 +36,12 @@ export default function MediaImage({
       src={currentSrc}
       alt={alt}
       onError={() => {
-        if (fallbackSrc && currentSrc !== fallbackSrc) {
-          setCurrentSrc(fallbackSrc);
+        if (src && fallbackSrc && failureStage !== 'primary') {
+          setFailedSource({ key: sourceKey, stage: 'primary' });
           return;
         }
 
-        setShowPlaceholder(true);
+        setFailedSource({ key: sourceKey, stage: 'fallback' });
       }}
     />
   );

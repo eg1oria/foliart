@@ -1,0 +1,5 @@
+ALTER TABLE "Product"
+ADD COLUMN "composition" TEXT NOT NULL DEFAULT '';
+
+ALTER TABLE "Product"
+ADD COLUMN "application" TEXT NOT NULL DEFAULT '';

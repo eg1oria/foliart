@@ -1,32 +1,48 @@
 import MediaImage from '@/components/catalog/MediaImage';
+import SpecialistSection from '@/components/catalog/SpecialistSection';
 import { Link } from '@/i18n/routing';
-import { ApiError, getCategory, getProduct } from '@/lib/api';
-import { getCatalogCopy, parseAdvantages, parseEntityId } from '@/lib/catalog';
+import { getCategories, getProducts } from '@/lib/api';
+import {
+  findCategoryByParam,
+  findProductByParam,
+  getCatalogCopy,
+  getCategoryHref,
+  getCategorySlug,
+  getProductHref,
+  getProductSlug,
+  parseAdvantages,
+  parseApplication,
+  parseComposition,
+} from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
+import { FiChevronDown } from 'react-icons/fi';
+import { GrDocumentText } from 'react-icons/gr';
+import { TbArrowBackUp } from 'react-icons/tb';
 
-async function loadProduct(productId: number) {
-  try {
-    return await getProduct(productId);
-  } catch (error) {
-    if (error instanceof ApiError && error.status === 404) {
-      notFound();
-    }
+async function getProductPageData(categoryParam: string, productParam: string, locale: string) {
+  const categories = await getCategories(locale);
+  const category = findCategoryByParam(categories, categoryParam);
 
-    throw error;
+  if (!category) {
+    notFound();
   }
+
+  const products = await getProducts(category.id, locale);
+  const product = findProductByParam(products, productParam);
+
+  if (!product) {
+    notFound();
+  }
+
+  return { category, product };
 }
 
-async function loadCategory(categoryId: number) {
-  try {
-    return await getCategory(categoryId);
-  } catch (error) {
-    if (error instanceof ApiError && error.status === 404) {
-      notFound();
-    }
-
-    throw error;
-  }
+function getTextBlocks(value: string): string[] {
+  return value
+    .split(/\r?\n+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 export default async function ProductDetailsPage({
@@ -35,127 +51,249 @@ export default async function ProductDetailsPage({
   params: Promise<{ locale: string; categoryId: string; productId: string }>;
 }) {
   const { locale, categoryId: rawCategoryId, productId: rawProductId } = await params;
-  const categoryId = parseEntityId(rawCategoryId);
-  const productId = parseEntityId(rawProductId);
-
-  if (!categoryId || !productId) {
-    notFound();
-  }
-
   const copy = getCatalogCopy(locale);
-  const product = await loadProduct(productId);
+  const { category, product } = await getProductPageData(rawCategoryId, rawProductId, locale);
 
-  if (product.categoryId !== categoryId) {
-    notFound();
+  if (rawCategoryId !== getCategorySlug(category) || rawProductId !== getProductSlug(product)) {
+    redirect(`/${locale}${getProductHref(category, product)}`);
   }
 
-  const category = await loadCategory(categoryId);
   const categoryImage = resolveMediaUrl(category.imageUrl);
   const productImage = resolveMediaUrl(product.imageUrl);
+  const certificateImage = resolveMediaUrl('images/sertificate.webp');
+  const certificateLabel =
+    locale === 'en' ? 'Certificate of conformity' : 'Сертификат соответствия';
+  const compositionItems = parseComposition(product.composition);
   const advantages = parseAdvantages(product.advantages);
+  const applicationItems = parseApplication(product.application);
+  const productText = product.description.trim();
+  const categoryText = category.description.trim();
+  const overviewText = productText || categoryText || copy.detailsFallback;
+  const overviewBlocks = getTextBlocks(overviewText);
+  const summaryBlocks = overviewBlocks.slice(0, 2);
+  const pageCopy =
+    locale === 'en'
+      ? {
+          sectionsLabel: 'Product sections',
+          compositionTitle: 'Composition',
+          compositionEmpty:
+            'Detailed composition information will be added to this product card later.',
+          applicationTitle: 'Application guide',
+          applicationEmpty:
+            'Recommendations on timing, dosage, and growth stage will be added later.',
+          specialistTitle: 'Specialist help',
+          advantagesLabel: `Advantages of ${product.name}`,
+        }
+      : {
+          sectionsLabel: 'Разделы товара',
+          compositionTitle: 'Состав',
+          compositionEmpty:
+            'Подробная информация о составе будет добавлена в карточку товара позже.',
+          applicationTitle: 'Регламент применения',
+          applicationEmpty: 'Рекомендации по срокам, нормам и фазам внесения добавим позже.',
+          specialistTitle: 'Помощь специалиста',
+          advantagesLabel: `Преимущества ${product.name}`,
+        };
+  const sectionLinks = [
+    { id: 'description', label: copy.descriptionTitle },
+    { id: 'composition', label: pageCopy.compositionTitle },
+    { id: 'advantages', label: pageCopy.advantagesLabel },
+    { id: 'application', label: pageCopy.applicationTitle },
+    { id: 'specialist', label: pageCopy.specialistTitle },
+  ];
+  const askQuestionLabel = locale === 'en' ? 'Ask a question' : 'Задать вопрос';
+  const compatibilityNote =
+    locale === 'en'
+      ? 'The product is compatible with most fertilizers and crop protection products. Mixing with copper- and sulfur-based products in the same tank is not allowed. A compatibility test is required before use.'
+      : 'Препарат совместим с большинством удобрений и средств защиты. Недопустимо совместное использование в баковой смеси с препаратами меди и серы. Перед применением тест на совместимость обязателен.';
+  const certificateLink = certificateImage ? (
+    <a
+      href={certificateImage}
+      target="_blank"
+      rel="noreferrer"
+      className="group inline-flex w-fit items-center gap-4 self-start xl:pt-2">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#f45734] text-white shadow-[0_18px_30px_-22px_rgba(244,87,52,0.9)] transition group-hover:scale-[1.04]">
+        <GrDocumentText className="text-[1.4rem]" />
+      </span>
+      <span className="text-[1rem] text-[#3b76f6] transition group-hover:text-[#0b5a45]">
+        {certificateLabel}
+      </span>
+    </a>
+  ) : null;
 
   return (
-    <main className="flex-1 pb-20">
-      <section className="relative overflow-hidden pb-16 pt-36">
-        <div className="absolute inset-0">
-          <MediaImage
-            src={categoryImage}
-            alt={category.name}
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover"
-            emptyState={
-              <div className="h-full w-full bg-[linear-gradient(130deg,#dbe6d8,#7da97f,#0b5a45)]" />
-            }
-          />
-        </div>
-        <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(7,35,28,0.9),rgba(7,35,28,0.55),rgba(255,255,255,0))]" />
+    <main className="flex-1 bg-white pb-20">
+      <div className="relative flex flex-col items-start justify-center overflow-hidden px-90 py-12 pt-65">
+        <MediaImage
+          src={categoryImage}
+          alt={category.name}
+          fill
+          className="object-cover"
+          emptyState={
+            <div className="h-full w-full bg-[linear-gradient(130deg,#dbe6d8,#7da97f,#0b5a45)]" />
+          }
+        />
+        <div className="absolute inset-0 bg-black/45" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/55 to-transparent" />
 
-        <div className="relative mx-auto max-w-7xl px-6 md:px-8">
-          <div className="mb-10 flex flex-wrap items-center gap-3 text-sm text-white/72">
-            <Link href="/catalog" className="transition hover:text-white">
-              {copy.allCategories}
-            </Link>
-            <span>/</span>
-            <Link href={`/catalog/${category.id}`} className="transition hover:text-white">
-              {category.name}
-            </Link>
-            <span>/</span>
-            <span className="text-white">{product.name}</span>
-          </div>
+        <h1 className="relative z-10 text-[40px] font-bold text-white">{product.name}</h1>
+      </div>
 
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start">
-            <div className="rounded-[2rem] bg-white/92 p-6 shadow-[0_30px_90px_-50px_rgba(0,0,0,0.95)] backdrop-blur-sm md:p-8">
-              <div className="relative mx-auto aspect-[4/5] max-w-[420px]">
-                <MediaImage
-                  src={productImage}
-                  alt={product.name}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 40vw"
-                  className="object-contain p-4"
-                  emptyState={
-                    <div className="flex h-full w-full items-center justify-center rounded-[1.5rem] bg-[#f4f0e7] px-10 text-center text-sm leading-6 text-[#6d6d63]">
-                      {copy.productPlaceholder}
-                    </div>
-                  }
-                />
-              </div>
+      <section className="px-90 py-12">
+        <div className="grid gap-x-12 gap-y-16 lg:grid-cols-[230px_minmax(340px,1fr)_minmax(280px,360px)]">
+          <aside className="order-3 lg:order-1 lg:row-span-2 lg:self-stretch">
+            <div className="lg:h-full">
+              <nav
+                aria-label={pageCopy.sectionsLabel}
+                className="pl-3 lg:sticky lg:top-32 lg:border-l-3 lg:border-[#d9dcdf]">
+                <ul className="flex flex-col">
+                  {sectionLinks.map((section) => (
+                    <li key={section.id} className="border-b border-[#eceef0]">
+                      <a
+                        href={`#${section.id}`}
+                        className="block py-4 text-[1rem] leading-snug text-[#4685d4] transition hover:text-[#0b5a45]">
+                        {section.label}
+                      </a>
+                    </li>
+                  ))}
+                  <li className="pt-5">
+                    <Link
+                      href={getCategoryHref(category)}
+                      className="inline-flex items-center gap-2 text-base text-[#8a8e91] transition hover:text-[#0b5a45]">
+                      <TbArrowBackUp className="shrink-0" />
+                      {copy.backToCategory}
+                    </Link>
+                  </li>
+                </ul>
+              </nav>
             </div>
+          </aside>
 
-            <div className="rounded-[2rem] bg-white/92 p-8 shadow-[0_30px_90px_-50px_rgba(0,0,0,0.95)] backdrop-blur-sm md:p-10">
-              <p className="mb-4 text-sm font-medium uppercase tracking-[0.28em] text-[#0b5a45]/70">
-                {category.name}
-              </p>
-              <h1 className="mb-6 text-4xl font-semibold text-[#0b3e31] md:text-5xl">
-                {product.name}
-              </h1>
-              <p className="text-base leading-8 text-[#425e56]">
-                {product.description || copy.detailsFallback}
-              </p>
-
-              <div className="mt-8 flex flex-wrap gap-4">
-                <Link
-                  href={`/catalog/${category.id}`}
-                  className="inline-flex items-center rounded-full bg-[#0b5a45] px-6 py-3 text-sm font-medium text-white transition hover:bg-[#094635]">
-                  {copy.backToCategory}
-                </Link>
-                <Link
-                  href="/catalog"
-                  className="inline-flex items-center rounded-full border border-[#0b5a45]/18 px-6 py-3 text-sm font-medium text-[#0b5a45] transition hover:border-[#0b5a45] hover:bg-[#0b5a45] hover:text-white">
-                  {copy.allCategories}
-                </Link>
-              </div>
+          <div className="order-1 relative flex min-h-[420px] items-center justify-center lg:order-2 lg:min-h-[520px]">
+            <div className="absolute bottom-9 h-10 w-[58%] rounded-full bg-black/10 blur-2xl" />
+            <div className="relative aspect-[4/5] w-full max-w-[430px]">
+              <MediaImage
+                src={productImage}
+                alt={product.name}
+                fill
+                sizes="(max-width: 1024px) 100vw, 34vw"
+                className="object-contain drop-shadow-[0_28px_34px_rgba(0,0,0,0.12)]"
+                emptyState={
+                  <div className="flex h-full w-full items-center justify-center rounded-[1.75rem] bg-[#f4f0e7] px-10 text-center text-sm leading-6 text-[#6d6d63]">
+                    {copy.productPlaceholder}
+                  </div>
+                }
+              />
             </div>
           </div>
-        </div>
-      </section>
 
-      <section className="mx-auto grid w-full max-w-7xl gap-10 px-6 py-12 md:px-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
-        <article className="rounded-[2rem] border border-[#0b5a45]/10 bg-white p-8 shadow-[0_24px_70px_-52px_rgba(11,62,49,0.95)] md:p-10">
-          <h2 className="mb-5 text-3xl font-semibold text-[#0b3e31]">{copy.descriptionTitle}</h2>
-          <p className="text-base leading-8 text-[#425e56]">
-            {product.description || copy.detailsFallback}
-          </p>
-        </article>
-
-        <aside className="rounded-[2rem] border border-[#0b5a45]/10 bg-[#f7f6f1] p-8 shadow-[0_24px_70px_-52px_rgba(11,62,49,0.95)] md:p-10">
-          <h2 className="mb-5 text-3xl font-semibold text-[#0b3e31]">{copy.advantagesTitle}</h2>
-
-          {advantages.length === 0 ? (
-            <p className="text-base leading-8 text-[#567068]">{copy.advantagesEmpty}</p>
-          ) : (
-            <ul className="space-y-4">
-              {advantages.map((advantage, index) => (
-                <li
-                  key={`${product.id}-${index}`}
-                  className="rounded-[1.3rem] bg-white px-5 py-4 text-base leading-7 text-[#425e56]">
-                  {advantage}
-                </li>
+          <div id="description" className="order-2 max-w-[360px] scroll-mt-32 lg:order-3">
+            <div className="space-y-4 text-sm leading-7 text-[#243238]">
+              {summaryBlocks.map((block, index) => (
+                <p key={`${product.id}-summary-${index}`}>{block}</p>
               ))}
-            </ul>
-          )}
-        </aside>
+            </div>
+            <a
+              href="#composition"
+              className="mt-6 inline-flex items-center gap-2 text-sm text-[#3b76f6] transition hover:text-[#0b5a45]">
+              <span>{copy.learnMore}</span>
+              <FiChevronDown size={16} className="shrink-0" />
+            </a>
+
+            <div className="mt-10 flex flex-col items-start gap-8">
+              <Link
+                href="/contacts"
+                className="inline-flex min-h-[50px] items-center justify-center rounded-full bg-[#0b5a45] px-9 py-3 text-[1.05rem] font-medium text-white transition hover:bg-[#094635]">
+                {askQuestionLabel}
+              </Link>
+
+              <p className="text-[0.90rem] leading-6 text-[#a8a49b] italic">{compatibilityNote}</p>
+            </div>
+          </div>
+
+          <div className="order-4 flex flex-col gap-14 lg:col-[2/4]">
+            <article id="composition" className="scroll-mt-32 pt-10">
+              <div className="flex items-center gap-5">
+                <h2 className="shrink-0 text-2xl text-[#0b3e31]">{pageCopy.compositionTitle}</h2>
+                <span className="h-px flex-1 bg-[#e7eaec]" />
+              </div>
+
+              <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1fr)_280px] xl:items-start">
+                {compositionItems.length === 0 ? (
+                  <p className="max-w-3xl text-lg leading-8 text-[#55676d]">
+                    {pageCopy.compositionEmpty}
+                  </p>
+                ) : (
+                  <ul className="space-y-4">
+                    {compositionItems.map((item, index) => (
+                      <li
+                        key={`${product.id}-composition-${index}`}
+                        className="flex items-end gap-4 text-[1.05rem] leading-6 text-[#4b5563]">
+                        <span className="shrink-0">{item.label}</span>
+                        <span className="mb-[0.32rem] h-px min-w-4 flex-1 bg-[radial-gradient(circle,_#9ca3af_1px,_transparent_1.2px)] bg-[length:6px_1px] bg-repeat-x" />
+                        <span className="shrink-0 font-semibold text-[#374151]">
+                          {item.value || '-'}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {certificateLink}
+              </div>
+            </article>
+
+            <article id="advantages" className="scroll-mt-32 border-t border-[#e7eaec] pt-10">
+              <h2 className="text-2xl text-[#0b3e31]">{pageCopy.advantagesLabel}</h2>
+
+              {advantages.length === 0 ? (
+                <p className="mt-6 max-w-3xl text-lg leading-8 text-[#55676d]">
+                  {copy.advantagesEmpty}
+                </p>
+              ) : (
+                <ul className="mt-8 space-y-1">
+                  {advantages.map((advantage, index) => (
+                    <li
+                      key={`${product.id}-advantage-${index}`}
+                      className="flex gap-3 text-lg leading-8 text-[#243238]">
+                      <span className="mt-3 h-1 w-1 shrink-0 rounded-full bg-[#0b5a45]" />
+                      <span className="text-sm">{advantage}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </article>
+
+            <article id="application" className="scroll-mt-32 border-t border-[#e7eaec] pt-10">
+              <h2 className="text-2xl text-[#0b3e31]">{pageCopy.applicationTitle}</h2>
+
+              {applicationItems.length === 0 ? (
+                <p className="mt-6 max-w-3xl text-lg leading-8 text-[#55676d]">
+                  {pageCopy.applicationEmpty}
+                </p>
+              ) : (
+                <div className="mt-8 grid gap-6 md:grid-cols-2">
+                  {applicationItems.map((item, index) => (
+                    <article
+                      key={`${product.id}-application-${index}`}
+                      className="border-4 border border-[#edf1f4] bg-[#fbfcfd] px-8 py-9">
+                      <h3 className="text-[1.15rem] font-medium leading-8 text-[#4685d4]">
+                        {item.title}
+                      </h3>
+                      <p className="mt-7 whitespace-pre-line text-sm leading-8 text-[#243238]">
+                        {item.description}
+                      </p>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </article>
+
+            <article id="specialist" className="scroll-mt-32 border-t border-[#e7eaec] pt-10">
+              <SpecialistSection />
+            </article>
+          </div>
+        </div>
       </section>
     </main>
   );

@@ -1,7 +1,12 @@
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
 import { getCategories, getProducts } from '@/lib/api';
-import { formatProductCount, getCatalogCopy, getCategoryProductCount } from '@/lib/catalog';
+import {
+  formatProductCount,
+  getCatalogCopy,
+  getCategoryHref,
+  getCategoryProductCount,
+} from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
 import Image from 'next/image';
 
@@ -10,22 +15,28 @@ const layoutVariants = ['md:col-span-2', '', 'md:col-span-2', ''] as const;
 export default async function CatalogPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const copy = getCatalogCopy(locale);
-  const [categories, products] = await Promise.all([getCategories(), getProducts()]);
+  const [categories, products] = await Promise.all([getCategories(locale), getProducts(undefined, locale)]);
 
   return (
     <section>
-      <div className="relative flex flex-col items-center justify-center overflow-hidden px-6 py-14 pt-60 text-center">
+      <div className="relative flex flex-col items-start px-90 justify-center overflow-hidden px-6 py-14 pt-60 text-center">
         <Image src="/catalog-head.jpeg" alt="" fill className="object-cover -z-10" />
         <div className="absolute inset-0 bg-black/50 -z-10" />
-        <h1
-          className="font-bold text-white mb-4"
-          style={{
-            fontSize: 55,
-          }}>
-          {copy.title}
-        </h1>
-        <p className="text-base text-xl text-white/70  mb-2">{copy.subtitle}</p>
-        <Image src="/logo5.PNG" alt="Фолиарт" width={130} height={40} />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-30 bg-gradient-to-b from-black/60 via-black/40 to-transparent" />
+        <div className="relative z-10">
+          <h1
+            className="font-bold text-white mb-4"
+            style={{
+              fontSize: 55,
+            }}>
+            {copy.title}
+          </h1>
+          <p
+            className="text-base text-xl text-start
+           text-white/70  mb-2">
+            {copy.subtitle}
+          </p>
+        </div>
       </div>
 
       {categories.length === 0 ? (
@@ -45,7 +56,7 @@ export default async function CatalogPage({ params }: { params: Promise<{ locale
             return (
               <Link
                 key={category.id}
-                href={`/catalog/${category.id}`}
+                href={getCategoryHref(category)}
                 className={`group relative overflow-hidden bg-[#e7efe9] shadow-[0_24px_60px_-40px_rgba(11,62,49,0.9)] ${layoutClassName}`}>
                 <div className="absolute inset-0">
                   <MediaImage

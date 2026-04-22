@@ -12,18 +12,27 @@ datasource db {
 model Category {
   id           Int       @id @default(autoincrement())
   name         String
+  nameEn       String    @default("")
   description  String
+  descriptionEn String   @default("")
   imageUrl     String
   productCount Int       @default(0)
   products     Product[]
 }
 
 model Product {
-  id          Int      @id @default(autoincrement())
-  categoryId  Int
-  category    Category @relation(fields: [categoryId], references: [id])
-  name        String
-  description String
-  advantages  String   // JSON string or comma-separated for sqlite
-  imageUrl    String
+  id            Int      @id @default(autoincrement())
+  categoryId    Int
+  category      Category @relation(fields: [categoryId], references: [id])
+  name          String
+  nameEn        String   @default("")
+  description   String
+  descriptionEn String   @default("")
+  advantages    String   // JSON string or comma-separated for sqlite
+  advantagesEn  String   @default("") // English translation or blank fallback
+  composition   String   @default("") // JSON string or line-based pairs
+  compositionEn String   @default("") // English translation or blank fallback
+  application   String   @default("") // JSON string or blank-line separated blocks
+  applicationEn String   @default("") // English translation or blank fallback
+  imageUrl      String
 }
