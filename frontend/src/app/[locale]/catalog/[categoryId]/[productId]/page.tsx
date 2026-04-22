@@ -215,7 +215,6 @@ export default async function ProductDetailsPage({
             <article id="composition" className="scroll-mt-32 pt-10">
               <div className="flex items-center gap-5">
                 <h2 className="shrink-0 text-2xl text-[#0b3e31]">{pageCopy.compositionTitle}</h2>
-                <span className="h-px flex-1 bg-[#e7eaec]" />
               </div>
 
               <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1fr)_280px] xl:items-start">
@@ -229,7 +228,7 @@ export default async function ProductDetailsPage({
                       <li
                         key={`${product.id}-composition-${index}`}
                         className="flex items-end gap-4 text-[1.05rem] leading-6 text-[#4b5563]">
-                        <span className="shrink-0">{item.label}</span>
+                        <span className="shrink-0 max-w-[45%] break-words">{item.label}</span>
                         <span className="mb-[0.32rem] h-px min-w-4 flex-1 bg-[radial-gradient(circle,_#9ca3af_1px,_transparent_1.2px)] bg-[length:6px_1px] bg-repeat-x" />
                         <span className="shrink-0 font-semibold text-[#374151]">
                           {item.value || '-'}
@@ -252,15 +251,17 @@ export default async function ProductDetailsPage({
                 </p>
               ) : (
                 <ul className="mt-8 space-y-1">
-                  {advantages.map((advantage, index) => (
-                    <li
-                      key={`${product.id}-advantage-${index}`}
-                      className="flex gap-3 text-lg leading-8 text-[#243238]">
-                      <span className="mt-3 h-1 w-1 shrink-0 rounded-full bg-[#0b5a45]" />
-                      <span className="text-sm">{advantage}</span>
-                    </li>
-                  ))}
-                </ul>
+  {advantages.map((advantage, index) => (
+    <li
+      key={`${product.id}-advantage-${index}`}
+      className="flex gap-3 text-lg leading-8 text-[#243238]">
+      {index !== 0 && (
+        <span className="mt-3 h-1 w-1 shrink-0 rounded-full bg-[#0b5a45]" />
+      )}
+      <span className="text-sm">{advantage}</span>
+    </li>
+  ))}
+</ul>
               )}
             </article>
 

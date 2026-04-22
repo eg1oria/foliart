@@ -36,3 +36,16 @@ model Product {
   applicationEn String   @default("") // English translation or blank fallback
   imageUrl      String
 }
+
+model Article {
+  id         Int      @id @default(autoincrement())
+  title      String
+  titleEn    String   @default("")
+  excerpt    String   @default("")
+  excerptEn  String   @default("")
+  content    String
+  contentEn  String   @default("")
+  imageUrl   String
+  publishedAt DateTime @default(now())
+  viewCount  Int      @default(0)
+}

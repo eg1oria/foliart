@@ -1,3 +1,4 @@
+import AdminTabs from '@/components/admin/AdminTabs';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
 import { getCategories, getProducts, type Product } from '@/lib/api';
@@ -330,6 +331,7 @@ export default async function AdminProductsPage({
             </p>
             <h1 className="mb-4 text-4xl font-semibold md:text-5xl">{adminCopy.title}</h1>
             <p className="text-base leading-7 text-white/80 md:text-lg">{adminCopy.subtitle}</p>
+            <AdminTabs active="products" locale={locale} />
           </div>
 
           <Link

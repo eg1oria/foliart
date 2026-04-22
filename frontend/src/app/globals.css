@@ -9,3 +9,156 @@ body {
   color: black;
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.article-card {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+
+.article-card-content {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  min-height: 18rem;
+}
+
+.article-card-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  max-height: 3.75em;
+  line-height: 1.25;
+  min-height: 3.75em;
+}
+
+.article-card-excerpt {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  position: relative;
+  min-height: 4rem;
+  max-height: 4rem;
+}
+
+.article-card-excerpt::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 3rem;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.96) 72%,
+    #fff 100%
+  );
+}
+
+.article-card-excerpt-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.article-content {
+  color: #1f3442;
+  font-size: 1.1rem;
+  line-height: 1.9;
+}
+
+.article-content > * + * {
+  margin-top: 1.5rem;
+}
+
+.article-content h2,
+.article-content h3 {
+  color: #0e2438;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.article-content h2 {
+  margin-top: 3rem;
+  font-size: clamp(1.6rem, 2.2vw, 2.15rem);
+}
+
+.article-content h3 {
+  margin-top: 2.25rem;
+  font-size: clamp(1.2rem, 1.5vw, 1.45rem);
+}
+
+.article-content p {
+  margin: 0;
+}
+
+.article-content ul,
+.article-content ol {
+  margin: 0;
+  padding-left: 1.4rem;
+}
+
+.article-content li + li {
+  margin-top: 0.65rem;
+}
+
+.article-content blockquote {
+  border-left: 4px solid #0b5a45;
+  margin: 2rem 0;
+  padding: 0.5rem 0 0.5rem 1.25rem;
+  color: #4d616b;
+  font-style: italic;
+}
+
+.article-content a {
+  color: #0b5a45;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.admin-rich-text > * + * {
+  margin-top: 1rem;
+}
+
+.admin-rich-text h2,
+.admin-rich-text h3 {
+  color: #0e2438;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.admin-rich-text h2 {
+  font-size: 1.4rem;
+}
+
+.admin-rich-text h3 {
+  font-size: 1.15rem;
+}
+
+.admin-rich-text p {
+  margin: 0;
+}
+
+.admin-rich-text ul,
+.admin-rich-text ol {
+  margin: 0;
+  padding-left: 1.3rem;
+}
+
+.admin-rich-text blockquote {
+  border-left: 3px solid #0b5a45;
+  color: #4d616b;
+  font-style: italic;
+  padding-left: 0.9rem;
+}
+
+.admin-rich-text a {
+  color: #0b5a45;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}

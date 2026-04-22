@@ -26,6 +26,20 @@ export type Product = {
   slugSourceName?: string;
 };
 
+export type Article = {
+  id: number;
+  title: string;
+  titleEn: string;
+  excerpt: string;
+  excerptEn: string;
+  content: string;
+  contentEn: string;
+  imageUrl: string;
+  publishedAt: string;
+  viewCount: number;
+  slugSourceTitle?: string;
+};
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -79,4 +93,12 @@ export async function getProducts(categoryId?: number, locale?: string): Promise
 
 export async function getProduct(productId: number, locale?: string): Promise<Product> {
   return fetchJson<Product>(buildLocalizedPath(`/api/products/${productId}`, locale));
+}
+
+export async function getArticles(locale?: string): Promise<Article[]> {
+  return fetchJson<Article[]>(buildLocalizedPath('/api/articles', locale));
+}
+
+export async function getArticle(articleId: number, locale?: string): Promise<Article> {
+  return fetchJson<Article>(buildLocalizedPath(`/api/articles/${articleId}`, locale));
 }

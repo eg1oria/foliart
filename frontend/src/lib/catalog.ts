@@ -62,7 +62,7 @@ export function parseEntityId(value: string): number | null {
   return parsed;
 }
 
-function slugify(value: string): string {
+export function slugify(value: string): string {
   const normalized = decodeRouteParam(value)
     .trim()
     .toLowerCase()
