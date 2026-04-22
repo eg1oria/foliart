@@ -44,6 +44,8 @@ services:
   backend:
     build:
       context: ./backend
+      args:
+        DATABASE_URL: file:/app/data/prod.db
     expose:
       - '5000'
     environment:
