@@ -8,7 +8,7 @@ export default function About() {
   const t = useTranslations('About');
 
   return (
-    <section className="">
+    <section>
       <div className="relative flex flex-col items-center justify-center py-14 px-6 text-center overflow-hidden pt-60">
         <Image src="/about-head1.png" alt="" fill className="object-cover -z-10" />
         <div className="absolute inset-0 bg-black/50 -z-10" />

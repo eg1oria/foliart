@@ -1,0 +1,31 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id           Int       @id @default(autoincrement())
+  name         String
+  description  String
+  imageUrl     String
+  productCount Int       @default(0)
+  products     Product[]
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  categoryId  Int
+  category    Category @relation(fields: [categoryId], references: [id])
+  name        String
+  description String
+  advantages  String   // JSON string or comma-separated for sqlite
+  imageUrl    String
+}
