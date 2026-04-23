@@ -226,12 +226,9 @@ export default function FullscreenMenu({
           </div>
 
           <div>
-            <Link
-              href="/calendar"
-              onClick={onClose}
-              className="mb-4 block text-lg font-light tracking-widest text-white uppercase transition-colors hover:text-white/60">
+            <h4 className="mb-4 block text-lg font-light tracking-widest text-white uppercase">
               {t('calendar')}
-            </Link>
+            </h4>
             {calendarChildren.length > 0 ? (
               <div className="flex flex-col gap-2">
                 {calendarChildren.map((link) => (

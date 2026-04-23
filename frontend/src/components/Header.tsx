@@ -30,10 +30,7 @@ type HeaderProps = {
   calendarChildren?: HeaderChildItem[];
 };
 
-export default function Header({
-  catalogChildren = [],
-  calendarChildren = [],
-}: HeaderProps) {
+export default function Header({ catalogChildren = [], calendarChildren = [] }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const t = useTranslations('Header');
@@ -76,7 +73,7 @@ export default function Header({
     },
     {
       name: t('calendar'),
-      href: '/calendar',
+      href: '',
       children: calendarChildren.length > 0 ? calendarChildren : undefined,
     },
     {
