@@ -24,19 +24,21 @@ export default function Hero() {
   ];
 
   return (
-    <section className="relative px-90 py-40 flex flex-col items-center justify-center min-h-screen">
+    <section className="hero-section relative flex h-full md:min-h-screen flex-col items-center justify-start  md:justify-center pt-30 pb-20 md:pb-40 md:pt-40">
       <Image src="/hero.png" alt="" fill className="object-cover -z-10" priority />
       <div className="absolute inset-0 bg-black/50 -z-10" />
-      <Image src="/logo5.PNG" alt="Logo" width={500} height={80} className="mt-20" />
+      <Image src="/logo5.PNG" alt="Logo" width={500} height={80} className="mt-0 md:mt-20" />
       <h1 className="text-xl text-center text-white/85" style={{ fontWeight: 100 }}>
         {t('title')}
       </h1>
 
-      <ul className="flex justify-between mt-20 w-full max-w-6xl">
+      <ul className="mt-20 grid w-full grid-cols-1 gap-8 justify-items-start tablet:justify-items-center tablet:grid-cols-2 xl:grid-cols-4">
         {items.map((item) => (
-          <li key={item.title} className="flex flex-col gap-9 items-center max-w-[240px]">
+          <li
+            key={item.title}
+            className="flex tablet:max-w-[250px] tablet:flex-col items-start tablet:items-center gap-9">
             <Image src={item.img} alt={item.title} width={50} height={50} />
-            <span className="text-white/85 text-center mt-2">{item.title}</span>
+            <span className="text-white/85 text-start tablet:text-center mt-2">{item.title}</span>
           </li>
         ))}
       </ul>

@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+@theme {
+  --breakpoint-tablet: 42.25rem;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -39,7 +43,11 @@ header {
   header,
   .header-catalog,
   .header-links,
-  .header-top {
+  .header-top,
+  .hero-section,
+  .complex-section,
+  .advantages-section,
+  .footer-section {
     padding-left: 16px; /* px-6 */
     padding-right: 16px;
   }
@@ -50,7 +58,11 @@ header {
   header,
   .header-catalog,
   .header-links,
-  .header-top {
+  .header-top,
+  .hero-section,
+  .complex-section,
+  .advantages-section,
+  .footer-section {
     padding-left: 24px; /* px-6 */
     padding-right: 24px;
   }
@@ -67,7 +79,11 @@ header {
 
   .header-catalog,
   .header-links,
-  .header-top {
+  .header-top,
+  .hero-section,
+  .complex-section,
+  .advantages-section,
+  .footer-section {
     padding-left: 48px; /* px-12 */
     padding-right: 48px;
   }
@@ -78,7 +94,11 @@ header {
   header,
   .header-catalog,
   .header-links,
-  .header-top {
+  .header-top,
+  .hero-section,
+  .complex-section,
+  .advantages-section,
+  .footer-section {
     padding-left: 240px; /* px-90 */
     padding-right: 240px;
   }
@@ -88,7 +108,11 @@ header {
   header,
   .header-catalog,
   .header-links,
-  .header-top {
+  .header-top,
+  .hero-section,
+  .complex-section,
+  .advantages-section,
+  .footer-section {
     padding-left: 360px; /* px-70 */
     padding-right: 360px;
   }

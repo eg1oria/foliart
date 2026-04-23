@@ -33,17 +33,21 @@ export default function Advantages() {
   ];
 
   return (
-    <section className="px-90 py-20 flex flex-col">
-      <h2 className="text-5xl font-bold text-center">{t('title')}</h2>
+    <section className="advantages-section px-90 py-20 flex flex-col">
+      <h2 className="text-4xl md:text-5xl font-bold text-center">{t('title')}</h2>
       <p className="text-center text-xl text-black/75 mt-6">{t('subtitle')}</p>
-      <div className="flex flex-col gap-30">
+      <div className="flex flex-col gap-10 min-[900px]:gap-30">
         {items.map((item) => (
           <div
             key={item.title}
-            className={`flex items-start gap-8 mt-12 ${item.right ? 'flex-row-reverse' : ''}`}>
+            className={`flex flex-col-reverse items-center min-[900px]:items-start gap-8 mt-12 ${
+              item.right ? 'min-[900px]:flex-row-reverse' : 'min-[900px]:flex-row'
+            }`}>
             <Image src={item.img} alt={item.title} width={500} height={80} />
             <div>
-              <h3 className="text-4xl font-semibold">{item.title}</h3>
+              <h3 className="text-3xl min-[900px]:text-4xl text-center min-[900px]:text-start font-semibold">
+                {item.title}
+              </h3>
               {item.desc && <p className="text-black/75 mt-4 max-w-2xl">{item.desc}</p>}
             </div>
           </div>

@@ -124,23 +124,22 @@ export default function FullscreenMenu({
         boxShadow: 'inset 0 0 40px 0px rgba(255,255,255,0.3)',
       }}>
       <div className="header-top flex flex-shrink-0 items-center justify-between border-b border-white/10 py-4 sm:px-6 md:py-5">
-        <div className="flex items-center gap-4 sm:gap-5 md:gap-6">
-          {renderCompactLogo('h-auto w-11 sm:w-12 lg:hidden')}
-          {renderFullLogo('hidden h-auto lg:block lg:w-[135px]')}
-        </div>
-
         <div className="flex items-center gap-3 sm:gap-4 md:gap-6">
+          <div className="flex items-center gap-4 sm:gap-5 md:gap-6">
+            {renderCompactLogo('h-auto w-11 sm:w-12 lg:hidden')}
+            {renderFullLogo('hidden h-auto lg:block lg:w-[135px]')}
+          </div>
+
           <div className="lg:hidden">{renderCompactLocaleSwitcher()}</div>
           <div className="hidden lg:block">{renderDesktopLocaleSwitcher()}</div>
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1 text-white/60 transition-colors hover:text-white"
-            aria-label="Close menu">
-            <RxCross1 size={28} />
-          </button>
         </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="p-1 text-white/60 transition-colors hover:text-white"
+          aria-label="Close menu">
+          <RxCross1 size={28} />
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto">

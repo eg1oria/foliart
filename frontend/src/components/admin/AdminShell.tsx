@@ -30,7 +30,6 @@ export function AdminShell({
   description,
   locale,
   shortcuts = [],
-  stats = [],
   title,
 }: {
   activeTab: 'products' | 'articles' | 'calendars';

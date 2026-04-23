@@ -20,6 +20,7 @@ type HeaderChildItem = {
 };
 
 type HeaderNavItem = {
+  id: string;
   name: string | ReactNode;
   href: string;
   children?: HeaderChildItem[];
@@ -50,33 +51,40 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
 
   const navItems: HeaderNavItem[] = [
     {
+      id: 'menu',
       name: <RxHamburgerMenu size={26} color="white" />,
       href: '#',
     },
     {
+      id: 'home',
       name: t('home'),
       href: '/',
     },
     {
+      id: 'catalog',
       name: t('catalog'),
       href: '/catalog',
       children: catalogChildren.length > 0 ? catalogChildren : undefined,
     },
     {
+      id: 'about',
       name: t('about'),
       href: '/about',
       children: [{ name: t('partners'), href: '/about/partnery' }],
     },
     {
+      id: 'articles',
       name: t('articles'),
       href: '/articles',
     },
     {
+      id: 'calendar',
       name: t('calendar'),
       href: '',
       children: calendarChildren.length > 0 ? calendarChildren : undefined,
     },
     {
+      id: 'contacts',
       name: t('contacts'),
       href: '/contacts',
     },
@@ -174,14 +182,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
 
           {renderCompactLogo('h-auto w-11 justify-self-center sm:w-12')}
 
-          <div className="flex items-center justify-end gap-2 sm:gap-3">
-            {renderMobileLocaleSwitcher()}
-            <div
-              className={`${phoneBadgeClassName} h-10 w-10 sm:h-11 sm:w-11`}
-              style={{ backgroundColor: '#074031' }}>
-              <BsTelephoneInbound size={22} />
-            </div>
-          </div>
+          <div className="flex items-center justify-end">{renderMobileLocaleSwitcher()}</div>
         </div>
 
         <div className="hidden items-center justify-between md:flex">
@@ -203,8 +204,8 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
                 key={idx}
                 className={`relative group border-b-4 border-transparent -mb-1 ${
                   typeof item.name === 'string' ? 'hover:border-[#074031]' : ''
-                } ${item.href === '/contacts' ? 'max-[1450px]:hidden' : ''} ${
-                  item.href === '/calendar' ? 'max-[1000px]:hidden' : ''
+                } ${item.id === 'contacts' ? 'max-[1450px]:hidden' : ''} ${
+                  item.id === 'calendar' ? 'max-[1050px]:hidden' : ''
                 } transition-colors`}>
                 {item.href === '#' ? (
                   <button
@@ -262,14 +263,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
             <RxHamburgerMenu size={20} />
           </button>
           {renderCompactLogo('h-auto w-11 justify-self-center sm:w-12')}
-          <div className="flex items-center justify-end gap-2 sm:gap-3">
-            {renderMobileLocaleSwitcher()}
-            <div
-              className={`${phoneBadgeClassName} h-10 w-10 sm:h-11 sm:w-11`}
-              style={{ backgroundColor: '#074031' }}>
-              <BsTelephoneInbound size={22} />
-            </div>
-          </div>
+          <div className="flex items-center justify-end">{renderMobileLocaleSwitcher()}</div>
         </div>
 
         <div className="hidden items-center justify-between md:flex">
