@@ -7,8 +7,10 @@ import { routing } from '@/i18n/routing';
 import { notFound } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { getCategories } from '@/lib/api';
+import { getCalendars, getCategories } from '@/lib/api';
+import { getCalendarHref, getCalendarImages } from '@/lib/calendars';
 import { getCategoryHref } from '@/lib/catalog';
+import { resolveMediaUrl } from '@/lib/media';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -31,6 +33,22 @@ async function getHeaderCatalogChildren(locale: string) {
     return categories.map((category) => ({
       name: category.name,
       href: getCategoryHref(category),
+      image: resolveMediaUrl(category.imageUrl) ?? undefined,
+      count: category.productCount,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+async function getHeaderCalendarChildren(locale: string) {
+  try {
+    const calendars = await getCalendars(locale);
+
+    return calendars.map((calendar) => ({
+      name: calendar.title,
+      href: getCalendarHref(calendar),
+      image: resolveMediaUrl(getCalendarImages(calendar)[0]) ?? undefined,
     }));
   } catch {
     return [];
@@ -50,9 +68,10 @@ export default async function RootLayout({
     notFound();
   }
 
-  const [messages, catalogChildren] = await Promise.all([
+  const [messages, catalogChildren, calendarChildren] = await Promise.all([
     getMessages(),
     getHeaderCatalogChildren(locale),
+    getHeaderCalendarChildren(locale),
   ]);
 
   return (
@@ -61,7 +80,11 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider messages={messages}>
-          <Header catalogChildren={catalogChildren} />
+          <Header
+            key={locale}
+            catalogChildren={catalogChildren}
+            calendarChildren={calendarChildren}
+          />
           {children}
           <Footer />
         </NextIntlClientProvider>

@@ -40,6 +40,20 @@ export type Article = {
   slugSourceTitle?: string;
 };
 
+export type CalendarEntry = {
+  id: number;
+  title: string;
+  titleEn: string;
+  description: string;
+  descriptionEn: string;
+  imageUrl1: string;
+  imageUrl2: string;
+  imageUrl3: string;
+  imageUrl4: string;
+  imageUrls: string[];
+  slugSourceTitle?: string;
+};
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -101,4 +115,12 @@ export async function getArticles(locale?: string): Promise<Article[]> {
 
 export async function getArticle(articleId: number, locale?: string): Promise<Article> {
   return fetchJson<Article>(buildLocalizedPath(`/api/articles/${articleId}`, locale));
+}
+
+export async function getCalendars(locale?: string): Promise<CalendarEntry[]> {
+  return fetchJson<CalendarEntry[]>(buildLocalizedPath('/api/calendars', locale));
+}
+
+export async function getCalendar(calendarId: number, locale?: string): Promise<CalendarEntry> {
+  return fetchJson<CalendarEntry>(buildLocalizedPath(`/api/calendars/${calendarId}`, locale));
 }

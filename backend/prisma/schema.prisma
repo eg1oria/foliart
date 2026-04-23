@@ -49,3 +49,15 @@ model Article {
   publishedAt DateTime @default(now())
   viewCount  Int      @default(0)
 }
+
+model CalendarEntry {
+  id            Int    @id @default(autoincrement())
+  title         String
+  titleEn       String @default("")
+  description   String
+  descriptionEn String @default("")
+  imageUrl1     String
+  imageUrl2     String
+  imageUrl3     String
+  imageUrl4     String
+}

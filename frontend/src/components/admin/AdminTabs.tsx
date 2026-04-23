@@ -4,7 +4,7 @@ export default function AdminTabs({
   active,
   locale,
 }: {
-  active: 'products' | 'articles';
+  active: 'products' | 'articles' | 'calendars';
   locale: string;
 }) {
   const items = [
@@ -17,6 +17,11 @@ export default function AdminTabs({
       key: 'articles' as const,
       href: '/admin/articles',
       label: locale === 'en' ? 'Articles' : 'Статьи',
+    },
+    {
+      key: 'calendars' as const,
+      href: '/admin/calendars',
+      label: locale === 'en' ? 'Calendar' : 'Календарь',
     },
   ];
 

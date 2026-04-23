@@ -2,16 +2,21 @@
 
 import Image from 'next/image';
 import type { ReactNode } from 'react';
-import { useState, useEffect, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { BsTelephoneInbound } from 'react-icons/bs';
-import { RxHamburgerMenu } from 'react-icons/rx';
 import { FiChevronDown } from 'react-icons/fi';
+import { RxHamburgerMenu } from 'react-icons/rx';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
-import { useTranslations, useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import FullscreenMenu from './FullScreenMenu';
+
+type LocaleOption = 'ru' | 'en';
 
 type HeaderChildItem = {
   name: string;
   href: string;
+  image?: string;
+  count?: number;
 };
 
 type HeaderNavItem = {
@@ -22,17 +27,24 @@ type HeaderNavItem = {
 
 type HeaderProps = {
   catalogChildren?: HeaderChildItem[];
+  calendarChildren?: HeaderChildItem[];
 };
 
-export default function Header({ catalogChildren = [] }: HeaderProps) {
+export default function Header({
+  catalogChildren = [],
+  calendarChildren = [],
+}: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const t = useTranslations('Header');
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
 
-  const changeLocale = (nextLocale: string) => {
+  const localeOptions: LocaleOption[] = ['ru', 'en'];
+
+  const changeLocale = (nextLocale: LocaleOption) => {
     if (nextLocale === locale) return;
     startTransition(() => {
       router.replace(pathname, { locale: nextLocale, scroll: false });
@@ -65,28 +77,7 @@ export default function Header({ catalogChildren = [] }: HeaderProps) {
     {
       name: t('calendar'),
       href: '/calendar',
-      children: [
-        {
-          name: t('wheat'),
-          href: '/wheat',
-        },
-        {
-          name: t('corn'),
-          href: '/corn',
-        },
-        {
-          name: t('beet'),
-          href: '/beet',
-        },
-        {
-          name: t('soybeans'),
-          href: '/soybeans',
-        },
-        {
-          name: t('sunflower'),
-          href: '/sunflower',
-        },
-      ],
+      children: calendarChildren.length > 0 ? calendarChildren : undefined,
     },
     {
       name: t('contacts'),
@@ -109,74 +100,130 @@ export default function Header({ catalogChildren = [] }: HeaderProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const phoneBadgeClassName =
+    'flex items-center justify-center rounded-full text-white transition-colors hover:bg-[#074031]/80';
+  const mobileActionButtonClassName =
+    'flex h-10 w-10 items-center justify-center rounded-full bg-[#074031] text-white transition-colors hover:bg-[#074031]/80 sm:h-11 sm:w-11';
+
+  const renderDesktopLocaleSwitcher = () => (
+    <div className="relative group z-[100] cursor-pointer">
+      <div className="flex flex-row items-center gap-1 p-2 text-[15px] text-white/85 uppercase transition-colors hover:text-white">
+        {locale}
+        <FiChevronDown size={14} className="mt-0.5" />
+      </div>
+      <ul className="absolute left-1/2 top-full z-[100] mt-0 min-w-[70px] -translate-x-1/2 rounded-sm border border-gray-100 bg-white opacity-0 shadow-xl invisible transition-all duration-200 group-hover:visible group-hover:opacity-100">
+        {localeOptions.map((localeOption, index) => (
+          <li
+            key={localeOption}
+            className={`${index === 0 ? 'border-b border-gray-200' : ''} transition-colors hover:bg-gray-100`}>
+            <button
+              type="button"
+              onClick={() => changeLocale(localeOption)}
+              disabled={isPending}
+              className={`block w-full cursor-pointer px-4 py-2 text-center text-sm ${
+                locale === localeOption ? 'font-bold text-[#074031]' : 'text-gray-700'
+              }`}>
+              {localeOption.toUpperCase()}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+
+  const renderMobileLocaleSwitcher = () => (
+    <div className="flex items-center rounded-sm border border-white/20 p-1">
+      {localeOptions.map((localeOption) => {
+        const isActive = locale === localeOption;
+
+        return (
+          <button
+            key={localeOption}
+            type="button"
+            onClick={() => changeLocale(localeOption)}
+            disabled={isPending}
+            aria-pressed={isActive}
+            className={`rounded-sm px-2 py-1 text-[10px] font-semibold uppercase transition-colors sm:px-3 sm:text-xs ${
+              isActive ? 'bg-white text-[#074031]' : 'text-white/75 hover:text-white'
+            }`}>
+            {localeOption.toUpperCase()}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const renderCompactLogo = (className: string) => (
+    <Image src={'/logo-small.webp'} alt="Logo" width={201} height={200} className={className} />
+  );
+
+  const renderFullLogo = (width: number, className: string) => (
+    <Image src={'/logo5.PNG'} alt="Logo" width={width} height={30} className={className} />
+  );
+
   return (
     <>
       <header
-        className="px-90 py-6 gap-12 flex flex-col absolute top-0 left-0 w-full z-50 pb-0"
+        className="absolute top-0 left-0 z-50 flex w-full flex-col gap-6 px-8 pt-4 pb-0 sm:px-6 md:gap-12 md:px-12 md:pt-6 xl:px-90 min-[1570px]:px-70"
         style={{ backgroundColor: 'rgba(7,64,49, 0.1)' }}>
-        <div className="flex justify-between items-center">
-          <Image
-            src={'/logo5.PNG'}
-            alt="Logo"
-            width={135}
-            height={30}
-            className="w-[135px] h-auto"
-          />
-          <div className="flex items-center gap-9">
-            <div className="relative group cursor-pointer z-[100]">
-              <div className="flex flex-row items-center gap-1 text-[15px] p-2 text-white/85 hover:text-white transition-colors uppercase">
-                {locale}
-                <FiChevronDown size={14} className="mt-0.5" />
-              </div>
-              <ul className="absolute left-1/2 -translate-x-1/2 top-full mt-0 bg-white shadow-xl min-w-[70px] invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-[100] border border-gray-100 rounded-sm">
-                <li className="border-b border-gray-200 hover:bg-gray-100 transition-colors">
-                  <button
-                    onClick={() => changeLocale('ru')}
-                    disabled={isPending}
-                    className={`block w-full text-center px-4 py-2 text-sm ${locale === 'ru' ? 'font-bold text-[#074031]' : 'text-gray-700'} cursor-pointer`}>
-                    RU
-                  </button>
-                </li>
-                <li className="hover:bg-gray-100 transition-colors">
-                  <button
-                    onClick={() => changeLocale('en')}
-                    disabled={isPending}
-                    className={`block w-full text-center px-4 py-2 text-sm ${locale === 'en' ? 'font-bold text-[#074031]' : 'text-gray-700'} cursor-pointer`}>
-                    EN
-                  </button>
-                </li>
-              </ul>
-            </div>
+        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 md:hidden">
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen(true)}
+            aria-label="Open menu"
+            className={mobileActionButtonClassName}>
+            <RxHamburgerMenu size={20} />
+          </button>
 
+          {renderCompactLogo('h-auto w-11 justify-self-center sm:w-12')}
+
+          <div className="flex items-center justify-end gap-2 sm:gap-3">
+            {renderMobileLocaleSwitcher()}
             <div
-              className="p-3 rounded-full text-white cursor-pointer hover:bg-[#074031]/80 transition-colors"
+              className={`${phoneBadgeClassName} h-10 w-10 sm:h-11 sm:w-11`}
               style={{ backgroundColor: '#074031' }}>
               <BsTelephoneInbound size={22} />
             </div>
           </div>
         </div>
 
-        <nav className="border-b-3  border-white/20 px-5">
-          <ul className="flex items-center space-x-6 justify-between mt-4 md:mt-0 hidden md:flex">
+        <div className="hidden items-center justify-between md:flex">
+          {renderCompactLogo('h-auto w-14 lg:hidden')}
+          {renderFullLogo(135, 'hidden h-auto lg:block lg:w-[135px]')}
+          <div className="flex items-center gap-9">
+            {renderDesktopLocaleSwitcher()}
+
+            <div className={`${phoneBadgeClassName} p-3`} style={{ backgroundColor: '#074031' }}>
+              <BsTelephoneInbound size={22} />
+            </div>
+          </div>
+        </div>
+
+        <nav className="hidden border-b-3 border-white/20 md:block">
+          <ul className="flex items-center justify-between mt-4 md:mt-0 hidden md:flex">
             {navItems.map((item, idx) => (
               <li
                 key={idx}
-                className={`relative group border-b-4 border-transparent -mb-1 ${typeof item.name === 'string' ? 'hover:border-[#074031]' : ''}  transition-colors`}>
+                className={`relative group border-b-4 border-transparent -mb-1 ${
+                  typeof item.name === 'string' ? 'hover:border-[#074031]' : ''
+                } ${item.href === '/contacts' ? 'max-[1450px]:hidden' : ''} ${
+                  item.href === '/calendar' ? 'max-[1000px]:hidden' : ''
+                } transition-colors`}>
                 {item.href === '#' ? (
                   <button
-                    onClick={(e) => e.preventDefault()}
-                    className="text-white text-sm hover:text-white/80 transition-colors flex items-center cursor-pointer bg-transparent border-0 p-4">
+                    type="button"
+                    onClick={() => setIsMenuOpen(true)}
+                    aria-label="Open menu"
+                    className="text-white text-sm hover:text-white/80 transition-colors flex items-center cursor-pointer bg-transparent border-0 p-4 px-2">
                     {item.name}
                   </button>
                 ) : (
                   <>
                     <Link
                       href={item.href}
-                      className={`inline-flex items-center gap-1 text-white text-sm hover:text-white/80 transition-colors p-4 ${item.children ? 'hover:bg-[#074031]' : ''}`}>
+                      className={`inline-flex items-center gap-1 text-white text-sm hover:text-white/80 transition-colors py-5 px-4 ${item.children ? 'hover:bg-[#074031]' : ''}`}>
                       {typeof item.name === 'string' ? item.name.toUpperCase() : item.name}
-                      {item.children && (
-                        <FiChevronDown size={14} className="mt-0.5" />
-                      )}
+                      {item.children && <FiChevronDown size={14} className="mt-0.5" />}
                     </Link>
                     {item.children && (
                       <ul className="absolute left-0 top-full bg-white shadow-md min-w-[180px] invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-50">
@@ -201,60 +248,64 @@ export default function Header({ catalogChildren = [] }: HeaderProps) {
         </nav>
       </header>
 
+      {/* Sticky header on scroll */}
       <div
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 px-90 py-2 flex justify-between items-center ${
+        className={`fixed top-0 left-0 z-50 w-full px-4 py-3 transition-all duration-300 sm:px-6 md:px-8 md:py-2 xl:px-90 ${
           isScrolled ? 'translate-y-0 opacity-100 visible' : '-translate-y-full opacity-0 invisible'
         }`}
         style={{
           backgroundColor: '#4d4d4de7',
         }}>
-        <div className="flex justify-between items-center gap-9">
-          <div
-            className="p-3 rounded-full text-white cursor-pointer hover:bg-[#074031]/80 transition-colors"
-            style={{ backgroundColor: '#074031' }}>
-            <RxHamburgerMenu size={22} />
+        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 md:hidden">
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen(true)}
+            aria-label="Open menu"
+            className={mobileActionButtonClassName}>
+            <RxHamburgerMenu size={20} />
+          </button>
+          {renderCompactLogo('h-auto w-11 justify-self-center sm:w-12')}
+          <div className="flex items-center justify-end gap-2 sm:gap-3">
+            {renderMobileLocaleSwitcher()}
+            <div
+              className={`${phoneBadgeClassName} h-10 w-10 sm:h-11 sm:w-11`}
+              style={{ backgroundColor: '#074031' }}>
+              <BsTelephoneInbound size={22} />
+            </div>
+          </div>
+        </div>
+
+        <div className="hidden items-center justify-between md:flex">
+          <div className="flex items-center gap-9">
+            <button
+              type="button"
+              onClick={() => setIsMenuOpen(true)}
+              aria-label="Open menu"
+              className={`${phoneBadgeClassName} p-3`}
+              style={{ backgroundColor: '#074031' }}>
+              <RxHamburgerMenu size={22} />
+            </button>
+
+            {renderCompactLogo('h-auto w-12 lg:hidden')}
+            {renderFullLogo(110, 'hidden h-auto lg:block lg:w-[110px]')}
           </div>
 
-          <Image
-            src={'/logo5.PNG'}
-            alt="Logo"
-            width={110}
-            height={30}
-            className="w-[110px] h-auto"
-          />
-        </div>
-        <div className="flex items-center gap-9">
-          <div className="relative group cursor-pointer z-[100]">
-            <div className="flex flex-row items-center gap-1 text-[15px] p-2 text-white/85 hover:text-white transition-colors uppercase">
-              {locale}
-              <FiChevronDown size={14} className="mt-0.5" />
+          <div className="flex items-center gap-9">
+            {renderDesktopLocaleSwitcher()}
+            <div className={`${phoneBadgeClassName} p-3`} style={{ backgroundColor: '#074031' }}>
+              <BsTelephoneInbound size={22} />
             </div>
-            <ul className="absolute left-1/2 -translate-x-1/2 top-full mt-0 bg-white shadow-xl min-w-[70px] invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-[100] border border-gray-100 rounded-sm">
-              <li className="border-b border-gray-200 hover:bg-gray-100 transition-colors">
-                <button
-                  onClick={() => changeLocale('ru')}
-                  disabled={isPending}
-                  className={`block w-full text-center px-4 py-2 text-sm ${locale === 'ru' ? 'font-bold text-[#074031]' : 'text-gray-700'} cursor-pointer`}>
-                  RU
-                </button>
-              </li>
-              <li className="hover:bg-gray-100 transition-colors">
-                <button
-                  onClick={() => changeLocale('en')}
-                  disabled={isPending}
-                  className={`block w-full text-center px-4 py-2 text-sm ${locale === 'en' ? 'font-bold text-[#074031]' : 'text-gray-700'} cursor-pointer`}>
-                  EN
-                </button>
-              </li>
-            </ul>
-          </div>
-          <div
-            className="p-3 rounded-full text-white cursor-pointer hover:bg-[#074031]/80 transition-colors"
-            style={{ backgroundColor: '#074031' }}>
-            <BsTelephoneInbound size={22} />
           </div>
         </div>
       </div>
+
+      {/* Fullscreen menu */}
+      <FullscreenMenu
+        isOpen={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        catalogChildren={catalogChildren}
+        calendarChildren={calendarChildren}
+      />
     </>
   );
 }
