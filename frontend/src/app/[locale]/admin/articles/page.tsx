@@ -1,4 +1,28 @@
-import AdminTabs from '@/components/admin/AdminTabs';
+import {
+  AdminEmptyState,
+  AdminNotice,
+  AdminPanel,
+  AdminShell,
+  AdminWorkspace,
+} from '@/components/admin/AdminShell';
+import {
+  adminBadgeClassName,
+  adminCx,
+  adminDetailsClassName,
+  adminFieldClassName,
+  adminFileInputClassName,
+  adminHintClassName,
+  adminInputClassName,
+  adminInputOnWhiteClassName,
+  adminLabelClassName,
+  adminOptionalLabelClassName,
+  adminPrimaryButtonClassName,
+  adminSecondaryButtonClassName,
+  adminSummaryClassName,
+  adminTextareaClassName,
+  adminTextareaOnWhiteClassName,
+  adminTranslationCardClassName,
+} from '@/components/admin/adminStyles';
 import ArticleRichTextEditor from '@/components/admin/ArticleRichTextEditor';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
@@ -11,6 +35,8 @@ import {
 import { getArticles, type Article } from '@/lib/api';
 import { parseEntityId } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
+import { FiEdit3, FiExternalLink } from 'react-icons/fi';
+
 import { createArticleAction, updateArticleAction } from './actions';
 
 type AdminPageSearchParams = {
@@ -46,117 +72,125 @@ function ArticleFormFields({
       : 'Добавьте английскую версию, если хотите локализовать статью.';
 
   return (
-    <>
-      <label className="flex flex-col gap-2">
-        <span className="text-sm font-medium text-[#0b3e31]">{copy.titleLabel}</span>
-        <input
-          name="title"
-          type="text"
-          required
-          defaultValue={values?.title ?? ''}
-          className="rounded-2xl border border-[#0b5a45]/15 bg-[#f8f7f2] px-4 py-3 text-[#0b3e31] outline-none transition placeholder:text-[#7e9088] focus:border-[#0b5a45]"
-        />
-      </label>
+    <div className="space-y-5">
+      <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_220px]">
+        <label className={adminFieldClassName}>
+          <span className={adminLabelClassName}>{copy.titleLabel}</span>
+          <input
+            name="title"
+            type="text"
+            required
+            defaultValue={values?.title ?? ''}
+            className={adminInputClassName}
+          />
+        </label>
 
-      <label className="flex flex-col gap-2">
-        <span className="text-sm font-medium text-[#0b3e31]">
+        <label className={adminFieldClassName}>
+          <span className={adminLabelClassName}>{copy.publishedAtLabel}</span>
+          <input
+            name="publishedAt"
+            type="date"
+            required
+            defaultValue={toDateInputValue(values?.publishedAt)}
+            className={adminInputClassName}
+          />
+        </label>
+      </div>
+
+      <label className={adminFieldClassName}>
+        <span className={adminLabelClassName}>
           {copy.imageLabel}
-          {!imageRequired ? <span className="text-[#7e9088]"> ({copy.optionalLabel})</span> : null}
+          {!imageRequired ? (
+            <span className={adminOptionalLabelClassName}> ({copy.optionalLabel})</span>
+          ) : null}
         </span>
         <input
           name="image"
           type="file"
           accept="image/png,image/jpeg,image/webp"
           required={imageRequired}
-          className="rounded-2xl border border-dashed border-[#0b5a45]/20 bg-[#f8f7f2] px-4 py-3 text-sm text-[#0b3e31] file:mr-4 file:rounded-full file:border-0 file:bg-[#0b5a45] file:px-4 file:py-2 file:text-sm file:font-medium file:text-white"
+          className={adminFileInputClassName}
         />
-        <span className="text-xs leading-5 text-[#6a7f76]">
+        <span className={adminHintClassName}>
           {imageRequired ? copy.imageHint : copy.replaceImageHint}
         </span>
       </label>
 
-      <label className="flex flex-col gap-2">
-        <span className="text-sm font-medium text-[#0b3e31]">{copy.publishedAtLabel}</span>
-        <input
-          name="publishedAt"
-          type="date"
-          required
-          defaultValue={toDateInputValue(values?.publishedAt)}
-          className="rounded-2xl border border-[#0b5a45]/15 bg-[#f8f7f2] px-4 py-3 text-[#0b3e31] outline-none transition focus:border-[#0b5a45]"
-        />
-      </label>
-
-      <label className="flex flex-col gap-2">
-        <span className="text-sm font-medium text-[#0b3e31]">
-          {copy.excerptLabel} <span className="text-[#7e9088]">({copy.optionalLabel})</span>
+      <label className={adminFieldClassName}>
+        <span className={adminLabelClassName}>
+          {copy.excerptLabel}
+          <span className={adminOptionalLabelClassName}> ({copy.optionalLabel})</span>
         </span>
         <textarea
           name="excerpt"
           rows={4}
           defaultValue={values?.excerpt ?? ''}
-          className="rounded-2xl border border-[#0b5a45]/15 bg-[#f8f7f2] px-4 py-3 text-[#0b3e31] outline-none transition placeholder:text-[#7e9088] focus:border-[#0b5a45]"
+          className={adminTextareaClassName}
         />
-        <span className="text-xs leading-5 text-[#6a7f76]">{copy.excerptHint}</span>
+        <span className={adminHintClassName}>{copy.excerptHint}</span>
       </label>
 
       <div className="space-y-2">
-        <span className="text-sm font-medium text-[#0b3e31]">{copy.contentLabel}</span>
+        <span className={adminLabelClassName}>{copy.contentLabel}</span>
         <ArticleRichTextEditor
           name="content"
           locale={locale}
           defaultValue={values?.content ?? ''}
           placeholder={primaryPlaceholder}
         />
-        <span className="text-xs leading-5 text-[#6a7f76]">{copy.contentHint}</span>
+        <span className={adminHintClassName}>{copy.contentHint}</span>
       </div>
 
-      <div className="rounded-[1.6rem] border border-[#0b5a45]/10 bg-[#f7f9f6] px-5 py-5">
-        <div className="mb-4">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#0b5a45]">
+      <div className={adminTranslationCardClassName}>
+        <div>
+          <p className={adminBadgeClassName}>
             {locale === 'en' ? 'English translation' : 'Английская версия'}
           </p>
-          <p className="mt-2 text-xs leading-5 text-[#6a7f76]">{copy.translationHint}</p>
+          <p className={adminCx('mt-3', adminHintClassName)}>{copy.translationHint}</p>
         </div>
 
-        <div className="space-y-5">
-          <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-[#0b3e31]">
-              {copy.titleEnLabel} <span className="text-[#7e9088]">({copy.optionalLabel})</span>
+        <div className="mt-5 grid gap-5 md:grid-cols-2">
+          <label className={adminFieldClassName}>
+            <span className={adminLabelClassName}>
+              {copy.titleEnLabel}
+              <span className={adminOptionalLabelClassName}> ({copy.optionalLabel})</span>
             </span>
             <input
               name="titleEn"
               type="text"
               defaultValue={values?.titleEn ?? ''}
-              className="rounded-2xl border border-[#0b5a45]/15 bg-white px-4 py-3 text-[#0b3e31] outline-none transition placeholder:text-[#7e9088] focus:border-[#0b5a45]"
+              className={adminInputOnWhiteClassName}
             />
           </label>
 
-          <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-[#0b3e31]">
-              {copy.excerptEnLabel} <span className="text-[#7e9088]">({copy.optionalLabel})</span>
+          <label className={adminFieldClassName}>
+            <span className={adminLabelClassName}>
+              {copy.excerptEnLabel}
+              <span className={adminOptionalLabelClassName}> ({copy.optionalLabel})</span>
             </span>
             <textarea
               name="excerptEn"
               rows={4}
               defaultValue={values?.excerptEn ?? ''}
-              className="rounded-2xl border border-[#0b5a45]/15 bg-white px-4 py-3 text-[#0b3e31] outline-none transition placeholder:text-[#7e9088] focus:border-[#0b5a45]"
+              className={adminTextareaOnWhiteClassName}
             />
           </label>
+        </div>
 
-          <div className="space-y-2">
-            <span className="text-sm font-medium text-[#0b3e31]">
-              {copy.contentEnLabel} <span className="text-[#7e9088]">({copy.optionalLabel})</span>
-            </span>
-            <ArticleRichTextEditor
-              name="contentEn"
-              locale={locale}
-              defaultValue={values?.contentEn ?? ''}
-              placeholder={translationPlaceholder}
-            />
-          </div>
+        <div className="mt-5 space-y-2">
+          <span className={adminLabelClassName}>
+            {copy.contentEnLabel}
+            <span className={adminOptionalLabelClassName}> ({copy.optionalLabel})</span>
+          </span>
+          <ArticleRichTextEditor
+            name="contentEn"
+            locale={locale}
+            defaultValue={values?.contentEn ?? ''}
+            placeholder={translationPlaceholder}
+          />
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -175,132 +209,212 @@ export default async function AdminArticlesPage({
   const statusArticleId = parseEntityId(article ?? '');
   const topLevelError = error && !editArticleId ? error : null;
   const topLevelStatus = status === 'created' ? copy.statusCreated : null;
+  const latestArticle = articles.reduce<Article | null>((current, articleItem) => {
+    if (!current) {
+      return articleItem;
+    }
+
+    return new Date(articleItem.publishedAt) > new Date(current.publishedAt)
+      ? articleItem
+      : current;
+  }, null);
+  const untranslatedArticles = articles.filter(
+    (articleItem) => !articleItem.titleEn?.trim() || !articleItem.contentEn?.trim(),
+  ).length;
+  const createBadge = locale === 'en' ? 'Create' : 'Создание';
+  const manageBadge = locale === 'en' ? 'Manage' : 'Управление';
+  const openEditorLabel = locale === 'en' ? 'Open editor' : 'Открыть редактор';
+  const stats = [
+    {
+      label: locale === 'en' ? 'Published' : 'Опубликовано',
+      value: String(articles.length),
+      hint:
+        locale === 'en'
+          ? 'Article cards already visible in the section.'
+          : 'Карточки статей, которые уже доступны в разделе.',
+    },
+    {
+      label: locale === 'en' ? 'Latest date' : 'Последняя дата',
+      value: latestArticle ? formatArticleDate(latestArticle.publishedAt, locale) : '—',
+      hint:
+        locale === 'en'
+          ? 'Most recent publication currently in the admin.'
+          : 'Самая свежая публикация, которая сейчас есть в админке.',
+    },
+    {
+      label: locale === 'en' ? 'Need EN' : 'Нужен EN',
+      value: String(untranslatedArticles),
+      hint:
+        locale === 'en'
+          ? 'Articles still missing an English title or body.'
+          : 'Статьи, в которых еще не хватает английского заголовка или текста.',
+    },
+  ];
+  const shortcuts = [
+    {
+      href: '#create-article',
+      label: locale === 'en' ? 'Add article' : 'Добавить статью',
+    },
+    {
+      href: '#manage-articles',
+      label: locale === 'en' ? 'Browse articles' : 'Список статей',
+    },
+  ];
 
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 pb-20 pt-60 md:px-8">
-      <section className="rounded-[2.5rem] bg-[linear-gradient(135deg,#0b5a45,#0a3e31)] px-8 py-10 text-white shadow-[0_30px_90px_-50px_rgba(11,62,49,1)] md:px-10">
-        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-          <div className="max-w-3xl">
-            <p className="mb-3 text-sm font-medium uppercase tracking-[0.28em] text-[#d8ead8]">
-              Foliart Admin
-            </p>
-            <h1 className="mb-4 text-4xl font-semibold md:text-5xl">{copy.adminTitle}</h1>
-            <p className="text-base leading-7 text-white/80 md:text-lg">{copy.adminSubtitle}</p>
-            <AdminTabs active="articles" locale={locale} />
+    <AdminShell
+      activeTab="articles"
+      backHref="/articles"
+      backLabel={copy.backToSite}
+      description={copy.adminSubtitle}
+      locale={locale}
+      shortcuts={shortcuts}
+      stats={stats}
+      title={copy.adminTitle}>
+      <AdminWorkspace>
+        <AdminPanel
+          id="create-article"
+          badge={createBadge}
+          title={copy.adminFormTitle}
+          description={copy.adminFormDescription}>
+          <div className="space-y-4">
+            {topLevelStatus ? <AdminNotice tone="success">{topLevelStatus}</AdminNotice> : null}
+            {topLevelError ? <AdminNotice tone="error">{topLevelError}</AdminNotice> : null}
           </div>
 
-          <Link
-            href="/articles"
-            className="inline-flex w-fit items-center rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/18">
-            {copy.backToSite}
-          </Link>
-        </div>
-      </section>
-
-      <section className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(320px,1.05fr)]">
-        <div className="rounded-[2rem] border border-[#0b5a45]/10 bg-white p-8 shadow-[0_24px_70px_-52px_rgba(11,62,49,0.95)]">
-          <h2 className="text-3xl font-semibold text-[#0b3e31]">{copy.adminFormTitle}</h2>
-          <p className="mt-3 text-sm leading-6 text-[#567068]">{copy.adminFormDescription}</p>
-
-          {topLevelStatus ? (
-            <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-800">
-              {topLevelStatus}
-            </div>
-          ) : null}
-
-          {topLevelError ? (
-            <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-800">
-              {topLevelError}
-            </div>
-          ) : null}
-
-          <form action={createArticleAction} className="mt-8 space-y-6">
+          <form action={createArticleAction} className="mt-6 space-y-6">
             <input type="hidden" name="locale" value={locale} />
 
             <ArticleFormFields locale={locale} copy={copy} imageRequired />
 
-            <button
-              type="submit"
-              className="inline-flex items-center rounded-full bg-[#0b5a45] px-6 py-3 text-sm font-medium text-white transition hover:bg-[#094635]">
-              {copy.submitLabel}
-            </button>
+            <div className="flex flex-col gap-3 border-t border-[#0b5a45]/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
+              <button
+                type="submit"
+                className={adminCx(adminPrimaryButtonClassName, 'w-full sm:w-auto')}>
+                {copy.submitLabel}
+              </button>
+              <p className={adminHintClassName}>
+                {locale === 'en'
+                  ? 'Use the toolbar to add headings, lists, quotes, and links.'
+                  : 'Используйте панель редактора для заголовков, списков, цитат и ссылок.'}
+              </p>
+            </div>
           </form>
-        </div>
+        </AdminPanel>
 
-        <aside className="rounded-[2rem] border border-[#0b5a45]/10 bg-[#f7f6f1] p-8 shadow-[0_24px_70px_-52px_rgba(11,62,49,0.95)]">
-          <h2 className="text-3xl font-semibold text-[#0b3e31]">{copy.adminExistingTitle}</h2>
-          <p className="mt-3 text-sm leading-6 text-[#567068]">{copy.adminPathHint}</p>
-
+        <AdminPanel
+          id="manage-articles"
+          badge={manageBadge}
+          title={copy.adminExistingTitle}
+          description={copy.adminPathHint}
+          tone="muted"
+          headerContent={<span className={adminBadgeClassName}>{articles.length}</span>}>
           {articles.length === 0 ? (
-            <p className="mt-8 text-sm text-[#6a7f76]">{copy.adminEmptyState}</p>
+            <AdminEmptyState
+              badge={manageBadge}
+              title={locale === 'en' ? 'Articles will appear here' : 'Статьи появятся здесь'}
+              description={copy.adminEmptyState}
+            />
           ) : (
-            <div className="mt-8 space-y-5">
+            <div className="space-y-5">
               {articles.map((articleItem) => {
                 const imageSrc = resolveMediaUrl(articleItem.imageUrl);
                 const isEditing =
                   editArticleId === articleItem.id || statusArticleId === articleItem.id;
+                const hasEnglishVersion =
+                  Boolean(articleItem.titleEn?.trim()) && Boolean(articleItem.contentEn?.trim());
 
                 return (
                   <div
                     key={articleItem.id}
-                    className="rounded-[1.5rem] border border-[#0b5a45]/10 bg-white p-5">
-                    <div className="flex items-start gap-4">
-                      <div className="relative h-[92px] w-[118px] shrink-0 overflow-hidden rounded-[1.2rem] bg-[#eef3ef]">
-                        <MediaImage
-                          src={imageSrc}
-                          alt={articleItem.title}
-                          fill
-                          sizes="118px"
-                          className="object-cover"
-                          emptyState={
-                            <div className="h-full w-full bg-[linear-gradient(135deg,#dfe9df,#b1c9b3,#6d8f70)]" />
-                          }
-                        />
+                    className="rounded-[1.55rem] border border-[#0b5a45]/10 bg-white p-4 shadow-[0_22px_70px_-54px_rgba(11,62,49,0.9)] sm:p-5">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="flex min-w-0 gap-4">
+                        <div className="relative h-[104px] w-[132px] shrink-0 overflow-hidden rounded-[1.25rem] border border-[#0b5a45]/10 bg-[#eef3ef]">
+                          <MediaImage
+                            src={imageSrc}
+                            alt={articleItem.title}
+                            fill
+                            sizes="132px"
+                            className="object-cover"
+                            emptyState={
+                              <div className="h-full w-full bg-[linear-gradient(135deg,#dfe9df,#b1c9b3,#6d8f70)]" />
+                            }
+                          />
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className={adminBadgeClassName}>
+                              {formatArticleDate(articleItem.publishedAt, locale)}
+                            </span>
+                            <span
+                              className={adminCx(
+                                'inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]',
+                                hasEnglishVersion
+                                  ? 'bg-emerald-50 text-emerald-700'
+                                  : 'bg-amber-50 text-amber-700',
+                              )}>
+                              {hasEnglishVersion
+                                ? locale === 'en'
+                                  ? 'EN ready'
+                                  : 'EN готов'
+                                : locale === 'en'
+                                  ? 'Needs EN'
+                                  : 'Нужен EN'}
+                            </span>
+                          </div>
+
+                          <h3 className="mt-3 text-xl font-semibold leading-7 text-[#0b3e31]">
+                            {articleItem.title}
+                          </h3>
+                          {articleItem.excerpt ? (
+                            <p className="mt-3 line-clamp-3 text-sm leading-6 text-[#567068]">
+                              {articleItem.excerpt}
+                            </p>
+                          ) : null}
+                          <p className="mt-3 text-xs leading-5 text-[#7f8f88]">
+                            {copy.imagePathLabel}: {articleItem.imageUrl}
+                          </p>
+                        </div>
                       </div>
 
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs uppercase tracking-[0.2em] text-[#8a9b93]">
-                          {formatArticleDate(articleItem.publishedAt, locale)}
-                        </p>
-                        <h3 className="mt-2 text-lg font-semibold leading-7 text-[#0b3e31]">
-                          {articleItem.title}
-                        </h3>
-                        <p className="article-card-excerpt-2 mt-3 text-sm leading-6 text-[#6a7f76]">
-                          {articleItem.excerpt}
-                        </p>
-                        <p className="mt-3 text-xs text-[#7f8f88]">
-                          {copy.imagePathLabel}: {articleItem.imageUrl}
-                        </p>
+                      <div className="flex flex-col gap-2 sm:flex-row lg:flex-col lg:items-end">
+                        <Link href={getArticleHref(articleItem)} className={adminSecondaryButtonClassName}>
+                          <FiExternalLink className="mr-2" />
+                          {copy.openArticle}
+                        </Link>
+                        <Link
+                          href={`/admin/articles?edit=${articleItem.id}#manage-articles`}
+                          className={adminSecondaryButtonClassName}>
+                          <FiEdit3 className="mr-2" />
+                          {openEditorLabel}
+                        </Link>
                       </div>
-
-                      <Link
-                        href={getArticleHref(articleItem)}
-                        className="shrink-0 text-sm font-medium text-[#0b5a45] underline-offset-4 transition hover:underline">
-                        {copy.openArticle}
-                      </Link>
                     </div>
 
-                    <details
-                      open={isEditing}
-                      className="mt-5 rounded-[1.1rem] border border-[#0b5a45]/10 bg-[#f8f7f2]">
-                      <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-[#0b5a45] [&::-webkit-details-marker]:hidden">
-                        {copy.editLabel}
+                    <details open={isEditing} className={adminCx('mt-5', adminDetailsClassName)}>
+                      <summary className={adminSummaryClassName}>
+                        <span>{copy.editLabel}</span>
+                        <span className="text-xs font-medium text-[#6a7f76]">
+                          {locale === 'en'
+                            ? 'Inline article editor'
+                            : 'Встроенный редактор статьи'}
+                        </span>
                       </summary>
 
-                      <div className="border-t border-[#0b5a45]/10 p-4">
-                        {status === 'updated' && statusArticleId === articleItem.id ? (
-                          <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-                            {copy.statusUpdated}
-                          </div>
-                        ) : null}
+                      <div className="border-t border-[#0b5a45]/10 p-4 sm:p-5">
+                        <div className="space-y-4">
+                          {status === 'updated' && statusArticleId === articleItem.id ? (
+                            <AdminNotice tone="success">{copy.statusUpdated}</AdminNotice>
+                          ) : null}
 
-                        {error && editArticleId === articleItem.id ? (
-                          <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
-                            {error}
-                          </div>
-                        ) : null}
+                          {error && editArticleId === articleItem.id ? (
+                            <AdminNotice tone="error">{error}</AdminNotice>
+                          ) : null}
+                        </div>
 
-                        <form action={updateArticleAction} className="space-y-5">
+                        <form action={updateArticleAction} className="mt-5 space-y-6">
                           <input type="hidden" name="locale" value={locale} />
                           <input type="hidden" name="articleId" value={articleItem.id} />
                           <input type="hidden" name="previousTitle" value={articleItem.title} />
@@ -314,7 +428,7 @@ export default async function AdminArticlesPage({
 
                           <button
                             type="submit"
-                            className="inline-flex items-center rounded-full bg-[#0b5a45] px-6 py-3 text-sm font-medium text-white transition hover:bg-[#094635]">
+                            className={adminCx(adminPrimaryButtonClassName, 'w-full sm:w-auto')}>
                             {copy.updateLabel}
                           </button>
                         </form>
@@ -325,8 +439,8 @@ export default async function AdminArticlesPage({
               })}
             </div>
           )}
-        </aside>
-      </section>
-    </main>
+        </AdminPanel>
+      </AdminWorkspace>
+    </AdminShell>
   );
 }

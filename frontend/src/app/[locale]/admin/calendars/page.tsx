@@ -1,10 +1,36 @@
-import AdminTabs from '@/components/admin/AdminTabs';
+import {
+  AdminEmptyState,
+  AdminNotice,
+  AdminPanel,
+  AdminShell,
+  AdminWorkspace,
+} from '@/components/admin/AdminShell';
+import {
+  adminBadgeClassName,
+  adminCx,
+  adminDetailsClassName,
+  adminFieldClassName,
+  adminFileInputClassName,
+  adminHintClassName,
+  adminInputClassName,
+  adminInputOnWhiteClassName,
+  adminLabelClassName,
+  adminOptionalLabelClassName,
+  adminPrimaryButtonClassName,
+  adminSecondaryButtonClassName,
+  adminSummaryClassName,
+  adminTextareaClassName,
+  adminTextareaOnWhiteClassName,
+  adminTranslationCardClassName,
+} from '@/components/admin/adminStyles';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
 import { getCalendars, type CalendarEntry } from '@/lib/api';
-import { getCalendarsAdminCopy } from '@/lib/calendars';
+import { getCalendarHref, getCalendarsAdminCopy, getCalendarsCopy } from '@/lib/calendars';
 import { parseEntityId } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
+import { FiEdit3, FiExternalLink } from 'react-icons/fi';
+
 import { createCalendarAction, updateCalendarAction } from './actions';
 
 type AdminPageSearchParams = {
@@ -28,23 +54,23 @@ type CalendarImageInputName = (typeof calendarImageFields)[number]['inputName'];
 type CalendarImageSlotCopy = Record<
   CalendarImageInputName,
   {
-    title: string;
     hint: string;
+    title: string;
   }
 > & {
   adminSubtitle: string;
+  emptySlot: string;
   formDescription: string;
   imageHint: string;
-  emptySlot: string;
 };
 
 function getCalendarImageSlotCopy(locale: string): CalendarImageSlotCopy {
   if (locale === 'en') {
     return {
       adminSubtitle:
-        'Create calendar items and assign photos to fixed page slots for the card, hero banner, and details block.',
+        'Create crop calendar items and keep every image in the right slot for the card, hero, details, and lower showcase block.',
       formDescription:
-        'Photo 1 is used for the top banner and card cover. Photo 2 is shown in the details section. Photo 3 is the large calendar preview, and photo 4 is the full background for the lower block.',
+        'Photo 1 is used for the top banner and card cover. Photo 2 is shown beside the description. Photo 3 is the large showcase image, and photo 4 is the background for the lower block.',
       imageHint:
         'Upload JPG, PNG, or WEBP up to 5 MB. The first two photos are required for a new item.',
       emptySlot: 'No photo uploaded yet.',
@@ -57,79 +83,41 @@ function getCalendarImageSlotCopy(locale: string): CalendarImageSlotCopy {
         hint: 'Shown in the main content block of the details page.',
       },
       image3: {
-        title: 'Large calendar preview',
-        hint: 'Shown large in the lower block of the details page.',
+        title: 'Large showcase image',
+        hint: 'Displayed large in the lower block of the crop page.',
       },
       image4: {
         title: 'Background for the lower block',
-        hint: 'Stretches across the whole lower block behind the large preview.',
+        hint: 'Stretches across the lower block behind the large showcase image.',
       },
     };
   }
 
   return {
     adminSubtitle:
-      'Добавляйте записи календаря и сразу раскладывайте фото по понятным слотам для карточки, баннера и блока с описанием.',
+      'Добавляйте записи календаря и раскладывайте фото по понятным слотам для карточки, шапки, блока с описанием и нижнего акцентного блока.',
     formDescription:
-      'Фото 1 используется для верхнего баннера и обложки карточки. Фото 2 показывается рядом с описанием. Фото 3 и 4 необязательные.',
+      'Фото 1 используется для верхнего баннера и обложки карточки. Фото 2 показывается рядом с описанием. Фото 3 — большая акцентная картинка, а фото 4 идет на фон нижнего блока.',
     imageHint:
       'Поддерживаются JPG, PNG и WEBP до 5 МБ. Для новой записи обязательны только первые 2 фото.',
-    emptySlot: 'Фото ещё не загружено.',
+    emptySlot: 'Фото еще не загружено.',
     image1: {
       title: 'Верхний баннер и обложка карточки',
-      hint: 'Показывается в списке календаря и в шапке страницы.',
+      hint: 'Показывается в списке календаря и в шапке страницы культуры.',
     },
     image2: {
       title: 'Фото рядом с описанием',
-      hint: 'Показывается в основном блоке страницы.',
+      hint: 'Показывается в основном контентном блоке страницы культуры.',
     },
     image3: {
-      title: 'Дополнительное фото',
-      hint: 'Необязательный запасной слот.',
+      title: 'Большая акцентная картинка',
+      hint: 'Отображается крупно в нижнем блоке страницы культуры.',
     },
     image4: {
-      title: 'Дополнительное фото',
-      hint: 'Необязательный запасной слот.',
+      title: 'Фон нижнего блока',
+      hint: 'Растягивается на весь нижний блок позади большой картинки.',
     },
   };
-}
-
-function getCalendarImageSlotDisplayCopy(
-  locale: string,
-  inputName: CalendarImageInputName,
-  fallback: { title: string; hint: string },
-) {
-  if (inputName === 'image3') {
-    return locale === 'en'
-      ? {
-          title: 'Large calendar preview',
-          hint: 'Shown large in the lower block of the details page.',
-        }
-      : {
-          title: 'Большая картинка календаря',
-          hint: 'Показывается большой в нижнем блоке страницы.',
-        };
-  }
-
-  if (inputName === 'image4') {
-    return locale === 'en'
-      ? {
-          title: 'Background for the lower block',
-          hint: 'Stretches across the whole lower block behind the large preview.',
-        }
-      : {
-          title: 'Фон для нижнего блока',
-          hint: 'Растягивается на весь блок позади большой картинки.',
-        };
-  }
-
-  return fallback;
-}
-
-function getCalendarFormDescription(locale: string) {
-  return locale === 'en'
-    ? 'Photo 1 is used for the top banner and card cover. Photo 2 is shown in the details section. Photo 3 is the large calendar preview, and photo 4 is the full background for the lower block.'
-    : 'Фото 1 используется для верхнего баннера и обложки карточки. Фото 2 показывается рядом с описанием. Фото 3 показывается большим в нижнем блоке, а Фото 4 идет на фон всего этого блока.';
 }
 
 function CalendarFormFields({
@@ -146,101 +134,108 @@ function CalendarFormFields({
   const imageSlotCopy = getCalendarImageSlotCopy(locale);
 
   return (
-    <>
-      <label className="flex flex-col gap-2">
-        <span className="text-sm font-medium text-[#0b3e31]">{copy.titleLabel}</span>
+    <div className="space-y-5">
+      <label className={adminFieldClassName}>
+        <span className={adminLabelClassName}>{copy.titleLabel}</span>
         <input
           name="title"
           type="text"
           required
           defaultValue={values?.title ?? ''}
-          className="rounded-2xl border border-[#0b5a45]/15 bg-[#f8f7f2] px-4 py-3 text-[#0b3e31] outline-none transition placeholder:text-[#7e9088] focus:border-[#0b5a45]"
+          className={adminInputClassName}
         />
       </label>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2">
           {calendarImageFields.map((field) => {
             const isRequired = imageRequired ? field.createRequired : false;
-            const slotCopy = getCalendarImageSlotDisplayCopy(
-              locale,
-              field.inputName,
-              imageSlotCopy[field.inputName],
-            );
+            const slotCopy = imageSlotCopy[field.inputName];
 
             return (
-              <label key={field.inputName} className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-[#0b3e31]">
-                  {copy.imageLabelPrefix} {field.index}
+              <div
+                key={field.inputName}
+                className="rounded-[1.35rem] border border-[#0b5a45]/10 bg-[#f8f7f2] p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className={adminLabelClassName}>
+                      {copy.imageLabelPrefix} {field.index}
+                    </p>
+                    <p className="mt-1 text-sm font-semibold leading-6 text-[#0b3e31]">
+                      {slotCopy.title}
+                    </p>
+                  </div>
+
                   {!isRequired ? (
-                    <span className="text-[#7e9088]"> ({copy.optionalLabel})</span>
+                    <span className={adminBadgeClassName}>{copy.optionalLabel}</span>
                   ) : null}
-                </span>
-                <span className="text-xs leading-5 text-[#6a7f76]">{slotCopy.title}</span>
+                </div>
+
+                <p className={adminCx('mt-2', adminHintClassName)}>{slotCopy.hint}</p>
+
                 <input
                   name={field.inputName}
                   type="file"
                   accept="image/png,image/jpeg,image/webp"
                   required={isRequired}
-                  className="rounded-2xl border border-dashed border-[#0b5a45]/20 bg-[#f8f7f2] px-4 py-3 text-sm text-[#0b3e31] file:mr-4 file:rounded-full file:border-0 file:bg-[#0b5a45] file:px-4 file:py-2 file:text-sm file:font-medium file:text-white"
+                  className={adminCx('mt-4', adminFileInputClassName)}
                 />
-                <span className="text-xs leading-5 text-[#7f8f88]">{slotCopy.hint}</span>
-              </label>
+              </div>
             );
           })}
         </div>
-        <p className="text-xs leading-5 text-[#6a7f76]">
+
+        <p className={adminHintClassName}>
           {imageRequired ? imageSlotCopy.imageHint : copy.replaceImageHint}
         </p>
       </div>
 
-      <label className="flex flex-col gap-2">
-        <span className="text-sm font-medium text-[#0b3e31]">{copy.descriptionLabel}</span>
+      <label className={adminFieldClassName}>
+        <span className={adminLabelClassName}>{copy.descriptionLabel}</span>
         <textarea
           name="description"
           rows={6}
           required
           defaultValue={values?.description ?? ''}
-          className="rounded-2xl border border-[#0b5a45]/15 bg-[#f8f7f2] px-4 py-3 text-[#0b3e31] outline-none transition placeholder:text-[#7e9088] focus:border-[#0b5a45]"
+          className={adminTextareaClassName}
         />
       </label>
 
-      <div className="rounded-[1.6rem] border border-[#0b5a45]/10 bg-[#f7f9f6] px-5 py-5">
-        <div className="mb-4">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#0b5a45]">
-            {copy.translationSectionTitle}
-          </p>
-          <p className="mt-2 text-xs leading-5 text-[#6a7f76]">{copy.translationHint}</p>
+      <div className={adminTranslationCardClassName}>
+        <div>
+          <p className={adminBadgeClassName}>{copy.translationSectionTitle}</p>
+          <p className={adminCx('mt-3', adminHintClassName)}>{copy.translationHint}</p>
         </div>
 
-        <div className="space-y-5">
-          <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-[#0b3e31]">
-              {copy.titleEnLabel} <span className="text-[#7e9088]">({copy.optionalLabel})</span>
+        <div className="mt-5 grid gap-5 md:grid-cols-2">
+          <label className={adminFieldClassName}>
+            <span className={adminLabelClassName}>
+              {copy.titleEnLabel}
+              <span className={adminOptionalLabelClassName}> ({copy.optionalLabel})</span>
             </span>
             <input
               name="titleEn"
               type="text"
               defaultValue={values?.titleEn ?? ''}
-              className="rounded-2xl border border-[#0b5a45]/15 bg-white px-4 py-3 text-[#0b3e31] outline-none transition placeholder:text-[#7e9088] focus:border-[#0b5a45]"
+              className={adminInputOnWhiteClassName}
             />
           </label>
 
-          <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-[#0b3e31]">
-              {copy.descriptionEnLabel}{' '}
-              <span className="text-[#7e9088]">({copy.optionalLabel})</span>
+          <label className={adminFieldClassName}>
+            <span className={adminLabelClassName}>
+              {copy.descriptionEnLabel}
+              <span className={adminOptionalLabelClassName}> ({copy.optionalLabel})</span>
             </span>
             <textarea
               name="descriptionEn"
               rows={6}
               defaultValue={values?.descriptionEn ?? ''}
-              className="rounded-2xl border border-[#0b5a45]/15 bg-white px-4 py-3 text-[#0b3e31] outline-none transition placeholder:text-[#7e9088] focus:border-[#0b5a45]"
+              className={adminTextareaOnWhiteClassName}
             />
           </label>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -254,98 +249,149 @@ export default async function AdminCalendarsPage({
   const { locale } = await params;
   const { calendar, edit, error, status } = await searchParams;
   const copy = getCalendarsAdminCopy(locale);
+  const publicCopy = getCalendarsCopy(locale);
   const imageSlotCopy = getCalendarImageSlotCopy(locale);
-  const formDescription = getCalendarFormDescription(locale);
   const calendars = await getCalendars();
   const editCalendarId = parseEntityId(edit ?? '');
   const statusCalendarId = parseEntityId(calendar ?? '');
   const topLevelError = error && !editCalendarId ? error : null;
   const topLevelStatus = status === 'created' ? copy.statusCreated : null;
+  const completeGalleryCount = calendars.filter(
+    (calendarItem) =>
+      calendarItem.imageUrl1?.trim() &&
+      calendarItem.imageUrl2?.trim() &&
+      calendarItem.imageUrl3?.trim() &&
+      calendarItem.imageUrl4?.trim(),
+  ).length;
+  const requiredPhotosReadyCount = calendars.filter(
+    (calendarItem) => calendarItem.imageUrl1?.trim() && calendarItem.imageUrl2?.trim(),
+  ).length;
+  const untranslatedCalendars = calendars.filter(
+    (calendarItem) => !calendarItem.titleEn?.trim() || !calendarItem.descriptionEn?.trim(),
+  ).length;
+  const createBadge = locale === 'en' ? 'Create' : 'Создание';
+  const manageBadge = locale === 'en' ? 'Manage' : 'Управление';
+  const openEditorLabel = locale === 'en' ? 'Open editor' : 'Открыть редактор';
+  const stats = [
+    {
+      label: locale === 'en' ? 'Entries' : 'Записи',
+      value: String(calendars.length),
+      hint:
+        locale === 'en'
+          ? 'Crop pages currently available in the calendar.'
+          : 'Страницы культур, которые сейчас доступны в календаре.',
+    },
+    {
+      label: locale === 'en' ? 'Required photos' : 'Обязательные фото',
+      value: String(requiredPhotosReadyCount),
+      hint:
+        locale === 'en'
+          ? 'Entries that already have the first two required images.'
+          : 'Записи, в которых уже есть первые два обязательных изображения.',
+    },
+    {
+      label: locale === 'en' ? 'Full gallery' : 'Полная галерея',
+      value: String(completeGalleryCount),
+      hint:
+        locale === 'en'
+          ? 'Entries with all four image slots filled.'
+          : 'Записи, в которых заполнены все четыре фотослота.',
+    },
+    {
+      label: locale === 'en' ? 'Need EN' : 'Нужен EN',
+      value: String(untranslatedCalendars),
+      hint:
+        locale === 'en'
+          ? 'Entries still missing English title or description.'
+          : 'Записи, в которых еще не хватает английского названия или описания.',
+    },
+  ];
+  const shortcuts = [
+    {
+      href: '#create-calendar',
+      label: locale === 'en' ? 'Add entry' : 'Добавить запись',
+    },
+    {
+      href: '#manage-calendars',
+      label: locale === 'en' ? 'Browse entries' : 'Список записей',
+    },
+  ];
 
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 pb-20 pt-60 md:px-8">
-      <section className="rounded-[2.5rem] bg-[linear-gradient(135deg,#0b5a45,#0a3e31)] px-8 py-10 text-white shadow-[0_30px_90px_-50px_rgba(11,62,49,1)] md:px-10">
-        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-          <div className="max-w-3xl">
-            <p className="mb-3 text-sm font-medium uppercase tracking-[0.28em] text-[#d8ead8]">
-              Foliart Admin
-            </p>
-            <h1 className="mb-4 text-4xl font-semibold md:text-5xl">{copy.adminTitle}</h1>
-            <p className="text-base leading-7 text-white/80 md:text-lg">
-              {imageSlotCopy.adminSubtitle}
-            </p>
-            <AdminTabs active="calendars" locale={locale} />
+    <AdminShell
+      activeTab="calendars"
+      backHref="/calendar"
+      backLabel={copy.backToSite}
+      description={imageSlotCopy.adminSubtitle}
+      locale={locale}
+      shortcuts={shortcuts}
+      stats={stats}
+      title={copy.adminTitle}>
+      <AdminWorkspace>
+        <AdminPanel
+          id="create-calendar"
+          badge={createBadge}
+          title={copy.adminFormTitle}
+          description={imageSlotCopy.formDescription}>
+          <div className="space-y-4">
+            {topLevelStatus ? <AdminNotice tone="success">{topLevelStatus}</AdminNotice> : null}
+            {topLevelError ? <AdminNotice tone="error">{topLevelError}</AdminNotice> : null}
           </div>
 
-          <Link
-            href="/"
-            className="inline-flex w-fit items-center rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/18">
-            {copy.backToSite}
-          </Link>
-        </div>
-      </section>
-
-      <section className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(320px,1.05fr)]">
-        <div className="rounded-[2rem] border border-[#0b5a45]/10 bg-white p-8 shadow-[0_24px_70px_-52px_rgba(11,62,49,0.95)]">
-          <h2 className="text-3xl font-semibold text-[#0b3e31]">{copy.adminFormTitle}</h2>
-          <p className="mt-3 text-sm leading-6 text-[#567068]">{formDescription}</p>
-
-          {topLevelStatus ? (
-            <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-800">
-              {topLevelStatus}
-            </div>
-          ) : null}
-
-          {topLevelError ? (
-            <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-800">
-              {topLevelError}
-            </div>
-          ) : null}
-
-          <form action={createCalendarAction} className="mt-8 space-y-6">
+          <form action={createCalendarAction} className="mt-6 space-y-6">
             <input type="hidden" name="locale" value={locale} />
 
             <CalendarFormFields copy={copy} locale={locale} imageRequired />
 
-            <button
-              type="submit"
-              className="inline-flex items-center rounded-full bg-[#0b5a45] px-6 py-3 text-sm font-medium text-white transition hover:bg-[#094635]">
-              {copy.submitLabel}
-            </button>
+            <div className="flex flex-col gap-3 border-t border-[#0b5a45]/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
+              <button
+                type="submit"
+                className={adminCx(adminPrimaryButtonClassName, 'w-full sm:w-auto')}>
+                {copy.submitLabel}
+              </button>
+              <p className={adminHintClassName}>{imageSlotCopy.imageHint}</p>
+            </div>
           </form>
-        </div>
+        </AdminPanel>
 
-        <aside className="rounded-[2rem] border border-[#0b5a45]/10 bg-[#f7f6f1] p-8 shadow-[0_24px_70px_-52px_rgba(11,62,49,0.95)]">
-          <h2 className="text-3xl font-semibold text-[#0b3e31]">{copy.existingTitle}</h2>
-
+        <AdminPanel
+          id="manage-calendars"
+          badge={manageBadge}
+          title={copy.existingTitle}
+          description={imageSlotCopy.formDescription}
+          tone="muted"
+          headerContent={<span className={adminBadgeClassName}>{calendars.length}</span>}>
           {calendars.length === 0 ? (
-            <p className="mt-8 text-sm text-[#6a7f76]">{copy.emptyState}</p>
+            <AdminEmptyState
+              badge={manageBadge}
+              title={locale === 'en' ? 'Calendar entries will appear here' : 'Записи появятся здесь'}
+              description={copy.emptyState}
+            />
           ) : (
-            <div className="mt-8 space-y-5">
+            <div className="space-y-5">
               {calendars.map((calendarItem) => {
                 const isEditing =
                   editCalendarId === calendarItem.id || statusCalendarId === calendarItem.id;
+                const hasEnglishVersion =
+                  Boolean(calendarItem.titleEn?.trim()) &&
+                  Boolean(calendarItem.descriptionEn?.trim());
 
                 return (
                   <div
                     key={calendarItem.id}
-                    className="rounded-[1.5rem] border border-[#0b5a45]/10 bg-white p-5">
-                    <div className="grid gap-5 lg:grid-cols-[minmax(240px,280px)_minmax(0,1fr)]">
-                      <div className="grid grid-cols-2 gap-3">
+                    className="rounded-[1.55rem] border border-[#0b5a45]/10 bg-white p-4 shadow-[0_22px_70px_-54px_rgba(11,62,49,0.9)] sm:p-5">
+                    <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+                      <div className="grid grid-cols-2 gap-3 sm:max-w-[360px]">
                         {calendarImageFields.map((field) => {
                           const imagePath = calendarItem[field.entryKey]?.trim();
                           const imageSrc = resolveMediaUrl(imagePath);
-                          const slotCopy = getCalendarImageSlotDisplayCopy(
-                            locale,
-                            field.inputName,
-                            imageSlotCopy[field.inputName],
-                          );
+                          const slotCopy = imageSlotCopy[field.inputName];
 
                           return (
                             <div
                               key={`${calendarItem.id}-${field.inputName}`}
-                              className="overflow-hidden rounded-[1.1rem] border border-[#0b5a45]/10 bg-[#eef3ef]">
-                              <div className="relative aspect-[1.18] overflow-hidden">
+                              className="overflow-hidden rounded-[1.15rem] border border-[#0b5a45]/10 bg-[#eef3ef]">
+                              <div className="relative aspect-[1.12] overflow-hidden">
                                 {imagePath ? (
                                   <MediaImage
                                     src={imageSrc}
@@ -377,20 +423,34 @@ export default async function AdminCalendarsPage({
                         })}
                       </div>
 
-                      <div className="min-w-0">
-                        <h3 className="text-xl font-semibold text-[#0b3e31]">{calendarItem.title}</h3>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-xl font-semibold text-[#0b3e31]">{calendarItem.title}</h3>
+                          <span
+                            className={adminCx(
+                              'inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]',
+                              hasEnglishVersion
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : 'bg-amber-50 text-amber-700',
+                            )}>
+                            {hasEnglishVersion
+                              ? locale === 'en'
+                                ? 'EN ready'
+                                : 'EN готов'
+                              : locale === 'en'
+                                ? 'Needs EN'
+                                : 'Нужен EN'}
+                          </span>
+                        </div>
+
                         <p className="mt-3 whitespace-pre-line text-sm leading-6 text-[#567068]">
                           {calendarItem.description}
                         </p>
 
-                        <div className="mt-4 grid gap-2 text-xs text-[#7f8f88] sm:grid-cols-2">
+                        <div className="mt-4 grid gap-2 text-xs leading-5 text-[#7f8f88] sm:grid-cols-2">
                           {calendarImageFields.map((field) => {
                             const imagePath = calendarItem[field.entryKey]?.trim();
-                            const slotCopy = getCalendarImageSlotDisplayCopy(
-                              locale,
-                              field.inputName,
-                              imageSlotCopy[field.inputName],
-                            );
+                            const slotCopy = imageSlotCopy[field.inputName];
 
                             return (
                               <p key={`${calendarItem.id}-path-${field.inputName}`}>
@@ -401,29 +461,43 @@ export default async function AdminCalendarsPage({
                           })}
                         </div>
                       </div>
+
+                      <div className="flex flex-col gap-2 sm:flex-row xl:flex-col xl:items-end">
+                        <Link href={getCalendarHref(calendarItem)} className={adminSecondaryButtonClassName}>
+                          <FiExternalLink className="mr-2" />
+                          {publicCopy.openEntry}
+                        </Link>
+                        <Link
+                          href={`/admin/calendars?edit=${calendarItem.id}#manage-calendars`}
+                          className={adminSecondaryButtonClassName}>
+                          <FiEdit3 className="mr-2" />
+                          {openEditorLabel}
+                        </Link>
+                      </div>
                     </div>
 
-                    <details
-                      open={isEditing}
-                      className="mt-5 rounded-[1.1rem] border border-[#0b5a45]/10 bg-[#f8f7f2]">
-                      <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-[#0b5a45] [&::-webkit-details-marker]:hidden">
-                        {copy.editLabel}
+                    <details open={isEditing} className={adminCx('mt-5', adminDetailsClassName)}>
+                      <summary className={adminSummaryClassName}>
+                        <span>{copy.editLabel}</span>
+                        <span className="text-xs font-medium text-[#6a7f76]">
+                          {locale === 'en'
+                            ? 'Inline calendar editor'
+                            : 'Встроенный редактор записи'}
+                        </span>
                       </summary>
 
-                      <div className="border-t border-[#0b5a45]/10 p-4">
-                        {status === 'updated' && statusCalendarId === calendarItem.id ? (
-                          <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-                            {copy.statusUpdated}
-                          </div>
-                        ) : null}
+                      <div className="border-t border-[#0b5a45]/10 p-4 sm:p-5">
+                        <div className="space-y-4">
+                          {status === 'updated' && statusCalendarId === calendarItem.id ? (
+                            <AdminNotice tone="success">{copy.statusUpdated}</AdminNotice>
+                          ) : null}
 
-                        {error && editCalendarId === calendarItem.id ? (
-                          <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
-                            {error}
-                          </div>
-                        ) : null}
+                          {error && editCalendarId === calendarItem.id ? (
+                            <AdminNotice tone="error">{error}</AdminNotice>
+                          ) : null}
+                        </div>
 
-                        <form action={updateCalendarAction} className="space-y-5">
+                        <form action={updateCalendarAction} className="mt-5 space-y-6">
                           <input type="hidden" name="locale" value={locale} />
                           <input type="hidden" name="calendarId" value={calendarItem.id} />
 
@@ -436,7 +510,7 @@ export default async function AdminCalendarsPage({
 
                           <button
                             type="submit"
-                            className="inline-flex items-center rounded-full bg-[#0b5a45] px-6 py-3 text-sm font-medium text-white transition hover:bg-[#094635]">
+                            className={adminCx(adminPrimaryButtonClassName, 'w-full sm:w-auto')}>
                             {copy.updateLabel}
                           </button>
                         </form>
@@ -447,8 +521,8 @@ export default async function AdminCalendarsPage({
               })}
             </div>
           )}
-        </aside>
-      </section>
-    </main>
+        </AdminPanel>
+      </AdminWorkspace>
+    </AdminShell>
   );
 }
