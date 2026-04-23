@@ -9,21 +9,15 @@ export default function About() {
 
   return (
     <section>
-      <div className="relative flex flex-col items-center justify-center py-14 px-6 text-center overflow-hidden pt-60">
+      <div className="catalog-header relative flex flex-col items-center justify-center py-14 text-center overflow-hidden pt-30 md:pt-60">
         <Image src="/about-head1.png" alt="" fill className="object-cover -z-10" />
         <div className="absolute inset-0 bg-black/50 -z-10" />
-        <h1
-          className="font-bold text-white mb-4"
-          style={{
-            fontSize: 55,
-          }}>
-          {t('title')}
-        </h1>
-        <p className="text-base text-xl text-white/70  mb-2">{t('subtitle')}</p>
+        <h1 className="font-bold text-3xl md:text-5xl text-white mb-4">{t('title')}</h1>
+        <p className="text-base text-lg md:text-xl text-white/70  mb-2">{t('subtitle')}</p>
         <Image src="/logo5.PNG" alt="Фолиарт" width={130} height={40} />
       </div>
-      <div className="px-90  flex gap-30 px-20 py-16">
-        <aside className="sticky top-24 self-start min-w-[180px]">
+      <div className="catalog-header flex gap-30 py-10">
+        <aside className="hidden min-[1000px]:sticky min-[1000px]:top-24 min-[1000px]:block min-[1000px]:self-start min-[1000px]:min-w-[180px]">
           <nav className="">
             <ul className="flex flex-col">
               <li className="border-b border-l border-l-3 border-gray-200 hover:bg-gray-100 transition-colors hover:border-l-gray-400">
@@ -66,7 +60,7 @@ export default function About() {
           </div>
           <div
             id="feedback"
-            className="scroll-mt-28 grid grid-cols-2 justify-between relative mb-20 px-8 py-8">
+            className="scroll-mt-28 md:items-start items-center gap-10 md:gap=0 md:mt-0 flex flex-col-reverse md:grid md:grid-cols-2 justify-between relative mb-20 p-4  md:p-8">
             <Image src="/about-form.jpeg" alt="" fill className="object-cover -z-10" />
             <div className="absolute inset-0 bg-black/50 -z-10" />
 

@@ -56,13 +56,21 @@ export class ProductsService {
       ...product,
       name: useEnglish && product.nameEn.trim() ? product.nameEn : product.name,
       description:
-        useEnglish && product.descriptionEn.trim() ? product.descriptionEn : product.description,
+        useEnglish && product.descriptionEn.trim()
+          ? product.descriptionEn
+          : product.description,
       advantages:
-        useEnglish && product.advantagesEn.trim() ? product.advantagesEn : product.advantages,
+        useEnglish && product.advantagesEn.trim()
+          ? product.advantagesEn
+          : product.advantages,
       composition:
-        useEnglish && product.compositionEn.trim() ? product.compositionEn : product.composition,
+        useEnglish && product.compositionEn.trim()
+          ? product.compositionEn
+          : product.composition,
       application:
-        useEnglish && product.applicationEn.trim() ? product.applicationEn : product.application,
+        useEnglish && product.applicationEn.trim()
+          ? product.applicationEn
+          : product.application,
       slugSourceName: product.name,
     };
   }

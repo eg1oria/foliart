@@ -73,7 +73,7 @@ export default async function CategoryProductsPage({
 
   return (
     <main className="bg-white">
-      <div className="relative flex flex-col items-start px-90 justify-center py-14 px-6 text-center overflow-hidden pt-60">
+      <div className="relative category-header flex flex-col items-start justify-center py-14 px-6 text-center overflow-hidden pt-30 md:pt-60">
         <MediaImage
           src={categoryImage}
           alt={category.name}
@@ -87,7 +87,7 @@ export default async function CategoryProductsPage({
         <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(7,35,28,0.88),rgba(7,35,28,0.48),rgba(7,35,28,0.72))]" />
 
         <div className="relative z-10 max-w-3xl">
-          <h1 className="mb-4 font-bold text-white text-start" style={{ fontSize: 45 }}>
+          <h1 className="mb-4 font-bold text-white text-start md:text-5xl text-3xl">
             {category.name}
           </h1>
           <p className="mb-2 text-sm text-white/90 text-start text-xl">{category.description}</p>
@@ -97,9 +97,9 @@ export default async function CategoryProductsPage({
         </div>
       </div>
 
-      <section className="mx-auto w-full  py-10 px-90">
-        <div className="grid gap-5 xl:grid-cols-[260px_minmax(0,1fr)] xl:gap-16">
-          <aside className="xl:sticky xl:top-28 xl:self-start">
+      <section className="category-header mx-auto w-full py-10">
+        <div className="grid gap-5 min-[1000px]:grid-cols-[260px_minmax(0,1fr)] min-[1000px]:gap-16">
+          <aside className="hidden min-[1000px]:sticky min-[1000px]:top-28 min-[1000px]:block min-[1000px]:self-start">
             <CategoryDropdown
               label={pageCopy.otherCategories}
               items={categoryMenuItems}
@@ -113,7 +113,7 @@ export default async function CategoryProductsPage({
               {copy.emptyProducts}
             </div>
           ) : (
-            <div className="grid sm:grid-cols-2 gap-1 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-1 md:grid-cols-3">
               {products.map((product) => {
                 const productImage = resolveMediaUrl(product.imageUrl);
 
@@ -127,8 +127,8 @@ export default async function CategoryProductsPage({
                         src={productImage}
                         alt={product.name}
                         fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                        className="object-contain"
+                        sizes="(max-width: 767px) 50vw, 33vw"
+                        className="object-contain md:p-0 p-4"
                         emptyState={
                           <div className="flex h-full w-full items-center justify-center px-8 text-center text-sm leading-6 text-[#6d6d63]">
                             {copy.productPlaceholder}
@@ -138,13 +138,13 @@ export default async function CategoryProductsPage({
                     </div>
 
                     <div className="relative flex flex-1 flex-col overflow-hidden">
-                      <div className="px-6 pb-30 pt-5 text-center">
-                        <h2 className="text-[1.5rem] font-medium tracking-[0.01em] text-[#0b0b0b]">
+                      <div className="px-6 pb-6 pt-5 text-center min-[900px]:pb-30">
+                        <h2 className="text-[1rem] md:text-[1.5rem] font-medium tracking-[0.01em] text-[#0b0b0b]">
                           {product.name}
                         </h2>
                       </div>
 
-                      <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-full border-t border-[#ece7da] bg-[#f8f5eb] px-6 py-5 opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                      <div className="md:border-t flex flex-col items-center border-[#ece7da] md:bg-[#f8f5eb] px-6 py-5 min-[900px]:pointer-events-none min-[900px]:absolute min-[900px]:inset-x-0 min-[900px]:bottom-0 min-[900px]:translate-y-full min-[900px]:opacity-0 min-[900px]:transition min-[900px]:duration-300 min-[900px]:group-hover:translate-y-0 min-[900px]:group-hover:opacity-100">
                         <span className="inline-flex items-center gap-2 text-base text-[#337ab7]">
                           <FiInfo size={14} className="shrink-0 text-[#0b3e31]" />
                           <span>{copy.learnMore}</span>

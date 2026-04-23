@@ -80,7 +80,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
     {
       id: 'calendar',
       name: t('calendar'),
-      href: '',
+      href: '/calendar',
       children: calendarChildren.length > 0 ? calendarChildren : undefined,
     },
     {

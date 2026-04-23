@@ -11,6 +11,7 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
+import type { Request } from 'express';
 import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -18,11 +19,18 @@ import { diskStorage } from 'multer';
 import { ProductsService } from './products.service';
 
 const productsImagesDirectory = join(process.cwd(), 'images', 'products');
-const allowedMimeTypes = new Set([
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-]);
+const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+
+type StoredUploadFile = {
+  filename: string;
+  mimetype: string;
+  originalname: string;
+  path: string;
+};
+
+type DestinationCallback = (error: Error | null, destination: string) => void;
+type FilenameCallback = (error: Error | null, filename: string) => void;
+type FileFilterCallback = (error: Error | null, acceptFile: boolean) => void;
 
 function ensureProductsDirectory() {
   mkdirSync(productsImagesDirectory, { recursive: true });
@@ -58,24 +66,49 @@ function normalizeFileNameSegment(value: string) {
   return normalized || 'product';
 }
 
+function getRequestTextField(req: Request, fieldName: string) {
+  const body: unknown = req.body;
+
+  if (!body || typeof body !== 'object') {
+    return undefined;
+  }
+
+  const value = (body as Record<string, unknown>)[fieldName];
+  return typeof value === 'string' ? value : undefined;
+}
+
 function createImageInterceptor() {
   return FileInterceptor('image', {
     storage: diskStorage({
-      destination: (_req, _file, callback) => {
+      destination: (
+        _req: Request,
+        _file: StoredUploadFile,
+        callback: DestinationCallback,
+      ) => {
         ensureProductsDirectory();
         callback(null, productsImagesDirectory);
       },
-      filename: (req, file, callback) => {
-        const name = typeof req.body?.name === 'string' ? req.body.name : 'product';
+      filename: (
+        req: Request,
+        file: StoredUploadFile,
+        callback: FilenameCallback,
+      ) => {
+        const name = getRequestTextField(req, 'name') ?? 'product';
         const extension = extname(file.originalname).toLowerCase() || '.jpg';
         const fileName = `${Date.now()}-${normalizeFileNameSegment(name)}${extension}`;
         callback(null, fileName);
       },
     }),
-    fileFilter: (_req, file, callback) => {
+    fileFilter: (
+      _req: Request,
+      file: StoredUploadFile,
+      callback: FileFilterCallback,
+    ) => {
       if (!allowedMimeTypes.has(file.mimetype)) {
         callback(
-          new BadRequestException('Only JPG, PNG, and WEBP images are supported'),
+          new BadRequestException(
+            'Only JPG, PNG, and WEBP images are supported',
+          ),
           false,
         );
         return;
@@ -94,7 +127,10 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get()
-  findAll(@Query('categoryId') categoryId?: string, @Query('locale') locale?: string) {
+  findAll(
+    @Query('categoryId') categoryId?: string,
+    @Query('locale') locale?: string,
+  ) {
     if (categoryId) {
       return this.productsService.findByCategory(+categoryId, locale);
     }
@@ -106,10 +142,7 @@ export class ProductsController {
   async create(
     @Body() body: Record<string, string | undefined>,
     @UploadedFile()
-    file?: {
-      filename: string;
-      path: string;
-    },
+    file?: StoredUploadFile,
   ) {
     const categoryId = Number.parseInt(body.categoryId ?? '', 10);
     const name = body.name?.trim() ?? '';
@@ -153,7 +186,7 @@ export class ProductsController {
         imageUrl: `products/${file.filename}`,
       });
     } catch (error) {
-      removeUploadedFile(file.path);
+      removeUploadedFile(file?.path);
       throw error;
     }
   }
@@ -164,10 +197,7 @@ export class ProductsController {
     @Param('id', ParseIntPipe) id: number,
     @Body() body: Record<string, string | undefined>,
     @UploadedFile()
-    file?: {
-      filename: string;
-      path: string;
-    },
+    file?: StoredUploadFile,
   ) {
     const categoryId = Number.parseInt(body.categoryId ?? '', 10);
     const name = body.name?.trim() ?? '';
@@ -221,7 +251,10 @@ export class ProductsController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number, @Query('locale') locale?: string) {
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('locale') locale?: string,
+  ) {
     return this.productsService.findOne(id, locale);
   }
 }

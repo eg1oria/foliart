@@ -123,7 +123,7 @@ export default async function ProductDetailsPage({
 
   return (
     <main className="flex-1 bg-white pb-20">
-      <div className="relative flex flex-col items-start justify-center overflow-hidden px-90 py-12 pt-65">
+      <div className="relative flex flex-col items-start justify-center overflow-hidden px-6 py-12 pt-65 xl:px-90">
         <MediaImage
           src={categoryImage}
           alt={category.name}
@@ -139,7 +139,7 @@ export default async function ProductDetailsPage({
         <h1 className="relative z-10 text-[40px] font-bold text-white">{product.name}</h1>
       </div>
 
-      <section className="px-90 py-12">
+      <section className="px-6 py-12 xl:px-90">
         <div className="grid gap-x-12 gap-y-16 lg:grid-cols-[230px_minmax(340px,1fr)_minmax(280px,360px)]">
           <aside className="order-3 lg:order-1 lg:row-span-2 lg:self-stretch">
             <div className="lg:h-full">

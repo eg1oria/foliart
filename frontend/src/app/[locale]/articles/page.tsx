@@ -12,24 +12,24 @@ export default async function ArticlesPage({ params }: { params: Promise<{ local
 
   return (
     <main className="pb-24">
-      <section className="relative flex min-h-[360px] flex-col justify-center overflow-hidden px-6 px-90 pb-16 pt-60">
+      <section className="catalog-header relative flex flex-col justify-center overflow-hidden px-6 pb-16 pt-30 md:pt-60">
         <Image src="/articles-head.webp" alt="" fill className="object-cover" />
         <div className="absolute inset-0 bg-black/55" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
 
-        <div className="relative z-10 max-w-4xl">
-          <h1 className="text-4xl font-bold text-white md:text-5xl">{copy.title}</h1>
-        </div>
+        <h1 className="relative z-10 max-w-4xl text-3xl font-bold text-white md:text-5xl">
+          {copy.title}
+        </h1>
       </section>
 
-      <section className="px-6 px-90 py-16">
+      <section className="catalog-header py-10">
         {articles.length === 0 ? (
           <div className="rounded-[2rem] border border-dashed border-[#0b5a45]/20 bg-[#f7f6f1] px-8 py-16 text-center text-base text-[#5f726b]">
             {copy.emptyState}
           </div>
         ) : (
-          <div className="grid items-stretch gap-x-10 gap-y-16 md:grid-cols-2 xl:grid-cols-4">
-            {articles.map((article, index) => {
+          <div className="grid items-stretch gap-2  md:gap-x-10 md:gap-y-16 md:grid-cols-2 xl:grid-cols-4">
+            {articles.map((article) => {
               const imageSrc = resolveMediaUrl(article.imageUrl);
 
               return (

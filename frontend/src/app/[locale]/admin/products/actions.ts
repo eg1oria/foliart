@@ -25,6 +25,7 @@ type ProductFormPayload = {
 function buildAdminRedirectPath(
   locale: string,
   params: Record<string, string | undefined> = {},
+  hash?: string,
 ) {
   const searchParams = new URLSearchParams();
 
@@ -35,7 +36,7 @@ function buildAdminRedirectPath(
   }
 
   const query = searchParams.toString();
-  return `/${locale}/admin/products${query ? `?${query}` : ''}`;
+  return `/${locale}/admin/products${query ? `?${query}` : ''}${hash ? `#${hash}` : ''}`;
 }
 
 function normalizeLocale(value: FormDataEntryValue | null) {
@@ -152,7 +153,7 @@ export async function createProductAction(formData: FormData) {
           locale === 'en'
             ? 'Fill in category, product name, and image.'
             : 'Заполните категорию, название товара и фото.',
-      }),
+      }, 'create-product'),
     );
   }
 
@@ -174,7 +175,7 @@ export async function createProductAction(formData: FormData) {
         error:
           rawMessage ||
           (locale === 'en' ? 'Failed to create product.' : 'Не удалось создать товар.'),
-      }),
+      }, 'create-product'),
     );
   }
 
@@ -186,7 +187,7 @@ export async function createProductAction(formData: FormData) {
   redirect(
     buildAdminRedirectPath(locale, {
       status: 'created',
-    }),
+    }, 'create-product'),
   );
 }
 
@@ -206,7 +207,7 @@ export async function updateProductAction(formData: FormData) {
           locale === 'en'
             ? 'Fill in category and product name.'
             : 'Заполните категорию и название товара.',
-      }),
+      }, productId ? `product-${productId}` : 'manage-products'),
     );
   }
 
@@ -232,7 +233,7 @@ export async function updateProductAction(formData: FormData) {
         error:
           rawMessage ||
           (locale === 'en' ? 'Failed to update product.' : 'Не удалось обновить товар.'),
-      }),
+      }, productId ? `product-${productId}` : 'manage-products'),
     );
   }
 
@@ -248,7 +249,7 @@ export async function updateProductAction(formData: FormData) {
       status: 'updated',
       product: productId,
       edit: productId,
-    }),
+    }, `product-${productId}`),
   );
 }
 
@@ -263,7 +264,7 @@ export async function updateCategoryTranslationAction(formData: FormData) {
       buildAdminRedirectPath(locale, {
         categoryError:
           locale === 'en' ? 'Select a category.' : 'Выберите категорию для перевода.',
-      }),
+      }, 'manage-products'),
     );
   }
 
@@ -290,7 +291,7 @@ export async function updateCategoryTranslationAction(formData: FormData) {
           (locale === 'en'
             ? 'Failed to update category translation.'
             : 'Не удалось обновить перевод категории.'),
-      }),
+      }, `category-${categoryId}`),
     );
   }
 
@@ -300,6 +301,6 @@ export async function updateCategoryTranslationAction(formData: FormData) {
     buildAdminRedirectPath(locale, {
       category: categoryId,
       categoryStatus: 'updated',
-    }),
+    }, `category-${categoryId}`),
   );
 }

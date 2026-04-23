@@ -11,6 +11,7 @@ import {
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
+import type { Request } from 'express';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
@@ -23,15 +24,22 @@ const calendarImageFields = ['image1', 'image2', 'image3', 'image4'] as const;
 const requiredCalendarImageFields = ['image1', 'image2'] as const;
 
 type CalendarImageField = (typeof calendarImageFields)[number];
+
+type StoredUploadFile = {
+  fieldname: string;
+  filename: string;
+  mimetype: string;
+  originalname: string;
+  path: string;
+};
+
 type UploadedCalendarFiles = Partial<
-  Record<
-    CalendarImageField,
-    Array<{
-      filename: string;
-      path: string;
-    }>
-  >
+  Record<CalendarImageField, StoredUploadFile[]>
 >;
+
+type DestinationCallback = (error: Error | null, destination: string) => void;
+type FilenameCallback = (error: Error | null, filename: string) => void;
+type FileFilterCallback = (error: Error | null, acceptFile: boolean) => void;
 
 function ensureCalendarsDirectory() {
   mkdirSync(calendarsImagesDirectory, { recursive: true });
@@ -69,7 +77,21 @@ function normalizeFileNameSegment(value: string) {
   return normalized || 'calendar-entry';
 }
 
-function getUploadedFile(files: UploadedCalendarFiles | undefined, fieldName: CalendarImageField) {
+function getRequestTextField(req: Request, fieldName: string) {
+  const body: unknown = req.body;
+
+  if (!body || typeof body !== 'object') {
+    return undefined;
+  }
+
+  const value = (body as Record<string, unknown>)[fieldName];
+  return typeof value === 'string' ? value : undefined;
+}
+
+function getUploadedFile(
+  files: UploadedCalendarFiles | undefined,
+  fieldName: CalendarImageField,
+) {
   return files?.[fieldName]?.[0];
 }
 
@@ -81,21 +103,35 @@ function createImagesInterceptor() {
     })),
     {
       storage: diskStorage({
-        destination: (_req, _file, callback) => {
+        destination: (
+          _req: Request,
+          _file: StoredUploadFile,
+          callback: DestinationCallback,
+        ) => {
           ensureCalendarsDirectory();
           callback(null, calendarsImagesDirectory);
         },
-        filename: (req, file, callback) => {
-          const title = typeof req.body?.title === 'string' ? req.body.title : 'calendar-entry';
+        filename: (
+          req: Request,
+          file: StoredUploadFile,
+          callback: FilenameCallback,
+        ) => {
+          const title = getRequestTextField(req, 'title') ?? 'calendar-entry';
           const extension = extname(file.originalname).toLowerCase() || '.jpg';
           const fileName = `${Date.now()}-${file.fieldname}-${normalizeFileNameSegment(title)}${extension}`;
           callback(null, fileName);
         },
       }),
-      fileFilter: (_req, file, callback) => {
+      fileFilter: (
+        _req: Request,
+        file: StoredUploadFile,
+        callback: FileFilterCallback,
+      ) => {
         if (!allowedMimeTypes.has(file.mimetype)) {
           callback(
-            new BadRequestException('Only JPG, PNG, and WEBP images are supported'),
+            new BadRequestException(
+              'Only JPG, PNG, and WEBP images are supported',
+            ),
             false,
           );
           return;
@@ -121,7 +157,10 @@ export class CalendarsController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number, @Query('locale') locale?: string) {
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('locale') locale?: string,
+  ) {
     return this.calendarsService.findOne(id, locale);
   }
 
@@ -135,7 +174,9 @@ export class CalendarsController {
     const titleEn = body.titleEn?.trim() ?? '';
     const description = body.description?.trim() ?? '';
     const descriptionEn = body.descriptionEn?.trim() ?? '';
-    const uploadedFiles = calendarImageFields.map((fieldName) => getUploadedFile(files, fieldName));
+    const uploadedFiles = calendarImageFields.map((fieldName) =>
+      getUploadedFile(files, fieldName),
+    );
     const requiredUploadedFiles = requiredCalendarImageFields.map((fieldName) =>
       getUploadedFile(files, fieldName),
     );
@@ -163,8 +204,12 @@ export class CalendarsController {
         descriptionEn,
         imageUrl1: `calendars/${uploadedFiles[0]!.filename}`,
         imageUrl2: `calendars/${uploadedFiles[1]!.filename}`,
-        imageUrl3: uploadedFiles[2]?.filename ? `calendars/${uploadedFiles[2].filename}` : '',
-        imageUrl4: uploadedFiles[3]?.filename ? `calendars/${uploadedFiles[3].filename}` : '',
+        imageUrl3: uploadedFiles[2]?.filename
+          ? `calendars/${uploadedFiles[2].filename}`
+          : '',
+        imageUrl4: uploadedFiles[3]?.filename
+          ? `calendars/${uploadedFiles[3].filename}`
+          : '',
       });
     } catch (error) {
       removeUploadedFiles(uploadedFiles.map((file) => file?.path));
@@ -183,7 +228,9 @@ export class CalendarsController {
     const titleEn = body.titleEn?.trim() ?? '';
     const description = body.description?.trim() ?? '';
     const descriptionEn = body.descriptionEn?.trim() ?? '';
-    const uploadedFiles = calendarImageFields.map((fieldName) => getUploadedFile(files, fieldName));
+    const uploadedFiles = calendarImageFields.map((fieldName) =>
+      getUploadedFile(files, fieldName),
+    );
 
     if (!title) {
       removeUploadedFiles(uploadedFiles.map((file) => file?.path));
@@ -226,7 +273,9 @@ export class CalendarsController {
 
       removeUploadedFiles(
         uploadedFiles.map((file, index) =>
-          file?.filename ? getStoredCalendarImagePath(previousImageUrls[index]) : undefined,
+          file?.filename
+            ? getStoredCalendarImagePath(previousImageUrls[index])
+            : undefined,
         ),
       );
 

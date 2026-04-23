@@ -20,6 +20,7 @@ type ArticleFormPayload = {
 function buildAdminRedirectPath(
   locale: string,
   params: Record<string, string | undefined> = {},
+  hash?: string,
 ) {
   const searchParams = new URLSearchParams();
 
@@ -30,7 +31,7 @@ function buildAdminRedirectPath(
   }
 
   const query = searchParams.toString();
-  return `/${locale}/admin/articles${query ? `?${query}` : ''}`;
+  return `/${locale}/admin/articles${query ? `?${query}` : ''}${hash ? `#${hash}` : ''}`;
 }
 
 function normalizeLocale(value: FormDataEntryValue | null) {
@@ -102,7 +103,7 @@ export async function createArticleAction(formData: FormData) {
           locale === 'en'
             ? 'Fill in the article title, content, and cover image.'
             : 'Заполните заголовок, текст статьи и загрузите обложку.',
-      }),
+      }, 'create-article'),
     );
   }
 
@@ -124,7 +125,7 @@ export async function createArticleAction(formData: FormData) {
         error:
           rawMessage ||
           (locale === 'en' ? 'Failed to create article.' : 'Не удалось создать статью.'),
-      }),
+      }, 'create-article'),
     );
   }
 
@@ -135,7 +136,7 @@ export async function createArticleAction(formData: FormData) {
   redirect(
     buildAdminRedirectPath(locale, {
       status: 'created',
-    }),
+    }, 'create-article'),
   );
 }
 
@@ -154,7 +155,7 @@ export async function updateArticleAction(formData: FormData) {
           locale === 'en'
             ? 'Fill in the article title and content.'
             : 'Заполните заголовок и текст статьи.',
-      }),
+      }, articleId ? `article-${articleId}` : 'manage-articles'),
     );
   }
 
@@ -180,7 +181,7 @@ export async function updateArticleAction(formData: FormData) {
         error:
           rawMessage ||
           (locale === 'en' ? 'Failed to update article.' : 'Не удалось обновить статью.'),
-      }),
+      }, articleId ? `article-${articleId}` : 'manage-articles'),
     );
   }
 
@@ -194,6 +195,6 @@ export async function updateArticleAction(formData: FormData) {
       status: 'updated',
       article: articleId,
       edit: articleId,
-    }),
+    }, `article-${articleId}`),
   );
 }

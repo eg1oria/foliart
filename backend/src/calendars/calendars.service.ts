@@ -46,8 +46,15 @@ export class CalendarsService {
       ...entry,
       title: useEnglish && entry.titleEn.trim() ? entry.titleEn : entry.title,
       description:
-        useEnglish && entry.descriptionEn.trim() ? entry.descriptionEn : entry.description,
-      imageUrls: [entry.imageUrl1, entry.imageUrl2, entry.imageUrl3, entry.imageUrl4],
+        useEnglish && entry.descriptionEn.trim()
+          ? entry.descriptionEn
+          : entry.description,
+      imageUrls: [
+        entry.imageUrl1,
+        entry.imageUrl2,
+        entry.imageUrl3,
+        entry.imageUrl4,
+      ],
       slugSourceTitle: entry.title,
     };
   }

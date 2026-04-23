@@ -31,7 +31,8 @@
     "officeLabel": "Main office",
     "officePhone": "+7(918)434-18-91",
     "officeEmail": "mail@foliart.me",
-    "officeAddress": "350072, Krasnodar Territory, Krasnodar, Solnechnaya St., 10/3, office No. 31, floor 2"
+    "officeAddress": "350072, Krasnodar Territory, Krasnodar, Solnechnaya St., 10/3, office No. 31, floor 2",
+    "showMap": "Show map"
   },
   "Specialist": {
     "eyebrow": "PLANT NUTRITION SPECIALIST",
@@ -110,6 +111,92 @@
     "submit": "Send",
     "consent": "I give my consent to the lawful processing of personal data.",
     "consentLink": "compiled in accordance with the requirements of Federal Law No. 152-FZ of 27.07.2006 \"On Personal Data\""
+  },
+  "Privacy": {
+    "title": "Personal Data Processing Policy",
+    "subtitle": "A document of LLC \"Astoria\" governing the procedure for processing and protecting website visitors' personal data.",
+    "back": "Back",
+    "sections": {
+      "general": {
+        "title": "1. General Provisions",
+        "paragraphs": [
+          "This personal data processing policy has been prepared in accordance with the requirements of Federal Law No. 152-FZ dated July 27, 2006 \"On Personal Data\" and defines the procedure for processing personal data and measures to ensure the security of personal data by LLC \"Astoria\" (hereinafter referred to as the Operator)."
+        ],
+        "items": [
+          "The Operator considers compliance with the rights and freedoms of a person and citizen in the processing of their personal data, including protection of the rights to privacy and personal and family secrecy, to be its most important goal and condition for carrying out its activities.",
+          "This Operator's policy regarding the processing of personal data (hereinafter referred to as the Policy) applies to all information that the Operator may obtain about visitors to the website <site>https://фолиарт.рф</site>."
+        ]
+      },
+      "terms": {
+        "title": "2. Basic Terms Used in the Policy",
+        "items": [
+          "Automated processing of personal data means the processing of personal data using computer technology.",
+          "Blocking of personal data means temporary suspension of the processing of personal data (except where processing is required to clarify personal data).",
+          "Website means a set of graphic and information materials, as well as computer programs and databases, ensuring their availability on the Internet at the network address <site>https://фолиарт.рф</site>.",
+          "Personal data information system means a set of personal data contained in databases, and the information technologies and technical means ensuring their processing.",
+          "Depersonalization of personal data means actions resulting in the impossibility of determining, without the use of additional information, whether personal data belongs to a specific User or another subject of personal data.",
+          "Processing of personal data means any action (operation) or set of actions (operations) performed with or without automation tools on personal data, including collection, recording, systematization, accumulation, storage, clarification (updating, modification), extraction, use, transfer (dissemination, provision, access), depersonalization, blocking, deletion and destruction of personal data.",
+          "Operator means a state authority, municipal authority, legal entity or individual that independently or jointly with other persons organizes and/or carries out the processing of personal data, and also determines the purposes of processing personal data, the composition of personal data to be processed, and the actions (operations) performed with personal data.",
+          "Personal data means any information relating directly or indirectly to an identified or identifiable User of the website <site>https://фолиарт.рф</site>.",
+          "User means any visitor to the website <site>https://фолиарт.рф</site>.",
+          "Provision of personal data means actions aimed at disclosing personal data to a specific person or a specific group of persons.",
+          "Dissemination of personal data means any actions aimed at disclosing personal data to an indefinite group of persons (transfer of personal data) or at making personal data available to an unlimited group of persons, including publication of personal data in the mass media, posting it in information and telecommunications networks, or providing access to personal data in any other way.",
+          "Cross-border transfer of personal data means the transfer of personal data to the territory of a foreign state, to a foreign state authority, a foreign individual or a foreign legal entity.",
+          "Destruction of personal data means any actions resulting in the irreversible destruction of personal data with no possibility of further restoring the content of personal data in the personal data information system and/or resulting in the destruction of tangible media containing personal data."
+        ]
+      },
+      "data": {
+        "title": "3. The Operator May Process the Following User Personal Data",
+        "items": [
+          "Full name.",
+          "Email address.",
+          "The website also collects and processes depersonalized data about visitors (including cookies) through internet statistics services (Yandex Metrica, Google Analytics and others).",
+          "The above-mentioned data are hereinafter collectively referred to in the Policy as Personal Data."
+        ]
+      },
+      "goals": {
+        "title": "4. Purposes of Personal Data Processing",
+        "items": [
+          "The purpose of processing the User's personal data is to inform the User by sending emails; to provide the User with access to the services, information and/or materials available on the website.",
+          "The Operator also has the right to send the User notifications about new products and services, special offers and various events. The User may always refuse to receive informational messages by sending an email to the Operator at <email>mail@foliart.me</email> marked \"Refusal of notifications about new products and services and special offers\".",
+          "Depersonalized data of Users collected through internet statistics services serve to collect information about Users' actions on the website, improve the quality of the website and its content."
+        ]
+      },
+      "grounds": {
+        "title": "5. Legal Grounds for Personal Data Processing",
+        "items": [
+          "The Operator processes depersonalized data about the User if this is allowed in the User's browser settings (cookie storage and JavaScript enabled).",
+          "The Operator processes the User's personal data only if the User independently fills them in and/or sends them through special forms located on the website <site>https://фолиарт.рф</site>. By filling in the relevant forms and/or sending their personal data to the Operator, the User expresses their consent to this Policy."
+        ]
+      },
+      "process": {
+        "title": "6. Procedure for Collection, Storage, Transfer and Other Types of Personal Data Processing",
+        "paragraphs": [
+          "The security of personal data processed by the Operator is ensured through the implementation of legal, organizational and technical measures necessary to fully comply with the current legislation in the field of personal data protection."
+        ],
+        "items": [
+          "The Operator ensures the safety of personal data and takes all possible measures excluding access to personal data by unauthorized persons.",
+          "The User's personal data will never, under any circumstances, be transferred to third parties, except in cases related to the fulfillment of current legislation.",
+          "If inaccuracies in personal data are identified, the User may update them independently by sending a notification to the Operator at <email>mail@foliart.me</email> marked \"Updating personal data\".",
+          "The period of personal data processing is unlimited. The User may at any time withdraw their consent to the processing of personal data by sending a notification to the Operator by email to <email>mail@foliart.me</email> marked \"Withdrawal of consent to the processing of personal data\"."
+        ]
+      },
+      "transfer": {
+        "title": "7. Cross-Border Transfer of Personal Data",
+        "items": [
+          "Before commencing the cross-border transfer of personal data, the Operator is obliged to ensure that the foreign state to whose territory the transfer of personal data is intended provides reliable protection of the rights of personal data subjects.",
+          "Cross-border transfer of personal data to the territories of foreign states that do not meet the above requirements may be carried out only if there is written consent of the personal data subject to the cross-border transfer of their personal data and/or performance of a contract to which the personal data subject is a party."
+        ]
+      },
+      "final": {
+        "title": "8. Final Provisions",
+        "items": [
+          "The User may obtain any clarifications on issues of interest concerning the processing of their personal data by contacting the Operator via email at <email>mail@foliart.me</email>.",
+          "The current version of the Policy is publicly available on the Internet at <privacy>https://фолиарт.рф/privacy</privacy>.",
+          "Any changes to the Operator's personal data processing policy will be reflected in this document. The Policy remains valid indefinitely until replaced by a new version."
+        ]
+      }
+    }
   },
   "Footer": {
     "callOrder": "Request a call",

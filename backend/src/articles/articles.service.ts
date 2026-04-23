@@ -42,9 +42,16 @@ export class ArticlesService {
 
     return {
       ...article,
-      title: useEnglish && article.titleEn.trim() ? article.titleEn : article.title,
-      excerpt: useEnglish && article.excerptEn.trim() ? article.excerptEn : article.excerpt,
-      content: useEnglish && article.contentEn.trim() ? article.contentEn : article.content,
+      title:
+        useEnglish && article.titleEn.trim() ? article.titleEn : article.title,
+      excerpt:
+        useEnglish && article.excerptEn.trim()
+          ? article.excerptEn
+          : article.excerpt,
+      content:
+        useEnglish && article.contentEn.trim()
+          ? article.contentEn
+          : article.content,
       slugSourceTitle: article.title,
     };
   }

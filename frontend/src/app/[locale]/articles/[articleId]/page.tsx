@@ -36,7 +36,7 @@ export default async function ArticleDetailsPage({
 
   return (
     <main className="bg-white pb-24">
-      <section className="relative flex min-h-[400px] flex-col justify-end overflow-hidden px-6 px-90 pb-14 pt-60">
+      <section className="relative flex min-h-[400px] flex-col justify-end overflow-hidden px-6 pb-14 pt-60 xl:px-90">
         <div className="absolute inset-0">
           <MediaImage
             src={imageSrc}
@@ -60,7 +60,7 @@ export default async function ArticleDetailsPage({
         </div>
       </section>
 
-      <section className="px-6 px-90 py-14">
+      <section className="px-6 py-14 xl:px-90">
         <div className="grid gap-14 xl:grid-cols-[minmax(0,1fr)_300px]">
           <article>
             <div className="mb-8 flex flex-wrap items-center gap-6 text-[1rem] text-[#b0a59c] border-b border-[#e6e8ea] pb-6">

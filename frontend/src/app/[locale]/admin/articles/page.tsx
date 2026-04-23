@@ -327,7 +327,8 @@ export default async function AdminArticlesPage({
                 return (
                   <div
                     key={articleItem.id}
-                    className="rounded-[1.55rem] border border-[#0b5a45]/10 bg-white p-4 shadow-[0_22px_70px_-54px_rgba(11,62,49,0.9)] sm:p-5">
+                    id={`article-${articleItem.id}`}
+                    className="scroll-mt-32 rounded-[1.55rem] border border-[#0b5a45]/10 bg-white p-4 shadow-[0_22px_70px_-54px_rgba(11,62,49,0.9)] sm:p-5">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                       <div className="flex min-w-0 gap-4">
                         <div className="relative h-[104px] w-[132px] shrink-0 overflow-hidden rounded-[1.25rem] border border-[#0b5a45]/10 bg-[#eef3ef]">
@@ -385,7 +386,7 @@ export default async function AdminArticlesPage({
                           {copy.openArticle}
                         </Link>
                         <Link
-                          href={`/admin/articles?edit=${articleItem.id}#manage-articles`}
+                          href={`/admin/articles?edit=${articleItem.id}#article-${articleItem.id}`}
                           className={adminSecondaryButtonClassName}>
                           <FiEdit3 className="mr-2" />
                           {openEditorLabel}

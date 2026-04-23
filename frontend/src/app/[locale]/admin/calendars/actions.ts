@@ -18,6 +18,7 @@ type CalendarFormPayload = {
 function buildAdminRedirectPath(
   locale: string,
   params: Record<string, string | undefined> = {},
+  hash?: string,
 ) {
   const searchParams = new URLSearchParams();
 
@@ -28,7 +29,7 @@ function buildAdminRedirectPath(
   }
 
   const query = searchParams.toString();
-  return `/${locale}/admin/calendars${query ? `?${query}` : ''}`;
+  return `/${locale}/admin/calendars${query ? `?${query}` : ''}${hash ? `#${hash}` : ''}`;
 }
 
 function normalizeLocale(value: FormDataEntryValue | null) {
@@ -87,7 +88,7 @@ export async function createCalendarAction(formData: FormData) {
           locale === 'en'
             ? 'Fill in the title, description, and upload the first 2 photos.'
             : 'Заполните название, описание и загрузите первые 2 фото.',
-      }),
+      }, 'create-calendar'),
     );
   }
 
@@ -118,7 +119,7 @@ export async function createCalendarAction(formData: FormData) {
           (locale === 'en'
             ? 'Failed to create calendar item.'
             : 'Не удалось создать запись календаря.'),
-      }),
+      }, 'create-calendar'),
     );
   }
 
@@ -127,7 +128,7 @@ export async function createCalendarAction(formData: FormData) {
   redirect(
     buildAdminRedirectPath(locale, {
       status: 'created',
-    }),
+    }, 'create-calendar'),
   );
 }
 
@@ -144,7 +145,7 @@ export async function updateCalendarAction(formData: FormData) {
           locale === 'en'
             ? 'Fill in the title and description.'
             : 'Заполните название и описание.',
-      }),
+      }, calendarId ? `calendar-${calendarId}` : 'manage-calendars'),
     );
   }
 
@@ -176,7 +177,7 @@ export async function updateCalendarAction(formData: FormData) {
           (locale === 'en'
             ? 'Failed to update calendar item.'
             : 'Не удалось обновить запись календаря.'),
-      }),
+      }, calendarId ? `calendar-${calendarId}` : 'manage-calendars'),
     );
   }
 
@@ -187,6 +188,6 @@ export async function updateCalendarAction(formData: FormData) {
       status: 'updated',
       calendar: calendarId,
       edit: calendarId,
-    }),
+    }, `calendar-${calendarId}`),
   );
 }

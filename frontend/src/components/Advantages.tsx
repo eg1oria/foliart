@@ -33,7 +33,7 @@ export default function Advantages() {
   ];
 
   return (
-    <section className="advantages-section px-90 py-20 flex flex-col">
+    <section className="advantages-section py-20 flex flex-col">
       <h2 className="text-4xl md:text-5xl font-bold text-center">{t('title')}</h2>
       <p className="text-center text-xl text-black/75 mt-6">{t('subtitle')}</p>
       <div className="flex flex-col gap-10 min-[900px]:gap-30">

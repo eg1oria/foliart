@@ -1,12 +1,12 @@
-import sanitizeHtml from 'sanitize-html';
+import sanitizeHtml, { type IFrame, type IOptions } from 'sanitize-html';
 
 const excerptMaxLength = 220;
-const plainTextOnlyOptions: sanitizeHtml.IOptions = {
+const plainTextOnlyOptions: IOptions = {
   allowedTags: [],
   allowedAttributes: {},
 };
 
-const articleHtmlOptions: sanitizeHtml.IOptions = {
+const articleHtmlOptions: IOptions = {
   allowedTags: [
     'p',
     'br',
@@ -52,7 +52,7 @@ const articleHtmlOptions: sanitizeHtml.IOptions = {
       };
     },
   },
-  exclusiveFilter: (frame) => frame.tag === 'a' && !frame.attribs.href,
+  exclusiveFilter: (frame: IFrame) => frame.tag === 'a' && !frame.attribs.href,
 };
 
 function escapeHtml(value: string) {
@@ -78,7 +78,10 @@ function wrapPlainTextAsParagraphs(value: string) {
 }
 
 function collapseSpacing(value: string) {
-  return value.replace(/\u00a0/g, ' ').replace(/[ \t]+/g, ' ').trim();
+  return value
+    .replace(/\u00a0/g, ' ')
+    .replace(/[ \t]+/g, ' ')
+    .trim();
 }
 
 function truncateExcerpt(value: string) {
@@ -108,7 +111,9 @@ export function sanitizeArticleContent(value: string) {
 }
 
 export function sanitizeArticleExcerpt(excerpt: string, content: string) {
-  const normalizedExcerpt = collapseSpacing(sanitizeHtml(excerpt, plainTextOnlyOptions));
+  const normalizedExcerpt = collapseSpacing(
+    sanitizeHtml(excerpt, plainTextOnlyOptions),
+  );
 
   if (normalizedExcerpt) {
     return truncateExcerpt(normalizedExcerpt);

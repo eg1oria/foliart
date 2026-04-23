@@ -70,7 +70,14 @@ const defaultFetchOptions = {
 };
 
 async function fetchJson<T>(path: string): Promise<T> {
-  const res = await fetch(`${baseUrl}${path}`, defaultFetchOptions);
+  let res: Response;
+
+  try {
+    res = await fetch(`${baseUrl}${path}`, defaultFetchOptions);
+  } catch {
+    throw new ApiError(`Failed to fetch ${path}`, 503);
+  }
+
   if (!res.ok) {
     throw new ApiError(`Failed to fetch ${path}`, res.status);
   }
@@ -98,11 +105,18 @@ export async function getCategory(categoryId: number, locale?: string): Promise<
 export async function getProducts(categoryId?: number, locale?: string): Promise<Product[]> {
   const path = categoryId ? `/api/products?categoryId=${categoryId}` : '/api/products';
   const url = `${baseUrl}${buildLocalizedPath(path, locale)}`;
-  const res = await fetch(url, defaultFetchOptions);
+  let res: Response;
+
+  try {
+    res = await fetch(url, defaultFetchOptions);
+  } catch {
+    throw new ApiError('Failed to fetch products', 503);
+  }
+
   if (!res.ok) {
     throw new ApiError('Failed to fetch products', res.status);
   }
-  return res.json();
+  return (await res.json()) as Product[];
 }
 
 export async function getProduct(productId: number, locale?: string): Promise<Product> {

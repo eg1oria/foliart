@@ -8,19 +8,13 @@ export default function Partners() {
   const t = useTranslations('Partners');
   return (
     <div className="">
-      <div className="relative px-90 flex flex-col items-start justify-center py-14 px-6 text-center overflow-hidden pt-60">
+      <div className="catalog-header relative flex flex-col items:center md:items-start justify-center py-14 px-6 text-center overflow-hidden pt-30 md:pt-60">
         <Image src="/partners-head.jpg" alt="" fill className="object-cover -z-10 scale-120" />
         <div className="absolute inset-0 bg-black/50 -z-10" />
-        <h1
-          className="font-bold text-white mb-4"
-          style={{
-            fontSize: 55,
-          }}>
-          {t('title')}
-        </h1>
+        <h1 className="font-bold  text-white mb-4 text-3xl md:text-5xl">{t('title')}</h1>
       </div>
 
-      <div className="px-93 py-26 flex gap-12 ">
+      <div className="catalog-header py-26 flex flex-col md:flex-row gap-12 ">
         <div className="p-10 border-5 border-gray-400 flex flex-col items-center gap-4 text-center ">
           <Image src="/partners2.png" alt="Партнер 1" width={220} height={150} />
           <p className="text-blue-600 font-medium">ООО &quot;ЭкоГрин&quot;</p>

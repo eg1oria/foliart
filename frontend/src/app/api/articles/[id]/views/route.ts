@@ -4,19 +4,28 @@ export async function POST(
   _request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  const { id } = await context.params;
+  try {
+    const { id } = await context.params;
 
-  const response = await fetch(`${backendUrl}/api/articles/${id}/views`, {
-    method: 'POST',
-    cache: 'no-store',
-  });
+    const response = await fetch(`${backendUrl}/api/articles/${id}/views`, {
+      method: 'POST',
+      cache: 'no-store',
+    });
 
-  const bodyText = await response.text();
+    const bodyText = await response.text();
 
-  return new Response(bodyText, {
-    status: response.status,
-    headers: {
-      'Content-Type': response.headers.get('Content-Type') ?? 'application/json',
-    },
-  });
+    return new Response(bodyText, {
+      status: response.status,
+      headers: {
+        'Content-Type': response.headers.get('Content-Type') ?? 'application/json',
+      },
+    });
+  } catch {
+    return Response.json(
+      {
+        message: 'Failed to proxy article view counter request',
+      },
+      { status: 502 },
+    );
+  }
 }

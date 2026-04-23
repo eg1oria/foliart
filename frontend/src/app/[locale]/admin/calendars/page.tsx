@@ -379,7 +379,8 @@ export default async function AdminCalendarsPage({
                 return (
                   <div
                     key={calendarItem.id}
-                    className="rounded-[1.55rem] border border-[#0b5a45]/10 bg-white p-4 shadow-[0_22px_70px_-54px_rgba(11,62,49,0.9)] sm:p-5">
+                    id={`calendar-${calendarItem.id}`}
+                    className="scroll-mt-32 rounded-[1.55rem] border border-[#0b5a45]/10 bg-white p-4 shadow-[0_22px_70px_-54px_rgba(11,62,49,0.9)] sm:p-5">
                     <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
                       <div className="grid grid-cols-2 gap-3 sm:max-w-[360px]">
                         {calendarImageFields.map((field) => {
@@ -468,7 +469,7 @@ export default async function AdminCalendarsPage({
                           {publicCopy.openEntry}
                         </Link>
                         <Link
-                          href={`/admin/calendars?edit=${calendarItem.id}#manage-calendars`}
+                          href={`/admin/calendars?edit=${calendarItem.id}#calendar-${calendarItem.id}`}
                           className={adminSecondaryButtonClassName}>
                           <FiEdit3 className="mr-2" />
                           {openEditorLabel}

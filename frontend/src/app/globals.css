@@ -47,7 +47,11 @@ header {
   .hero-section,
   .complex-section,
   .advantages-section,
-  .footer-section {
+  .footer-section,
+  .catalog-header,
+  .catalog-grid,
+  .article-section,
+  .category-header {
     padding-left: 16px; /* px-6 */
     padding-right: 16px;
   }
@@ -62,7 +66,10 @@ header {
   .hero-section,
   .complex-section,
   .advantages-section,
-  .footer-section {
+  .footer-section,
+  .catalog-header,
+  .catalog-grid,
+  .category-header {
     padding-left: 24px; /* px-6 */
     padding-right: 24px;
   }
@@ -83,7 +90,10 @@ header {
   .hero-section,
   .complex-section,
   .advantages-section,
-  .footer-section {
+  .footer-section,
+  .catalog-header,
+  .catalog-grid,
+  .category-header {
     padding-left: 48px; /* px-12 */
     padding-right: 48px;
   }
@@ -98,7 +108,10 @@ header {
   .hero-section,
   .complex-section,
   .advantages-section,
-  .footer-section {
+  .footer-section,
+  .catalog-header,
+  .catalog-grid,
+  .category-header {
     padding-left: 240px; /* px-90 */
     padding-right: 240px;
   }
@@ -112,7 +125,10 @@ header {
   .hero-section,
   .complex-section,
   .advantages-section,
-  .footer-section {
+  .footer-section,
+  .catalog-header,
+  .catalog-grid,
+  .category-header {
     padding-left: 360px; /* px-70 */
     padding-right: 360px;
   }

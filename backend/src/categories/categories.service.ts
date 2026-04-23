@@ -5,14 +5,21 @@ import { PrismaService } from '../prisma/prisma.service';
 export class CategoriesService {
   constructor(private prisma: PrismaService) {}
 
-  private resolveLocale<T extends { name: string; nameEn: string; description: string; descriptionEn: string }>(
-    category: T,
-    locale?: string,
-  ) {
+  private resolveLocale<
+    T extends {
+      name: string;
+      nameEn: string;
+      description: string;
+      descriptionEn: string;
+    },
+  >(category: T, locale?: string) {
     const useEnglish = locale === 'en';
-    const localizedName = useEnglish && category.nameEn.trim() ? category.nameEn : category.name;
+    const localizedName =
+      useEnglish && category.nameEn.trim() ? category.nameEn : category.name;
     const localizedDescription =
-      useEnglish && category.descriptionEn.trim() ? category.descriptionEn : category.description;
+      useEnglish && category.descriptionEn.trim()
+        ? category.descriptionEn
+        : category.description;
 
     return {
       ...category,
@@ -41,7 +48,10 @@ export class CategoriesService {
     return this.resolveLocale(category, locale);
   }
 
-  async updateTranslations(id: number, input: { nameEn: string; descriptionEn: string }) {
+  async updateTranslations(
+    id: number,
+    input: { nameEn: string; descriptionEn: string },
+  ) {
     await this.findOne(id);
 
     return this.prisma.category.update({

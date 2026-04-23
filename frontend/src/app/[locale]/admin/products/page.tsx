@@ -495,7 +495,8 @@ export default async function AdminProductsPage({
                 return (
                   <div
                     key={categoryItem.id}
-                    className="rounded-[1.6rem] border border-[#0b5a45]/10 bg-white p-4 shadow-[0_20px_60px_-48px_rgba(11,62,49,0.9)] sm:p-5">
+                    id={`category-${categoryItem.id}`}
+                    className="scroll-mt-32 rounded-[1.6rem] border border-[#0b5a45]/10 bg-white p-4 shadow-[0_20px_60px_-48px_rgba(11,62,49,0.9)] sm:p-5">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
@@ -532,7 +533,7 @@ export default async function AdminProductsPage({
                           {catalogCopy.openCategory}
                         </Link>
                         <Link
-                          href={`/admin/products?category=${categoryItem.id}#manage-products`}
+                          href={`/admin/products?category=${categoryItem.id}#category-${categoryItem.id}`}
                           className={adminSecondaryButtonClassName}>
                           <FiGlobe className="mr-2" />
                           {editCategoryLabel}
@@ -612,7 +613,8 @@ export default async function AdminProductsPage({
                           return (
                             <div
                               key={productItem.id}
-                              className="rounded-[1.35rem] border border-[#0b5a45]/10 bg-[#f8f7f2] p-4">
+                              id={`product-${productItem.id}`}
+                              className="scroll-mt-32 rounded-[1.35rem] border border-[#0b5a45]/10 bg-[#f8f7f2] p-4">
                               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                                 <div className="flex min-w-0 gap-4">
                                   <div className="relative h-[86px] w-[86px] shrink-0 overflow-hidden rounded-[1.25rem] border border-[#0b5a45]/10 bg-white">
@@ -662,7 +664,7 @@ export default async function AdminProductsPage({
                                     {adminCopy.openProduct}
                                   </Link>
                                   <Link
-                                    href={`/admin/products?edit=${productItem.id}#manage-products`}
+                                    href={`/admin/products?edit=${productItem.id}#product-${productItem.id}`}
                                     className={adminSecondaryButtonClassName}>
                                     <FiEdit3 className="mr-2" />
                                     {openEditorLabel}

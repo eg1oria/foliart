@@ -42,7 +42,7 @@ export default async function CalendarDetailsPage({
 
   return (
     <main>
-      <section className="relative flex min-h-[410px] flex-col justify-end overflow-hidden px-6 px-90 pb-14 pt-60">
+      <section className="catalog-header relative flex flex-col justify-center overflow-hidden px-6 pb-16 pt-30 md:pt-60">
         <div className="absolute inset-0">
           <MediaImage
             src={heroImage}
@@ -58,17 +58,15 @@ export default async function CalendarDetailsPage({
         <div className="absolute inset-0 bg-black/50" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
 
-        <div className="relative z-10 py-10">
-          <h1 className="text-3xl text-center font-bold leading-[1.18] text-white md:text-5xl">
-            {calendar.title}
-          </h1>
-        </div>
+        <h1 className="relative z-10 py-0 md:py-10 text-3xl text-center font-bold leading-[1.18] text-white md:text-5xl">
+          {calendar.title}
+        </h1>
       </section>
 
-      <section className="px-6 px-90 py-14">
+      <section className="catalog-header py-0 md:py-8">
         <article>
           <div className="mt-8 grid items-center gap-8 lg:grid-cols-[minmax(280px,0.85fr)_minmax(0,1.15fr)]">
-            <div className="relative min-h-[280px] overflow-hidden bg-[#eef3ef]">
+            <div className="order-2 relative min-h-[280px] overflow-hidden bg-[#eef3ef] lg:order-1">
               <MediaImage
                 src={detailsImage}
                 alt={calendar.title}
@@ -81,7 +79,7 @@ export default async function CalendarDetailsPage({
               />
             </div>
 
-            <p className="mt-5 whitespace-pre-line  leading-6 text-[#556970]">
+            <p className="order-1 whitespace-pre-line leading-6 text-[#556970] lg:order-2">
               {calendar.description || copy.detailsEmpty}
             </p>
           </div>

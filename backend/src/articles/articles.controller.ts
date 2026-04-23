@@ -11,15 +11,30 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
+import type { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
-import { sanitizeArticleContent, sanitizeArticleExcerpt } from './article-content.util';
+import {
+  sanitizeArticleContent,
+  sanitizeArticleExcerpt,
+} from './article-content.util';
 import { ArticlesService } from './articles.service';
 
 const articlesImagesDirectory = join(process.cwd(), 'images', 'articles');
 const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+
+type StoredUploadFile = {
+  filename: string;
+  mimetype: string;
+  originalname: string;
+  path: string;
+};
+
+type DestinationCallback = (error: Error | null, destination: string) => void;
+type FilenameCallback = (error: Error | null, filename: string) => void;
+type FileFilterCallback = (error: Error | null, acceptFile: boolean) => void;
 
 function ensureArticlesDirectory() {
   mkdirSync(articlesImagesDirectory, { recursive: true });
@@ -55,6 +70,17 @@ function normalizeFileNameSegment(value: string) {
   return normalized || 'article';
 }
 
+function getRequestTextField(req: Request, fieldName: string) {
+  const body: unknown = req.body;
+
+  if (!body || typeof body !== 'object') {
+    return undefined;
+  }
+
+  const value = (body as Record<string, unknown>)[fieldName];
+  return typeof value === 'string' ? value : undefined;
+}
+
 function parsePublishedAt(value?: string) {
   const normalized = value?.trim();
 
@@ -78,21 +104,35 @@ function parsePublishedAt(value?: string) {
 function createImageInterceptor() {
   return FileInterceptor('image', {
     storage: diskStorage({
-      destination: (_req, _file, callback) => {
+      destination: (
+        _req: Request,
+        _file: StoredUploadFile,
+        callback: DestinationCallback,
+      ) => {
         ensureArticlesDirectory();
         callback(null, articlesImagesDirectory);
       },
-      filename: (req, file, callback) => {
-        const title = typeof req.body?.title === 'string' ? req.body.title : 'article';
+      filename: (
+        req: Request,
+        file: StoredUploadFile,
+        callback: FilenameCallback,
+      ) => {
+        const title = getRequestTextField(req, 'title') ?? 'article';
         const extension = extname(file.originalname).toLowerCase() || '.jpg';
         const fileName = `${Date.now()}-${normalizeFileNameSegment(title)}${extension}`;
         callback(null, fileName);
       },
     }),
-    fileFilter: (_req, file, callback) => {
+    fileFilter: (
+      _req: Request,
+      file: StoredUploadFile,
+      callback: FileFilterCallback,
+    ) => {
       if (!allowedMimeTypes.has(file.mimetype)) {
         callback(
-          new BadRequestException('Only JPG, PNG, and WEBP images are supported'),
+          new BadRequestException(
+            'Only JPG, PNG, and WEBP images are supported',
+          ),
           false,
         );
         return;
@@ -116,7 +156,10 @@ export class ArticlesController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number, @Query('locale') locale?: string) {
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('locale') locale?: string,
+  ) {
     return this.articlesService.findOne(id, locale);
   }
 
@@ -125,17 +168,17 @@ export class ArticlesController {
   async create(
     @Body() body: Record<string, string | undefined>,
     @UploadedFile()
-    file?: {
-      filename: string;
-      path: string;
-    },
+    file?: StoredUploadFile,
   ) {
     const title = body.title?.trim() ?? '';
     const titleEn = body.titleEn?.trim() ?? '';
     const content = sanitizeArticleContent(body.content ?? '');
     const contentEn = sanitizeArticleContent(body.contentEn ?? '');
     const excerpt = sanitizeArticleExcerpt(body.excerpt?.trim() ?? '', content);
-    const excerptEn = sanitizeArticleExcerpt(body.excerptEn?.trim() ?? '', contentEn);
+    const excerptEn = sanitizeArticleExcerpt(
+      body.excerptEn?.trim() ?? '',
+      contentEn,
+    );
 
     if (!title) {
       removeUploadedFile(file?.path);
@@ -174,17 +217,17 @@ export class ArticlesController {
     @Param('id', ParseIntPipe) id: number,
     @Body() body: Record<string, string | undefined>,
     @UploadedFile()
-    file?: {
-      filename: string;
-      path: string;
-    },
+    file?: StoredUploadFile,
   ) {
     const title = body.title?.trim() ?? '';
     const titleEn = body.titleEn?.trim() ?? '';
     const content = sanitizeArticleContent(body.content ?? '');
     const contentEn = sanitizeArticleContent(body.contentEn ?? '');
     const excerpt = sanitizeArticleExcerpt(body.excerpt?.trim() ?? '', content);
-    const excerptEn = sanitizeArticleExcerpt(body.excerptEn?.trim() ?? '', contentEn);
+    const excerptEn = sanitizeArticleExcerpt(
+      body.excerptEn?.trim() ?? '',
+      contentEn,
+    );
 
     if (!title) {
       removeUploadedFile(file?.path);
