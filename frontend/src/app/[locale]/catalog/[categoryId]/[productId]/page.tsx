@@ -123,7 +123,7 @@ export default async function ProductDetailsPage({
 
   return (
     <main className="flex-1 bg-white pb-20">
-      <div className="relative flex flex-col items-start justify-center overflow-hidden px-6 py-12 pt-65 xl:px-90">
+      <div className="catalog-header relative flex flex-col items-center justify-center py-14 text-center overflow-hidden pt-30 md:pt-60">
         <MediaImage
           src={categoryImage}
           alt={category.name}
@@ -139,8 +139,8 @@ export default async function ProductDetailsPage({
         <h1 className="relative z-10 text-[40px] font-bold text-white">{product.name}</h1>
       </div>
 
-      <section className="px-6 py-12 xl:px-90">
-        <div className="grid gap-x-12 gap-y-16 lg:grid-cols-[230px_minmax(340px,1fr)_minmax(280px,360px)]">
+      <section className="px-6 py-2 md:py-12 xl:px-90">
+        <div className="grid gap-6 md:gap-x-12 gap-y-16 lg:grid-cols-[230px_minmax(340px,1fr)_minmax(280px,360px)]">
           <aside className="order-3 lg:order-1 lg:row-span-2 lg:self-stretch">
             <div className="lg:h-full">
               <nav
@@ -187,7 +187,9 @@ export default async function ProductDetailsPage({
             </div>
           </div>
 
-          <div id="description" className="order-2 max-w-[360px] scroll-mt-32 lg:order-3">
+          <div
+            id="description"
+            className="order-2 min-[1000px]:max-w-full  scroll-mt-32 lg:order-3">
             <div className="space-y-4 text-sm leading-7 text-[#243238]">
               {summaryBlocks.map((block, index) => (
                 <p key={`${product.id}-summary-${index}`}>{block}</p>
@@ -203,7 +205,7 @@ export default async function ProductDetailsPage({
             <div className="mt-10 flex flex-col items-start gap-8">
               <Link
                 href="/contacts"
-                className="inline-flex min-h-[50px] items-center justify-center rounded-full bg-[#0b5a45] px-9 py-3 text-[1.05rem] font-medium text-white transition hover:bg-[#094635]">
+                className="w-full inline-flex min-h-[50px] items-center justify-center rounded-full bg-[#0b5a45] px-9 py-3 text-[1.05rem] font-medium text-white transition hover:bg-[#094635]">
                 {askQuestionLabel}
               </Link>
 
@@ -251,17 +253,17 @@ export default async function ProductDetailsPage({
                 </p>
               ) : (
                 <ul className="mt-8 space-y-1">
-  {advantages.map((advantage, index) => (
-    <li
-      key={`${product.id}-advantage-${index}`}
-      className="flex gap-3 text-lg leading-8 text-[#243238]">
-      {index !== 0 && (
-        <span className="mt-3 h-1 w-1 shrink-0 rounded-full bg-[#0b5a45]" />
-      )}
-      <span className="text-sm">{advantage}</span>
-    </li>
-  ))}
-</ul>
+                  {advantages.map((advantage, index) => (
+                    <li
+                      key={`${product.id}-advantage-${index}`}
+                      className="flex gap-3 text-lg leading-8 text-[#243238]">
+                      {index !== 0 && (
+                        <span className="mt-3 h-1 w-1 shrink-0 rounded-full bg-[#0b5a45]" />
+                      )}
+                      <span className="text-sm">{advantage}</span>
+                    </li>
+                  ))}
+                </ul>
               )}
             </article>
 

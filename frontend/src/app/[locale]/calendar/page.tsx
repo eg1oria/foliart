@@ -1,12 +1,9 @@
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
 import { getCalendars } from '@/lib/api';
-import {
-  getCalendarHref,
-  getCalendarsCopy,
-  getCalendarImages,
-} from '@/lib/calendars';
+import { getCalendarHref, getCalendarsCopy, getCalendarImages } from '@/lib/calendars';
 import { resolveMediaUrl } from '@/lib/media';
+import Image from 'next/image';
 
 export default async function CalendarPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -15,14 +12,14 @@ export default async function CalendarPage({ params }: { params: Promise<{ local
 
   return (
     <main className="pb-24">
-      <section className="catalog-header pt-30 md:pt-60">
-        <p className="text-xs font-medium uppercase tracking-[0.24em] text-[#6f7f77]">
-          {copy.listEyebrow}
-        </p>
-        <h1 className="mt-4 text-3xl font-bold text-[#0e2438] md:text-5xl">{copy.title}</h1>
-        <p className="mt-5 max-w-3xl text-base leading-7 text-[#556970] md:text-lg">
-          {copy.subtitle}
-        </p>
+      <section className="catalog-header relative flex flex-col justify-center overflow-hidden px-6 pb-16 pt-30 md:pt-60">
+        <Image src="/articles-head.webp" alt="" fill className="object-cover" />
+        <div className="absolute inset-0 bg-black/55" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
+
+        <h1 className="relative z-10 max-w-4xl text-3xl font-bold text-white md:text-5xl">
+          {copy.title}
+        </h1>
       </section>
 
       <section className="catalog-header py-10">

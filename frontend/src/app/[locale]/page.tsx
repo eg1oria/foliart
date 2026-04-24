@@ -1,6 +1,7 @@
 import Advantages from '@/components/Advantages';
 import Complexs from '@/components/Complexs';
 import Hero from '@/components/Hero';
+import { Link } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 
 export default function Home() {
@@ -10,9 +11,11 @@ export default function Home() {
       <Hero />
       <Complexs />
       <Advantages />
-      <button className="flex w-fit rounded-full bg-[#074031] mx-auto px-8 py-5 mt-10 mb-20 text-white">
+      <Link
+        href="/catalog"
+        className="flex w-fit rounded-full bg-[#074031] mx-auto px-8 py-5 mt-10 mb-20 text-white">
         {t('catalogButton')}
-      </button>
+      </Link>
     </>
   );
 }

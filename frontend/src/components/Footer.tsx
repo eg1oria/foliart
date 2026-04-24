@@ -12,9 +12,11 @@ export default function Footer() {
 
       <div className="footer-section relative z-10 flex flex-col items-center md:items-start gap-6 py-5 md:flex-row">
         <div className="flex flex-col gap-6 py-10 md:flex-row md:gap-30 items-center md:items-start">
-          <button className="flex w-fit rounded-full bg-[#074031] px-6 py-3 text-lg text-white">
+          <Link
+            href="/contacts"
+            className="flex w-fit rounded-full bg-[#074031] px-6 py-3 text-lg text-white">
             {t('callOrder')}
-          </button>
+          </Link>
 
           <div className="flex flex-col ">
             <p

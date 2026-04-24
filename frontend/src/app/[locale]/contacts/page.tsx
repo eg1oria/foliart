@@ -47,7 +47,7 @@ export default function Contacts() {
 
             <div className="flex flex-col gap-4 lg:hidden">
               {renderOfficeCard('flex flex-col gap-4 bg-white p-6 shadow-lg')}
-              <details className="p-4">
+              <details>
                 <summary className="cursor-pointer list-none bg-black/20 px-6 py-3 text-center text-sm font-semibold text-black/50 transition hover:bg-[#013a2e]">
                   {t('showMap')}
                 </summary>
@@ -80,7 +80,7 @@ export default function Contacts() {
           </div>
           <div
             id="feedback"
-            className="scroll-mt-28 md:items-start items-center gap-10 md:gap=0 md:mt-0 flex flex-col-reverse md:grid md:grid-cols-2 justify-between relative mb-20 p-4  md:p-8">
+            className="scroll-mt-28 md:items-start items-center gap-10 md:gap=0 mt-10 flex flex-col-reverse md:grid md:grid-cols-2 justify-between relative mb-20 p-4  md:p-8">
             <Image src="/about-head1.png" alt="" fill className="object-cover -z-10" />
             <div className="absolute inset-0 bg-black/50 -z-10" />
 

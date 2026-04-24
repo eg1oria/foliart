@@ -46,6 +46,11 @@ export default function FullscreenMenu({
     });
   };
 
+  const handleContactsClick = () => {
+    onClose();
+    router.push('/contacts');
+  };
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -247,9 +252,12 @@ export default function FullscreenMenu({
 
       <div className="flex-shrink-0 border-t border-white/10 px-4 py-5 sm:px-6 md:px-8 md:py-6 xl:px-90">
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:gap-10 xl:gap-20">
-          <button className="w-fit rounded-full bg-[#074031] px-7 py-3 text-sm text-white transition-colors hover:bg-[#074031]/80">
+          <Link
+            href="/contacts"
+            onClick={handleContactsClick}
+            className="inline-flex w-fit cursor-pointer items-center justify-center rounded-full bg-[#074031] px-7 py-3 text-sm text-white transition-colors hover:bg-[#074031]/80">
             {footerT('callOrder')}
-          </button>
+          </Link>
           <div>
             <p className="text-xs text-white/30">{footerT('slogan')}</p>
             <Link
