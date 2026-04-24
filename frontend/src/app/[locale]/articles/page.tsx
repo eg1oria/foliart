@@ -28,7 +28,7 @@ export default async function ArticlesPage({ params }: { params: Promise<{ local
             {copy.emptyState}
           </div>
         ) : (
-          <div className="grid items-stretch gap-2  md:gap-x-10 md:gap-y-16 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid items-stretch gap-2  md:gap-x-10 md:gap-y-4 md:grid-cols-2 xl:grid-cols-4">
             {articles.map((article) => {
               const imageSrc = resolveMediaUrl(article.imageUrl);
 
