@@ -31,8 +31,7 @@ const sections: readonly PrivacySection[] = [
   { id: 'final', itemCount: 3 },
 ];
 
-const sectionClassName =
-  'scroll-mt-28 border-b border-[#e7eaec] pb-8 last:border-b-0 last:pb-0';
+const sectionClassName = 'scroll-mt-28 border-b border-[#e7eaec] pb-8 last:border-b-0 last:pb-0';
 const titleClassName = 'text-2xl font-bold text-[#0e2438] md:text-3xl';
 const textClassName = 'text-base leading-8 text-[#243238]';
 const listClassName = 'list-decimal space-y-4 pl-6 text-base leading-8 text-[#243238]';
@@ -71,7 +70,7 @@ export default function PrivacyPage() {
 
       <div className="catalog-header flex gap-30 py-10">
         <aside className="hidden min-[1000px]:sticky min-[1000px]:top-30 min-[1000px]:block min-[1000px]:self-start min-[1000px]:min-w-[220px]">
-          <nav>
+          <nav className="max-w-[340px]">
             <ul className="flex flex-col">
               {sections.map((section) => (
                 <li
