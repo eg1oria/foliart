@@ -31,12 +31,12 @@ export default async function ArticleDetailsPage({
     redirect(`/${locale}${getArticleHref(article)}`);
   }
 
-  const relatedArticles = articles.filter((item) => item.id !== article.id).slice(0, 3);
+  const relatedArticles = articles.filter((item) => item.id !== article.id).slice(0, 2);
   const imageSrc = resolveMediaUrl(article.imageUrl);
 
   return (
     <main className="bg-white pb-24">
-      <section className="relative flex min-h-[400px] flex-col justify-end overflow-hidden px-6 pb-14 pt-60 xl:px-90">
+      <section className="catalog-header relative flex flex-col justify-center overflow-hidden px-6 pb-16 pt-30 md:pt-60">
         <div className="absolute inset-0">
           <MediaImage
             src={imageSrc}
@@ -60,8 +60,8 @@ export default async function ArticleDetailsPage({
         </div>
       </section>
 
-      <section className="px-6 py-14 xl:px-90">
-        <div className="grid gap-14 xl:grid-cols-[minmax(0,1fr)_300px]">
+      <section className="catalog-header py-14">
+        <div className="grid gap-14 min-[1000px]:grid-cols-[minmax(0,1fr)_300px]">
           <article>
             <div className="mb-8 flex flex-wrap items-center gap-6 text-[1rem] text-[#b0a59c] border-b border-[#e6e8ea] pb-6">
               <span>{formatArticleDate(article.publishedAt, locale)}</span>
@@ -79,8 +79,8 @@ export default async function ArticleDetailsPage({
             />
           </article>
 
-          <aside className="xl:pt-2">
-            <div className="xl:sticky xl:top-32">
+          <aside className="min-[1000px]:pt-2">
+            <div className="min-[1000px]:sticky min-[1000px]:top-32">
               <Link
                 href="/articles"
                 className="inline-flex items-center gap-3 text-[1.03rem] text-[#908c87] transition hover:text-[#0b5a45]">
@@ -94,7 +94,7 @@ export default async function ArticleDetailsPage({
                 {relatedArticles.length === 0 ? (
                   <p className="mt-4 text-sm leading-6 text-[#768287]">{copy.relatedEmpty}</p>
                 ) : (
-                  <div className="mt-8 space-y-6">
+                  <div className="mt-8 grid gap-6 md:max-[999px]:grid-cols-2">
                     {relatedArticles.map((relatedArticle) => {
                       const relatedImageSrc = resolveMediaUrl(relatedArticle.imageUrl);
 
