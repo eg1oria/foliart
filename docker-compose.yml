@@ -67,6 +67,9 @@ services:
         BACKEND_URL: http://backend:5000
         SITE_URL: https://nataliagorlach.kz
         NEXT_PUBLIC_SITE_URL: https://nataliagorlach.kz
+        NEXT_PUBLIC_CDN_URL: https://cdn.nataliagorlach.kz
+        ASSET_PREFIX: https://cdn.nataliagorlach.kz
+        ENABLE_ASSET_PREFIX: 'true'
     expose:
       - '3000'
     environment:
@@ -74,6 +77,9 @@ services:
       - BACKEND_URL=http://backend:5000
       - SITE_URL=https://nataliagorlach.kz
       - NEXT_PUBLIC_SITE_URL=https://nataliagorlach.kz
+      - NEXT_PUBLIC_CDN_URL=https://cdn.nataliagorlach.kz
+      - ASSET_PREFIX=https://cdn.nataliagorlach.kz
+      - ENABLE_ASSET_PREFIX=true
     networks:
       - dev
     restart: unless-stopped

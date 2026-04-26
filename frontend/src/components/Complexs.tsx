@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
+import { resolvePublicAssetUrl } from '@/lib/media';
 
 export default function Complexs() {
   const t = useTranslations('Complexs');
@@ -8,7 +9,7 @@ export default function Complexs() {
       <div
         className="pointer-events-none absolute inset-0 bg-cover bg-no-repeat opacity-50"
         style={{
-          backgroundImage: "url('/complex.webp')",
+          backgroundImage: `url('${resolvePublicAssetUrl('/complex.webp')}')`,
           backgroundPosition: 'center calc(10% + 200px)',
         }}
       />
