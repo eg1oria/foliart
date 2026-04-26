@@ -7,10 +7,10 @@ const backendUrl = (process.env.BACKEND_URL ?? 'http://localhost:3001').replace(
   /\/$/,
   '',
 );
-const cdnUrl = (process.env.ASSET_PREFIX ?? 'https://cdn.nataliagorlach.kz').replace(
-  /\/$/,
-  '',
-);
+const assetPrefix =
+  process.env.ENABLE_ASSET_PREFIX === 'true' && process.env.ASSET_PREFIX?.trim()
+    ? process.env.ASSET_PREFIX.trim().replace(/\/$/, '')
+    : undefined;
 
 const createConfig = (phase: string): NextConfig => {
   const isDev = phase === PHASE_DEVELOPMENT_SERVER;
@@ -18,7 +18,7 @@ const createConfig = (phase: string): NextConfig => {
   const nextConfig: NextConfig = {
     reactCompiler: true,
     output: 'standalone',
-    assetPrefix: isDev ? undefined : cdnUrl,
+    assetPrefix: isDev ? undefined : assetPrefix,
     experimental: {
       serverActions: {
         bodySizeLimit: '5mb',
