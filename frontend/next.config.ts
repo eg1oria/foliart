@@ -25,7 +25,7 @@ const createConfig = (phase: string): NextConfig => {
   const nextConfig: NextConfig = {
     reactCompiler: true,
     output: 'standalone',
-    // assetPrefix: activeAssetPrefix,
+    assetPrefix: activeAssetPrefix,
     crossOrigin: activeAssetPrefix ? 'anonymous' : undefined,
     experimental: {
       serverActions: {
