@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import MediaImage from '@/components/catalog/MediaImage';
 import SpecialistSection from '@/components/catalog/SpecialistSection';
 import { Link } from '@/i18n/routing';
@@ -15,6 +16,12 @@ import {
   parseComposition,
 } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
+import {
+  buildBreadcrumbSchema,
+  buildPageMetadata,
+  buildProductSchema,
+  stringifyJsonLd,
+} from '@/lib/seo';
 import { notFound, redirect } from 'next/navigation';
 import { FiChevronDown } from 'react-icons/fi';
 import { GrDocumentText } from 'react-icons/gr';
@@ -43,6 +50,35 @@ function getTextBlocks(value: string): string[] {
     .split(/\r?\n+/)
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; categoryId: string; productId: string }>;
+}): Promise<Metadata> {
+  const { locale, categoryId: rawCategoryId, productId: rawProductId } = await params;
+  const copy = getCatalogCopy(locale);
+
+  try {
+    const { category, product } = await getProductPageData(rawCategoryId, rawProductId, locale);
+
+    return buildPageMetadata({
+      locale,
+      path: getProductHref(category, product),
+      title: product.name,
+      description: product.description || category.description || copy.detailsFallback,
+      image: resolveMediaUrl(product.imageUrl),
+    });
+  } catch {
+    return buildPageMetadata({
+      locale,
+      path: '/catalog',
+      title: locale === 'en' ? 'Fertilizer catalog' : 'Каталог удобрений',
+      description: copy.subtitle,
+      image: '/catalog-head.jpeg',
+    });
+  }
 }
 
 export default async function ProductDetailsPage({
@@ -120,14 +156,39 @@ export default async function ProductDetailsPage({
       </span>
     </a>
   ) : null;
+  const productPath = getProductHref(category, product);
+  const breadcrumbSchema = buildBreadcrumbSchema(locale, [
+    { name: locale === 'en' ? 'Home' : 'Главная', path: '/' },
+    { name: locale === 'en' ? 'Catalog' : 'Каталог', path: '/catalog' },
+    { name: category.name, path: getCategoryHref(category) },
+    { name: product.name, path: productPath },
+  ]);
+  const productSchema = buildProductSchema({
+    locale,
+    id: product.id,
+    name: product.name,
+    description: overviewText,
+    path: productPath,
+    image: productImage,
+    categoryName: category.name,
+  });
 
   return (
     <main className="flex-1 bg-white pb-20">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: stringifyJsonLd(productSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: stringifyJsonLd(breadcrumbSchema) }}
+      />
       <div className="catalog-header relative flex flex-col items-center justify-center py-14 text-center overflow-hidden pt-30 md:pt-60">
         <MediaImage
           src={categoryImage}
           alt={category.name}
           fill
+          sizes="100vw"
           className="object-cover"
           emptyState={
             <div className="h-full w-full bg-[linear-gradient(130deg,#dbe6d8,#7da97f,#0b5a45)]" />
@@ -141,7 +202,7 @@ export default async function ProductDetailsPage({
 
       <section className="px-6 py-2 md:py-12 xl:px-90">
         <div className="grid gap-6 md:gap-x-12 gap-y-16 lg:grid-cols-[230px_minmax(340px,1fr)_minmax(280px,360px)]">
-          <aside className="order-3 lg:order-1 lg:row-span-2 lg:self-stretch">
+          <aside className="hidden order-3 min-[1000px]:block lg:order-1 lg:row-span-2 lg:self-stretch">
             <div className="lg:h-full">
               <nav
                 aria-label={pageCopy.sectionsLabel}

@@ -1,3 +1,5 @@
+import { PUBLIC_REVALIDATE_SECONDS } from './seo';
+
 export type Category = {
   id: number;
   name: string;
@@ -65,15 +67,32 @@ export class ApiError extends Error {
 }
 
 const baseUrl = process.env.BACKEND_URL ?? 'http://localhost:3001';
-const defaultFetchOptions = {
-  cache: 'no-store' as const,
+export type ApiFetchOptions = RequestInit & {
+  next?: {
+    revalidate?: number | false;
+    tags?: string[];
+  };
 };
 
-async function fetchJson<T>(path: string): Promise<T> {
+export const publicApiFetchOptions: ApiFetchOptions = {
+  next: {
+    revalidate: PUBLIC_REVALIDATE_SECONDS,
+  },
+};
+
+export const noStoreApiFetchOptions: ApiFetchOptions = {
+  cache: 'no-store',
+};
+
+function resolveFetchOptions(fetchOptions?: ApiFetchOptions): ApiFetchOptions {
+  return fetchOptions ?? publicApiFetchOptions;
+}
+
+async function fetchJson<T>(path: string, fetchOptions?: ApiFetchOptions): Promise<T> {
   let res: Response;
 
   try {
-    res = await fetch(`${baseUrl}${path}`, defaultFetchOptions);
+    res = await fetch(`${baseUrl}${path}`, resolveFetchOptions(fetchOptions));
   } catch {
     throw new ApiError(`Failed to fetch ${path}`, 503);
   }
@@ -94,21 +113,35 @@ function buildLocalizedPath(path: string, locale?: string) {
   return `${path}${separator}locale=${encodeURIComponent(locale)}`;
 }
 
-export async function getCategories(locale?: string): Promise<Category[]> {
-  return fetchJson<Category[]>(buildLocalizedPath('/api/categories', locale));
+export async function getCategories(
+  locale?: string,
+  fetchOptions?: ApiFetchOptions,
+): Promise<Category[]> {
+  return fetchJson<Category[]>(buildLocalizedPath('/api/categories', locale), fetchOptions);
 }
 
-export async function getCategory(categoryId: number, locale?: string): Promise<Category> {
-  return fetchJson<Category>(buildLocalizedPath(`/api/categories/${categoryId}`, locale));
+export async function getCategory(
+  categoryId: number,
+  locale?: string,
+  fetchOptions?: ApiFetchOptions,
+): Promise<Category> {
+  return fetchJson<Category>(
+    buildLocalizedPath(`/api/categories/${categoryId}`, locale),
+    fetchOptions,
+  );
 }
 
-export async function getProducts(categoryId?: number, locale?: string): Promise<Product[]> {
+export async function getProducts(
+  categoryId?: number,
+  locale?: string,
+  fetchOptions?: ApiFetchOptions,
+): Promise<Product[]> {
   const path = categoryId ? `/api/products?categoryId=${categoryId}` : '/api/products';
   const url = `${baseUrl}${buildLocalizedPath(path, locale)}`;
   let res: Response;
 
   try {
-    res = await fetch(url, defaultFetchOptions);
+    res = await fetch(url, resolveFetchOptions(fetchOptions));
   } catch {
     throw new ApiError('Failed to fetch products', 503);
   }
@@ -119,22 +152,46 @@ export async function getProducts(categoryId?: number, locale?: string): Promise
   return (await res.json()) as Product[];
 }
 
-export async function getProduct(productId: number, locale?: string): Promise<Product> {
-  return fetchJson<Product>(buildLocalizedPath(`/api/products/${productId}`, locale));
+export async function getProduct(
+  productId: number,
+  locale?: string,
+  fetchOptions?: ApiFetchOptions,
+): Promise<Product> {
+  return fetchJson<Product>(buildLocalizedPath(`/api/products/${productId}`, locale), fetchOptions);
 }
 
-export async function getArticles(locale?: string): Promise<Article[]> {
-  return fetchJson<Article[]>(buildLocalizedPath('/api/articles', locale));
+export async function getArticles(
+  locale?: string,
+  fetchOptions?: ApiFetchOptions,
+): Promise<Article[]> {
+  return fetchJson<Article[]>(buildLocalizedPath('/api/articles', locale), fetchOptions);
 }
 
-export async function getArticle(articleId: number, locale?: string): Promise<Article> {
-  return fetchJson<Article>(buildLocalizedPath(`/api/articles/${articleId}`, locale));
+export async function getArticle(
+  articleId: number,
+  locale?: string,
+  fetchOptions?: ApiFetchOptions,
+): Promise<Article> {
+  return fetchJson<Article>(
+    buildLocalizedPath(`/api/articles/${articleId}`, locale),
+    fetchOptions,
+  );
 }
 
-export async function getCalendars(locale?: string): Promise<CalendarEntry[]> {
-  return fetchJson<CalendarEntry[]>(buildLocalizedPath('/api/calendars', locale));
+export async function getCalendars(
+  locale?: string,
+  fetchOptions?: ApiFetchOptions,
+): Promise<CalendarEntry[]> {
+  return fetchJson<CalendarEntry[]>(buildLocalizedPath('/api/calendars', locale), fetchOptions);
 }
 
-export async function getCalendar(calendarId: number, locale?: string): Promise<CalendarEntry> {
-  return fetchJson<CalendarEntry>(buildLocalizedPath(`/api/calendars/${calendarId}`, locale));
+export async function getCalendar(
+  calendarId: number,
+  locale?: string,
+  fetchOptions?: ApiFetchOptions,
+): Promise<CalendarEntry> {
+  return fetchJson<CalendarEntry>(
+    buildLocalizedPath(`/api/calendars/${calendarId}`, locale),
+    fetchOptions,
+  );
 }

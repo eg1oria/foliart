@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
 import {
@@ -9,9 +10,49 @@ import {
 } from '@/lib/articles';
 import { getArticles } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
+import {
+  buildArticleSchema,
+  buildBreadcrumbSchema,
+  buildPageMetadata,
+  stringifyJsonLd,
+  stripHtml,
+} from '@/lib/seo';
 import { notFound, redirect } from 'next/navigation';
 import { FiArrowLeft, FiEye } from 'react-icons/fi';
 import ArticleViewCounter from './view-counter';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; articleId: string }>;
+}): Promise<Metadata> {
+  const { locale, articleId: rawArticleId } = await params;
+  const copy = getArticlesCopy(locale);
+  const articles = await getArticles(locale).catch(() => []);
+  const article = findArticleByParam(articles, rawArticleId);
+
+  if (!article) {
+    return buildPageMetadata({
+      locale,
+      path: '/articles',
+      title: locale === 'en' ? 'Useful articles' : 'Полезные статьи',
+      description:
+        locale === 'en'
+          ? 'Useful articles about plant nutrition, stress recovery, and fertilizer systems from Foliart specialists.'
+          : 'Полезные статьи о питании растений, восстановлении после стресса и системах удобрения от специалистов Фолиарт.',
+      image: '/articles-head.webp',
+    });
+  }
+
+  return buildPageMetadata({
+    locale,
+    path: getArticleHref(article),
+    title: article.title,
+    description: article.excerpt || stripHtml(article.content) || copy.detailsEmpty,
+    image: resolveMediaUrl(article.imageUrl),
+    type: 'article',
+  });
+}
 
 export default async function ArticleDetailsPage({
   params,
@@ -33,9 +74,30 @@ export default async function ArticleDetailsPage({
 
   const relatedArticles = articles.filter((item) => item.id !== article.id).slice(0, 2);
   const imageSrc = resolveMediaUrl(article.imageUrl);
+  const breadcrumbSchema = buildBreadcrumbSchema(locale, [
+    { name: locale === 'en' ? 'Home' : 'Главная', path: '/' },
+    { name: locale === 'en' ? 'Articles' : 'Статьи', path: '/articles' },
+    { name: article.title, path: getArticleHref(article) },
+  ]);
+  const articleSchema = buildArticleSchema({
+    locale,
+    title: article.title,
+    description: article.excerpt || stripHtml(article.content) || copy.detailsEmpty,
+    path: getArticleHref(article),
+    image: imageSrc,
+    publishedAt: article.publishedAt,
+  });
 
   return (
     <main className="bg-white pb-24">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: stringifyJsonLd(articleSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: stringifyJsonLd(breadcrumbSchema) }}
+      />
       <section className="catalog-header relative flex flex-col justify-center overflow-hidden px-6 pb-16 pt-30 md:pt-60">
         <div className="absolute inset-0">
           <MediaImage

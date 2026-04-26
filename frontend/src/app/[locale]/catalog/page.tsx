@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
 import { getCategories, getProducts } from '@/lib/api';
@@ -8,7 +9,25 @@ import {
   getCategoryProductCount,
 } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
+import { buildPageMetadata } from '@/lib/seo';
 import Image from 'next/image';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const copy = getCatalogCopy(locale);
+
+  return buildPageMetadata({
+    locale,
+    path: '/catalog',
+    title: locale === 'en' ? 'Fertilizer catalog' : 'Каталог удобрений',
+    description: copy.subtitle,
+    image: '/catalog-head.jpeg',
+  });
+}
 
 export default async function CatalogPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -19,9 +38,9 @@ export default async function CatalogPage({ params }: { params: Promise<{ locale
   ]);
 
   return (
-    <section>
+    <main>
       <div className="catalog-header relative flex flex-col items-start justify-center overflow-hidden px-6 py-14 pt-30 md:pt-60 text-center">
-        <Image src="/catalog-head.jpeg" alt="" fill className="object-cover -z-10" />
+        <Image src="/catalog-head.jpeg" alt="" fill sizes="100vw" className="object-cover -z-10" />
         <div className="absolute inset-0 bg-black/50 -z-10" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-30 bg-gradient-to-b from-black/60 via-black/40 to-transparent" />
         <div className="relative z-10">
@@ -90,6 +109,6 @@ export default async function CatalogPage({ params }: { params: Promise<{ locale
           })}
         </section>
       )}
-    </section>
+    </main>
   );
 }

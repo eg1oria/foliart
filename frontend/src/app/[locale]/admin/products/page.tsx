@@ -25,7 +25,7 @@ import {
 } from '@/components/admin/adminStyles';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
-import { getCategories, getProducts, type Product } from '@/lib/api';
+import { getCategories, getProducts, noStoreApiFetchOptions, type Product } from '@/lib/api';
 import {
   formatProductCount,
   getCatalogAdminCopy,
@@ -339,7 +339,10 @@ export default async function AdminProductsPage({
     await searchParams;
   const adminCopy = getCatalogAdminCopy(locale);
   const catalogCopy = getCatalogCopy(locale);
-  const [categories, products] = await Promise.all([getCategories(), getProducts()]);
+  const [categories, products] = await Promise.all([
+    getCategories(undefined, noStoreApiFetchOptions),
+    getProducts(undefined, undefined, noStoreApiFetchOptions),
+  ]);
   const activeCategoryId = parseEntityId(category ?? '');
   const editProductId = parseEntityId(edit ?? '');
   const statusProductId = parseEntityId(product ?? '');

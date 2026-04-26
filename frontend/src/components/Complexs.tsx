@@ -14,7 +14,7 @@ export default function Complexs() {
       />
       <Image
         src="/complex1.jpeg"
-        alt=""
+        alt={t('title')}
         width={450}
         height={300}
         className="relative z-10 w-full max-w-[450px] px-8 min-[900px]:px-0 min-[900px]:-mt-25"

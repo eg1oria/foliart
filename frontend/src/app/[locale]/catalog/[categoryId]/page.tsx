@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import CategoryDropdown from '@/components/catalog/CategoryDropdown';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
@@ -11,6 +12,7 @@ import {
   getCategorySlug,
 } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
+import { buildBreadcrumbSchema, buildPageMetadata, stringifyJsonLd } from '@/lib/seo';
 import { notFound, redirect } from 'next/navigation';
 import { FiInfo } from 'react-icons/fi';
 
@@ -27,6 +29,35 @@ async function getCategoryPageData(categoryParam: string, locale: string) {
 
   const products = allProducts.filter((product) => product.categoryId === category.id);
   return { allProducts, categories, category, products };
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; categoryId: string }>;
+}): Promise<Metadata> {
+  const { locale, categoryId: rawCategoryId } = await params;
+  const copy = getCatalogCopy(locale);
+
+  try {
+    const { category } = await getCategoryPageData(rawCategoryId, locale);
+
+    return buildPageMetadata({
+      locale,
+      path: getCategoryHref(category),
+      title: category.name,
+      description: category.description || copy.emptyProducts,
+      image: resolveMediaUrl(category.imageUrl),
+    });
+  } catch {
+    return buildPageMetadata({
+      locale,
+      path: '/catalog',
+      title: locale === 'en' ? 'Fertilizer catalog' : 'Каталог удобрений',
+      description: copy.subtitle,
+      image: '/catalog-head.jpeg',
+    });
+  }
 }
 
 export default async function CategoryProductsPage({
@@ -70,14 +101,24 @@ export default async function CategoryProductsPage({
       name: item.name,
     }),
   );
+  const breadcrumbSchema = buildBreadcrumbSchema(locale, [
+    { name: locale === 'en' ? 'Home' : 'Главная', path: '/' },
+    { name: locale === 'en' ? 'Catalog' : 'Каталог', path: '/catalog' },
+    { name: category.name, path: getCategoryHref(category) },
+  ]);
 
   return (
     <main className="bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: stringifyJsonLd(breadcrumbSchema) }}
+      />
       <div className="relative category-header flex flex-col items-start justify-center py-14 px-6 text-center overflow-hidden pt-30 md:pt-60">
         <MediaImage
           src={categoryImage}
           alt={category.name}
           fill
+          sizes="100vw"
           className="object-cover"
           emptyState={
             <div className="h-full w-full bg-[radial-gradient(circle_at_top_left,_rgba(164,205,165,0.9),_rgba(11,90,69,1))]" />

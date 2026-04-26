@@ -25,7 +25,7 @@ import {
 } from '@/components/admin/adminStyles';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
-import { getCalendars, type CalendarEntry } from '@/lib/api';
+import { getCalendars, noStoreApiFetchOptions, type CalendarEntry } from '@/lib/api';
 import { getCalendarHref, getCalendarsAdminCopy, getCalendarsCopy } from '@/lib/calendars';
 import { parseEntityId } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
@@ -251,7 +251,7 @@ export default async function AdminCalendarsPage({
   const copy = getCalendarsAdminCopy(locale);
   const publicCopy = getCalendarsCopy(locale);
   const imageSlotCopy = getCalendarImageSlotCopy(locale);
-  const calendars = await getCalendars();
+  const calendars = await getCalendars(undefined, noStoreApiFetchOptions);
   const editCalendarId = parseEntityId(edit ?? '');
   const statusCalendarId = parseEntityId(calendar ?? '');
   const topLevelError = error && !editCalendarId ? error : null;

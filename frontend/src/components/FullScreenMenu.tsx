@@ -4,7 +4,6 @@ import Image from 'next/image';
 import { useEffect, useTransition } from 'react';
 import { FiChevronDown } from 'react-icons/fi';
 import { RxCross1 } from 'react-icons/rx';
-import MediaImage from '@/components/catalog/MediaImage';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { formatProductCount } from '@/lib/catalog';
 import { useLocale, useTranslations } from 'next-intl';
@@ -63,11 +62,11 @@ export default function FullscreenMenu({
   }, [isOpen]);
 
   const renderCompactLogo = (className: string) => (
-    <Image src="/logo-small.webp" alt="Logo" width={201} height={200} className={className} />
+    <Image src="/logo-small.webp" alt="Foliart logo" width={201} height={200} className={className} />
   );
 
   const renderFullLogo = (className: string) => (
-    <Image src="/logo5.PNG" alt="Logo" width={135} height={30} className={className} />
+    <Image src="/logo5.PNG" alt="Foliart logo" width={135} height={30} className={className} />
   );
 
   const renderDesktopLocaleSwitcher = () => (
@@ -159,16 +158,17 @@ export default function FullscreenMenu({
                     onClick={onClose}
                     className="group flex items-center gap-4">
                     <div className="relative h-18 w-18 flex-shrink-0 overflow-hidden rounded-full border border-white/20 bg-white/10 shadow-[0_12px_30px_-18px_rgba(0,0,0,0.95)] md:h-20 md:w-20">
-                      <MediaImage
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        sizes="80px"
-                        className="object-cover transition duration-300"
-                        emptyState={
-                          <div className="h-full w-full bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.35),rgba(120,154,135,0.95))]" />
-                        }
-                      />
+                      {item.image ? (
+                        <Image
+                          src={item.image}
+                          alt={item.name}
+                          fill
+                          sizes="80px"
+                          className="object-cover transition duration-300"
+                        />
+                      ) : (
+                        <div className="h-full w-full bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.35),rgba(120,154,135,0.95))]" />
+                      )}
                     </div>
                     <div className="max-w-[16rem]">
                       <p className="text-lg leading-6 text-white transition-colors group-hover:text-white/85">

@@ -1,9 +1,30 @@
+import type { Metadata } from 'next';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
 import { getArticleHref, getArticlesCopy, formatArticleDate } from '@/lib/articles';
 import { getArticles } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
+import { buildPageMetadata } from '@/lib/seo';
 import Image from 'next/image';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+
+  return buildPageMetadata({
+    locale,
+    path: '/articles',
+    title: locale === 'en' ? 'Useful articles' : 'Полезные статьи',
+    description:
+      locale === 'en'
+        ? 'Useful articles about plant nutrition, stress recovery, and fertilizer systems from Foliart specialists.'
+        : 'Полезные статьи о питании растений, восстановлении после стресса и системах удобрения от специалистов Фолиарт.',
+    image: '/articles-head.webp',
+  });
+}
 
 export default async function ArticlesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -13,7 +34,7 @@ export default async function ArticlesPage({ params }: { params: Promise<{ local
   return (
     <main className="pb-24">
       <section className="catalog-header relative flex flex-col justify-center overflow-hidden px-6 pb-16 pt-30 md:pt-60">
-        <Image src="/articles-head.webp" alt="" fill className="object-cover" />
+        <Image src="/articles-head.webp" alt="" fill sizes="100vw" className="object-cover" />
         <div className="absolute inset-0 bg-black/55" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
 

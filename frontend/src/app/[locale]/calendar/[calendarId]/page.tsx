@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import MediaImage from '@/components/catalog/MediaImage';
 import { getCalendars } from '@/lib/api';
 import {
@@ -8,7 +9,37 @@ import {
   getCalendarSlug,
 } from '@/lib/calendars';
 import { resolveMediaUrl } from '@/lib/media';
+import { buildBreadcrumbSchema, buildPageMetadata, stringifyJsonLd } from '@/lib/seo';
 import { notFound, redirect } from 'next/navigation';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; calendarId: string }>;
+}): Promise<Metadata> {
+  const { locale, calendarId: rawCalendarId } = await params;
+  const copy = getCalendarsCopy(locale);
+  const calendars = await getCalendars(locale).catch(() => []);
+  const calendar = findCalendarByParam(calendars, rawCalendarId);
+
+  if (!calendar) {
+    return buildPageMetadata({
+      locale,
+      path: '/calendar',
+      title: locale === 'en' ? 'Agricultural calendar' : 'Сельскохозяйственный календарь',
+      description: copy.subtitle,
+      image: '/articles-head.webp',
+    });
+  }
+
+  return buildPageMetadata({
+    locale,
+    path: getCalendarHref(calendar),
+    title: calendar.title,
+    description: calendar.description || copy.detailsEmpty,
+    image: resolveMediaUrl(getCalendarImageSlots(calendar).heroImage),
+  });
+}
 
 export default async function CalendarDetailsPage({
   params,
@@ -39,9 +70,19 @@ export default async function CalendarDetailsPage({
   const showcaseImage = resolveMediaUrl(showcaseImagePath);
   const showcaseBackgroundImage = resolveMediaUrl(showcaseBackgroundImagePath);
   const viewCalendarLabel = locale === 'en' ? 'View calendar' : 'Смотреть календарь';
+  const calendarPath = getCalendarHref(calendar);
+  const breadcrumbSchema = buildBreadcrumbSchema(locale, [
+    { name: locale === 'en' ? 'Home' : 'Главная', path: '/' },
+    { name: locale === 'en' ? 'Calendar' : 'Календарь', path: '/calendar' },
+    { name: calendar.title, path: calendarPath },
+  ]);
 
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: stringifyJsonLd(breadcrumbSchema) }}
+      />
       <section className="catalog-header relative flex flex-col justify-center overflow-hidden px-6 pb-16 pt-30 md:pt-60">
         <div className="absolute inset-0">
           <MediaImage
@@ -58,7 +99,7 @@ export default async function CalendarDetailsPage({
         <div className="absolute inset-0 bg-black/50" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
 
-        <h1 className="relative z-10 py-0 md:py-10 text-3xl text-center font-bold leading-[1.18] text-white md:text-5xl">
+        <h1 className="relative z-10 py-0 text-3xl text-center font-bold leading-[1.18] text-white md:py-10 md:text-5xl">
           {calendar.title}
         </h1>
       </section>
@@ -109,6 +150,7 @@ export default async function CalendarDetailsPage({
                 src={showcaseImage}
                 alt={calendar.title}
                 fill
+                sizes="(max-width: 980px) 100vw, 980px"
                 className="object-contain p-5"
                 emptyState={
                   <div className="h-full w-full bg-[linear-gradient(135deg,#fbfcfa,#e5eee1,#d1ddcb)]" />

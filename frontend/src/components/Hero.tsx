@@ -25,9 +25,9 @@ export default function Hero() {
 
   return (
     <section className="hero-section relative flex h-full md:min-h-screen flex-col items-center justify-start  md:justify-center pt-30 pb-20 md:pb-40 md:pt-40">
-      <Image src="/hero.png" alt="" fill className="object-cover -z-10" priority />
+      <Image src="/hero.png" alt="" fill sizes="100vw" className="object-cover -z-10" priority />
       <div className="absolute inset-0 bg-black/50 -z-10" />
-      <Image src="/logo5.PNG" alt="Logo" width={500} height={80} className="mt-0 md:mt-20" />
+      <Image src="/logo5.PNG" alt="Foliart logo" width={500} height={80} className="mt-0 md:mt-20" />
       <h1 className="text-xl text-center text-white/85" style={{ fontWeight: 100 }}>
         {t('title')}
       </h1>

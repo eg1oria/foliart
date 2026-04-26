@@ -65,11 +65,15 @@ services:
       args:
         NEXT_PUBLIC_API_URL: /api
         BACKEND_URL: http://backend:5000
+        SITE_URL: https://nataliagorlach.kz
+        NEXT_PUBLIC_SITE_URL: https://nataliagorlach.kz
     expose:
       - '3000'
     environment:
       - NEXT_PUBLIC_API_URL=/api
       - BACKEND_URL=http://backend:5000
+      - SITE_URL=https://nataliagorlach.kz
+      - NEXT_PUBLIC_SITE_URL=https://nataliagorlach.kz
     networks:
       - dev
     restart: unless-stopped

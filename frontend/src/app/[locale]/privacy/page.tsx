@@ -1,8 +1,11 @@
+import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import { TbArrowBackUp } from 'react-icons/tb';
 import { Link } from '@/i18n/routing';
+import { buildPageMetadata } from '@/lib/seo';
 
 type PrivacySectionId =
   | 'general'
@@ -37,6 +40,23 @@ const textClassName = 'text-base leading-8 text-[#243238]';
 const listClassName = 'list-decimal space-y-4 pl-6 text-base leading-8 text-[#243238]';
 const linkClassName = 'text-blue-600 underline-offset-4 hover:underline';
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'Privacy' });
+
+  return buildPageMetadata({
+    locale,
+    path: '/privacy',
+    title: locale === 'en' ? 'Privacy policy' : 'Политика обработки персональных данных',
+    description: t('subtitle'),
+    image: '/about-head1.png',
+  });
+}
+
 export default function PrivacyPage() {
   const t = useTranslations('Privacy');
 
@@ -60,9 +80,9 @@ export default function PrivacyPage() {
     });
 
   return (
-    <section>
+    <main>
       <div className="catalog-header relative flex flex-col justify-center overflow-hidden px-6 pb-16 pt-30 md:pt-60">
-        <Image src="/about-head1.png" alt="" fill className="object-cover -z-10" />
+        <Image src="/about-head1.png" alt="" fill sizes="100vw" className="object-cover -z-10" />
         <div className="absolute inset-0 bg-black/55 -z-10" />
         <h1 className="mb-4 text-3xl font-bold text-white md:text-5xl">{t('title')}</h1>
         <p className="max-w-3xl text-sm text-white/90 md:text-lg">{t('subtitle')}</p>
@@ -135,6 +155,6 @@ export default function PrivacyPage() {
           </div>
         </article>
       </div>
-    </section>
+    </main>
   );
 }

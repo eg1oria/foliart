@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import type { ReactNode } from 'react';
 import { useEffect, useState, useTransition } from 'react';
@@ -8,7 +9,10 @@ import { FiChevronDown } from 'react-icons/fi';
 import { RxHamburgerMenu } from 'react-icons/rx';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { useLocale, useTranslations } from 'next-intl';
-import FullscreenMenu from './FullScreenMenu';
+
+const FullscreenMenu = dynamic(() => import('./FullScreenMenu'), {
+  ssr: false,
+});
 
 type LocaleOption = 'ru' | 'en';
 
@@ -34,6 +38,7 @@ type HeaderProps = {
 export default function Header({ catalogChildren = [], calendarChildren = [] }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [hasOpenedMenu, setHasOpenedMenu] = useState(false);
   const t = useTranslations('Header');
   const locale = useLocale();
   const router = useRouter();
@@ -41,6 +46,11 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
   const [isPending, startTransition] = useTransition();
 
   const localeOptions: LocaleOption[] = ['ru', 'en'];
+
+  const openMenu = () => {
+    setHasOpenedMenu(true);
+    setIsMenuOpen(true);
+  };
 
   const changeLocale = (nextLocale: LocaleOption) => {
     if (nextLocale === locale) return;
@@ -159,11 +169,11 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
   );
 
   const renderCompactLogo = (className: string) => (
-    <Image src={'/logo-small.webp'} alt="Logo" width={201} height={200} className={className} />
+    <Image src={'/logo-small.webp'} alt="Foliart logo" width={201} height={200} className={className} />
   );
 
   const renderFullLogo = (width: number, className: string) => (
-    <Image src={'/logo5.PNG'} alt="Logo" width={width} height={30} className={className} />
+    <Image src={'/logo5.PNG'} alt="Foliart logo" width={width} height={30} className={className} />
   );
 
   return (
@@ -174,7 +184,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
         <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 md:hidden">
           <button
             type="button"
-            onClick={() => setIsMenuOpen(true)}
+            onClick={openMenu}
             aria-label="Open menu"
             className={mobileActionButtonClassName}>
             <RxHamburgerMenu size={20} />
@@ -210,7 +220,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
                 {item.href === '#' ? (
                   <button
                     type="button"
-                    onClick={() => setIsMenuOpen(true)}
+                    onClick={openMenu}
                     aria-label="Open menu"
                     className="text-white text-sm hover:text-white/80 transition-colors flex items-center cursor-pointer bg-transparent border-0 p-4 px-2">
                     {item.name}
@@ -257,7 +267,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
         <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 md:hidden">
           <button
             type="button"
-            onClick={() => setIsMenuOpen(true)}
+            onClick={openMenu}
             aria-label="Open menu"
             className={mobileActionButtonClassName}>
             <RxHamburgerMenu size={20} />
@@ -270,7 +280,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
           <div className="flex items-center gap-9">
             <button
               type="button"
-              onClick={() => setIsMenuOpen(true)}
+              onClick={openMenu}
               aria-label="Open menu"
               className={`${phoneBadgeClassName} p-3`}
               style={{ backgroundColor: '#074031' }}>
@@ -291,12 +301,14 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
       </div>
 
       {/* Fullscreen menu */}
-      <FullscreenMenu
-        isOpen={isMenuOpen}
-        onClose={() => setIsMenuOpen(false)}
-        catalogChildren={catalogChildren}
-        calendarChildren={calendarChildren}
-      />
+      {hasOpenedMenu ? (
+        <FullscreenMenu
+          isOpen={isMenuOpen}
+          onClose={() => setIsMenuOpen(false)}
+          catalogChildren={catalogChildren}
+          calendarChildren={calendarChildren}
+        />
+      ) : null}
     </>
   );
 }

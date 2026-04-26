@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { getCategories, getProducts } from '@/lib/api';
+import { getCategories, getProducts, noStoreApiFetchOptions } from '@/lib/api';
 import { getCategoryHref, getProductHref } from '@/lib/catalog';
 
 const backendUrl = process.env.BACKEND_URL ?? 'http://localhost:3001';
@@ -94,7 +94,7 @@ async function revalidateCatalogPages(args: {
   previousName?: string;
 }) {
   const { categoryId, productName, previousCategoryId, previousName } = args;
-  const categories = await getCategories().catch(() => []);
+  const categories = await getCategories(undefined, noStoreApiFetchOptions).catch(() => []);
 
   for (const locale of catalogLocales) {
     revalidatePath(`/${locale}/catalog`);
@@ -123,14 +123,16 @@ async function revalidateCatalogPages(args: {
 }
 
 async function revalidateCategoryTranslationPages(categoryId: string) {
-  const categories = await getCategories().catch(() => []);
+  const categories = await getCategories(undefined, noStoreApiFetchOptions).catch(() => []);
   const category = categories.find((item) => item.id === Number.parseInt(categoryId, 10));
 
   if (!category) {
     return;
   }
 
-  const products = await getProducts(category.id).catch(() => []);
+  const products = await getProducts(category.id, undefined, noStoreApiFetchOptions).catch(
+    () => [],
+  );
 
   revalidatePath('/en/catalog');
   revalidatePath('/en/admin/products');

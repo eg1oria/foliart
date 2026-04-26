@@ -32,7 +32,7 @@ import {
   getArticlesCopy,
   toDateInputValue,
 } from '@/lib/articles';
-import { getArticles, type Article } from '@/lib/api';
+import { getArticles, noStoreApiFetchOptions, type Article } from '@/lib/api';
 import { parseEntityId } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
 import { FiEdit3, FiExternalLink } from 'react-icons/fi';
@@ -204,7 +204,7 @@ export default async function AdminArticlesPage({
   const { locale } = await params;
   const { article, edit, error, status } = await searchParams;
   const copy = getArticlesCopy(locale);
-  const articles = await getArticles();
+  const articles = await getArticles(undefined, noStoreApiFetchOptions);
   const editArticleId = parseEntityId(edit ?? '');
   const statusArticleId = parseEntityId(article ?? '');
   const topLevelError = error && !editArticleId ? error : null;
