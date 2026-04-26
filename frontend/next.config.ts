@@ -4,10 +4,7 @@ import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 const defaultCdnOrigin = 'https://cdn.nataliagorlach.kz';
-const backendUrl = (process.env.BACKEND_URL ?? 'http://localhost:3001').replace(
-  /\/$/,
-  '',
-);
+const backendUrl = (process.env.BACKEND_URL ?? 'http://localhost:3001').replace(/\/$/, '');
 
 function normalizeOrigin(value: string): string {
   const trimmed = value.trim();
@@ -16,9 +13,7 @@ function normalizeOrigin(value: string): string {
 }
 
 const cdnOrigin = normalizeOrigin(
-  process.env.ASSET_PREFIX?.trim() ||
-    process.env.NEXT_PUBLIC_CDN_URL?.trim() ||
-    defaultCdnOrigin,
+  process.env.ASSET_PREFIX?.trim() || process.env.NEXT_PUBLIC_CDN_URL?.trim() || defaultCdnOrigin,
 );
 const cdnUrl = new URL(cdnOrigin);
 const assetPrefix = process.env.ENABLE_ASSET_PREFIX === 'true' ? cdnOrigin : undefined;
@@ -30,7 +25,7 @@ const createConfig = (phase: string): NextConfig => {
   const nextConfig: NextConfig = {
     reactCompiler: true,
     output: 'standalone',
-    assetPrefix: activeAssetPrefix,
+    // assetPrefix: activeAssetPrefix,
     crossOrigin: activeAssetPrefix ? 'anonymous' : undefined,
     experimental: {
       serverActions: {
