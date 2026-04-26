@@ -20,7 +20,7 @@ export async function generateMetadata({
     path: '/about',
     title: locale === 'en' ? 'About the company' : 'О компании',
     description: t('subtitle'),
-    image: '/about-head1.png',
+    image: '/about-head1.webp',
   });
 }
 
@@ -30,11 +30,18 @@ export default function About() {
   return (
     <main>
       <div className="catalog-header relative flex flex-col items-center justify-center overflow-hidden py-14 pt-30 text-center md:pt-60">
-        <Image src="/about-head1.png" alt="" fill sizes="100vw" className="object-cover -z-10" />
+        <Image
+          src="/about-head1.webp"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover -z-10"
+        />
         <div className="absolute inset-0 bg-black/50 -z-10" />
         <h1 className="mb-4 text-3xl font-bold text-white md:text-5xl">{t('title')}</h1>
         <p className="mb-2 text-base text-lg text-white/70 md:text-xl">{t('subtitle')}</p>
-        <Image src="/logo5.PNG" alt="Foliart logo" width={130} height={40} />
+        <Image src="/logo5.PNG" alt="Foliart logo" width={130} height={40} className="h-auto w-auto" />
       </div>
 
       <div className="catalog-header flex gap-30 py-10">
@@ -83,7 +90,13 @@ export default function About() {
           <div
             id="feedback"
             className="scroll-mt-28 md:items-start items-center gap-10 md:gap=0 md:mt-0 flex flex-col-reverse md:grid md:grid-cols-2 justify-between relative mb-20 p-4 md:p-8">
-            <Image src="/about-form.jpeg" alt="" fill sizes="100vw" className="object-cover -z-10" />
+            <Image
+              src="/about-form.webp"
+              alt=""
+              fill
+              sizes="100vw"
+              className="object-cover -z-10"
+            />
             <div className="absolute inset-0 bg-black/50 -z-10" />
 
             <div>

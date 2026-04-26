@@ -25,7 +25,7 @@ export async function generateMetadata({
     path: '/catalog',
     title: locale === 'en' ? 'Fertilizer catalog' : 'Каталог удобрений',
     description: copy.subtitle,
-    image: '/catalog-head.jpeg',
+    image: '/catalog-head.webp',
   });
 }
 
@@ -40,7 +40,14 @@ export default async function CatalogPage({ params }: { params: Promise<{ locale
   return (
     <main>
       <div className="catalog-header relative flex flex-col items-start justify-center overflow-hidden px-6 py-14 pt-30 md:pt-60 text-center">
-        <Image src="/catalog-head.jpeg" alt="" fill sizes="100vw" className="object-cover -z-10" />
+        <Image
+          src="/catalog-head.webp"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover -z-10"
+        />
         <div className="absolute inset-0 bg-black/50 -z-10" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-30 bg-gradient-to-b from-black/60 via-black/40 to-transparent" />
         <div className="relative z-10">

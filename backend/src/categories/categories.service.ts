@@ -1,9 +1,19 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
+const catalogCategoryLegacyImagePattern =
+  /^\/?(catalog-categories\/(?:1|4|5|6))\.(?:jpe?g|png)$/i;
+
 @Injectable()
 export class CategoriesService {
   constructor(private prisma: PrismaService) {}
+
+  private resolveImageUrl(imageUrl: string) {
+    return imageUrl
+      .trim()
+      .replace(/\\/g, '/')
+      .replace(catalogCategoryLegacyImagePattern, '/$1.webp');
+  }
 
   private resolveLocale<
     T extends {
@@ -11,6 +21,7 @@ export class CategoriesService {
       nameEn: string;
       description: string;
       descriptionEn: string;
+      imageUrl: string;
     },
   >(category: T, locale?: string) {
     const useEnglish = locale === 'en';
@@ -25,6 +36,7 @@ export class CategoriesService {
       ...category,
       name: localizedName,
       description: localizedDescription,
+      imageUrl: this.resolveImageUrl(category.imageUrl),
       slugSourceName: category.name,
     };
   }

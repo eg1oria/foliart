@@ -76,7 +76,7 @@ export async function generateMetadata({
       path: '/catalog',
       title: locale === 'en' ? 'Fertilizer catalog' : 'Каталог удобрений',
       description: copy.subtitle,
-      image: '/catalog-head.jpeg',
+      image: '/catalog-head.webp',
     });
   }
 }
@@ -188,6 +188,7 @@ export default async function ProductDetailsPage({
           src={categoryImage}
           alt={category.name}
           fill
+          priority
           sizes="100vw"
           className="object-cover"
           emptyState={

@@ -32,7 +32,14 @@ export default async function CalendarPage({ params }: { params: Promise<{ local
   return (
     <main className="pb-24">
       <section className="catalog-header relative flex flex-col justify-center overflow-hidden px-6 pb-16 pt-30 md:pt-60">
-        <Image src="/articles-head.webp" alt="" fill sizes="100vw" className="object-cover" />
+        <Image
+          src="/articles-head.webp"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
         <div className="absolute inset-0 bg-black/55" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
 

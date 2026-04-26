@@ -89,6 +89,7 @@ export default async function CalendarDetailsPage({
             src={heroImage}
             alt={calendar.title}
             fill
+            priority
             sizes="100vw"
             className="object-cover"
             emptyState={

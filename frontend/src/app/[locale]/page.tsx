@@ -16,15 +16,12 @@ export async function generateMetadata({
   return buildPageMetadata({
     locale,
     path: '/',
-    title:
-      locale === 'en'
-        ? 'Foliart - the art of fertilization'
-        : 'Фолиарт - искусство удобрения',
+    title: locale === 'en' ? 'Foliart - the art of fertilization' : 'Фолиарт - искусство удобрения',
     description:
       locale === 'en'
         ? 'Foliart develops organo-mineral fertilizer systems for farms with laboratory-backed agronomy support and plant nutrition expertise.'
         : 'Фолиарт разрабатывает органо-минеральные комплексы и системы питания растений для хозяйств с лабораторным сопровождением и агрономической экспертизой.',
-    image: '/hero.png',
+    image: '/hero.webp',
   });
 }
 

@@ -8,12 +8,12 @@ export default function Complexs() {
       <div
         className="pointer-events-none absolute inset-0 bg-cover bg-no-repeat opacity-50"
         style={{
-          backgroundImage: "url('/complex.png')",
+          backgroundImage: "url('/complex.webp')",
           backgroundPosition: 'center calc(10% + 200px)',
         }}
       />
       <Image
-        src="/complex1.jpeg"
+        src="/complex1.webp"
         alt={t('title')}
         width={450}
         height={300}

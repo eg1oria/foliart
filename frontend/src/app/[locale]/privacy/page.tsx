@@ -53,7 +53,7 @@ export async function generateMetadata({
     path: '/privacy',
     title: locale === 'en' ? 'Privacy policy' : 'Политика обработки персональных данных',
     description: t('subtitle'),
-    image: '/about-head1.png',
+    image: '/about-head1.webp',
   });
 }
 
@@ -82,7 +82,14 @@ export default function PrivacyPage() {
   return (
     <main>
       <div className="catalog-header relative flex flex-col justify-center overflow-hidden px-6 pb-16 pt-30 md:pt-60">
-        <Image src="/about-head1.png" alt="" fill sizes="100vw" className="object-cover -z-10" />
+        <Image
+          src="/about-head1.webp"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover -z-10"
+        />
         <div className="absolute inset-0 bg-black/55 -z-10" />
         <h1 className="mb-4 text-3xl font-bold text-white md:text-5xl">{t('title')}</h1>
         <p className="max-w-3xl text-sm text-white/90 md:text-lg">{t('subtitle')}</p>

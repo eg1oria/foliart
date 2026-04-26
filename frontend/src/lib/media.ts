@@ -1,5 +1,7 @@
 const absoluteUrlPattern = /^https?:\/\//i;
 const frontendPublicPrefixes = ['catalog-categories/'] as const;
+const catalogCategoryLegacyImagePattern =
+  /^\/?(catalog-categories\/(?:1|4|5|6))\.(?:jpe?g|png)$/i;
 
 export function resolveMediaUrl(path?: string | null): string | null {
   const value = path?.trim();
@@ -15,33 +17,39 @@ export function resolveMediaUrl(path?: string | null): string | null {
     .replace(/\\/g, '/')
     .replace(/^backend\//, '')
     .replace(/^\/+/, '/');
+  const catalogCategoryImage = normalized.replace(
+    catalogCategoryLegacyImagePattern,
+    '/$1.webp',
+  );
 
   if (
     frontendPublicPrefixes.some(
       (prefix) =>
-        normalized === `/${prefix.slice(0, -1)}` ||
-        normalized.startsWith(`/${prefix}`) ||
-        normalized.startsWith(prefix),
+        catalogCategoryImage === `/${prefix.slice(0, -1)}` ||
+        catalogCategoryImage.startsWith(`/${prefix}`) ||
+        catalogCategoryImage.startsWith(prefix),
     )
   ) {
-    return normalized.startsWith('/') ? normalized : `/${normalized}`;
+    return catalogCategoryImage.startsWith('/')
+      ? catalogCategoryImage
+      : `/${catalogCategoryImage}`;
   }
 
-  if (normalized.startsWith('/media/')) {
-    return normalized;
+  if (catalogCategoryImage.startsWith('/media/')) {
+    return catalogCategoryImage;
   }
 
-  if (normalized.startsWith('/images/')) {
-    return `/media/${normalized.slice('/images/'.length)}`;
+  if (catalogCategoryImage.startsWith('/images/')) {
+    return `/media/${catalogCategoryImage.slice('/images/'.length)}`;
   }
 
-  if (normalized.startsWith('images/')) {
-    return `/media/${normalized.slice('images/'.length)}`;
+  if (catalogCategoryImage.startsWith('images/')) {
+    return `/media/${catalogCategoryImage.slice('images/'.length)}`;
   }
 
-  if (normalized.startsWith('/')) {
-    return normalized;
+  if (catalogCategoryImage.startsWith('/')) {
+    return catalogCategoryImage;
   }
 
-  return `/media/${normalized}`;
+  return `/media/${catalogCategoryImage}`;
 }

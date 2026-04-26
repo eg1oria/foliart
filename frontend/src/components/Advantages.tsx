@@ -7,28 +7,28 @@ export default function Advantages() {
   const items = [
     {
       title: t('items.item1.title'),
-      img: '/advantage1.png',
+      img: '/advantage1.webp',
     },
     {
       title: t('items.item2.title'),
-      img: '/advantage2.jpeg',
+      img: '/advantage2.webp',
       desc: t('items.item2.desc'),
       right: true,
     },
     {
       title: t('items.item3.title'),
-      img: '/advantage3.png',
+      img: '/advantage3.webp',
       desc: t('items.item3.desc'),
     },
     {
       title: t('items.item4.title'),
-      img: '/advantage4.jpg',
+      img: '/advantage4.webp',
       desc: t('items.item4.desc'),
       right: true,
     },
     {
       title: t('items.item5.title'),
-      img: '/advantage5.png',
+      img: '/advantage5.webp',
     },
   ];
 
@@ -43,7 +43,7 @@ export default function Advantages() {
             className={`flex flex-col-reverse items-center min-[900px]:items-start gap-8 mt-12 ${
               item.right ? 'min-[900px]:flex-row-reverse' : 'min-[900px]:flex-row'
             }`}>
-            <Image src={item.img} alt={item.title} width={500} height={80} />
+            <Image src={item.img} alt={item.title} width={500} height={80} className="h-auto w-auto" />
             <div>
               <h3 className="text-3xl min-[900px]:text-4xl text-center min-[900px]:text-start font-semibold">
                 {item.title}

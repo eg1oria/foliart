@@ -21,7 +21,7 @@ export async function generateMetadata({
       locale === 'en'
         ? 'Regional partners and distributors of Foliart products in Krasnodar and Crimea.'
         : 'Региональные партнеры и дистрибьюторы продукции Фолиарт в Краснодаре и Крыму.',
-    image: '/partners-head.jpg',
+    image: '/partners-head.webp',
   });
 }
 
@@ -31,14 +31,21 @@ export default function Partners() {
   return (
     <main>
       <div className="catalog-header relative flex flex-col items:center md:items-start justify-center overflow-hidden px-6 py-14 pt-30 text-center md:pt-60">
-        <Image src="/partners-head.jpg" alt="" fill sizes="100vw" className="object-cover -z-10 scale-120" />
+        <Image
+          src="/partners-head.webp"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover -z-10 scale-120"
+        />
         <div className="absolute inset-0 bg-black/50 -z-10" />
         <h1 className="mb-4 text-3xl font-bold text-white md:text-5xl">{t('title')}</h1>
       </div>
 
       <div className="catalog-header flex flex-col gap-12 py-26 md:flex-row ">
         <div className="flex flex-col items-center gap-4 border-5 border-gray-400 p-10 text-center ">
-          <Image src="/partners2.png" alt="EcoGreen partner logo" width={220} height={150} />
+          <Image src="/partners2.webp" alt="EcoGreen partner logo" width={220} height={150} />
           <p className="text-blue-600 font-medium">ООО &quot;ЭкоГрин&quot;</p>
           <span className="font-bold text-black/65">г.Краснодар</span>
           <a
@@ -59,14 +66,21 @@ export default function Partners() {
             <IoIosMail className="inline-block text-black" />
             info@ecogreen.ru
           </a>
-          <a href="https://ecogreen.ru" className="flex items-center gap-2 text-blue-500 hover:underline">
+          <a
+            href="https://ecogreen.ru"
+            className="flex items-center gap-2 text-blue-500 hover:underline">
             <TbArrowBackUp className="inline-block scale-x-[-1] text-black" />
             https://ecogreen.ru
           </a>
         </div>
 
         <div className="flex flex-col items-center gap-4 border-5 border-gray-400 p-10 pb-20 text-center">
-          <Image src="/partners1.png" alt="Imperia Agro Krym partner logo" width={120} height={150} />
+          <Image
+            src="/partners1.webp"
+            alt="Imperia Agro Krym partner logo"
+            width={120}
+            height={150}
+          />
           <p className="text-blue-600 font-medium">ООО &quot;Империя Агро Крым&quot;</p>
           <span className="font-bold text-black/65">г. Симферополь</span>
           <a

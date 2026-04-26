@@ -22,7 +22,7 @@ export async function generateMetadata({
     path: '/contacts',
     title: locale === 'en' ? 'Contacts' : 'Контакты',
     description: t('subtitle'),
-    image: '/contacts.jpg',
+    image: '/contacts.webp',
   });
 }
 
@@ -54,7 +54,14 @@ export default function Contacts() {
   return (
     <main>
       <section className="catalog-header relative flex flex-col justify-center overflow-hidden px-6 pb-16 pt-30 md:pt-60">
-        <Image src="/contacts.jpg" alt="" fill sizes="100vw" className="object-cover -z-10" />
+        <Image
+          src="/contacts.webp"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover -z-10"
+        />
         <div className="absolute inset-0 bg-black/50 -z-10" />
         <h1 className="mb-4 text-3xl font-bold text-white md:text-5xl">{t('title')}</h1>
         <p className="mb-2 text-sm text-white/90 md:text-lg">{t('subtitle')}</p>
@@ -104,7 +111,13 @@ export default function Contacts() {
           <div
             id="feedback"
             className="scroll-mt-28 md:items-start items-center gap-10 md:gap=0 mt-10 flex flex-col-reverse md:grid md:grid-cols-2 justify-between relative mb-20 p-4  md:p-8">
-            <Image src="/about-head1.png" alt="" fill sizes="100vw" className="object-cover -z-10" />
+            <Image
+              src="/about-head1.webp"
+              alt=""
+              fill
+              sizes="100vw"
+              className="object-cover -z-10"
+            />
             <div className="absolute inset-0 bg-black/50 -z-10" />
 
             <div className="">

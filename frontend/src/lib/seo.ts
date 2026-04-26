@@ -7,7 +7,7 @@ export const SITE_URL = new URL(
     process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
     'https://nataliagorlach.kz',
 );
-export const DEFAULT_OG_IMAGE = '/hero.png';
+export const DEFAULT_OG_IMAGE = '/hero.webp';
 export const GOOGLE_SITE_VERIFICATION = process.env.GOOGLE_SITE_VERIFICATION?.trim() || undefined;
 export const GOOGLE_ANALYTICS_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim() || undefined;
 export const PUBLIC_REVALIDATE_SECONDS = 900;
@@ -142,7 +142,10 @@ export function getOpenGraphImages(image?: string | null) {
   ];
 }
 
-export function buildLocalizedAlternates(locale: string, path: string): NonNullable<Metadata['alternates']> {
+export function buildLocalizedAlternates(
+  locale: string,
+  path: string,
+): NonNullable<Metadata['alternates']> {
   const languages = Object.fromEntries(
     routing.locales.map((item) => [item, getLocalizedPath(item, path)]),
   ) as Record<SupportedLocale, string>;
