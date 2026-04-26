@@ -68,8 +68,10 @@ services:
         SITE_URL: https://nataliagorlach.kz
         NEXT_PUBLIC_SITE_URL: https://nataliagorlach.kz
         NEXT_PUBLIC_CDN_URL: https://cdn.nataliagorlach.kz
+        NEXT_PUBLIC_ENABLE_PUBLIC_ASSET_CDN: 'false'
         ASSET_PREFIX: https://cdn.nataliagorlach.kz
         ENABLE_ASSET_PREFIX: 'true'
+        ENABLE_IMAGE_CDN: 'false'
     expose:
       - '3000'
     environment:
@@ -78,8 +80,10 @@ services:
       - SITE_URL=https://nataliagorlach.kz
       - NEXT_PUBLIC_SITE_URL=https://nataliagorlach.kz
       - NEXT_PUBLIC_CDN_URL=https://cdn.nataliagorlach.kz
+      - NEXT_PUBLIC_ENABLE_PUBLIC_ASSET_CDN=false
       - ASSET_PREFIX=https://cdn.nataliagorlach.kz
       - ENABLE_ASSET_PREFIX=true
+      - ENABLE_IMAGE_CDN=false
     networks:
       - dev
     restart: unless-stopped

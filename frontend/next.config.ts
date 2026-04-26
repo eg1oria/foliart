@@ -17,6 +17,7 @@ const cdnOrigin = normalizeOrigin(
 );
 const cdnUrl = new URL(cdnOrigin);
 const assetPrefix = process.env.ENABLE_ASSET_PREFIX === 'true' ? cdnOrigin : undefined;
+const imageCdnEnabled = process.env.ENABLE_IMAGE_CDN === 'true';
 
 const createConfig = (phase: string): NextConfig => {
   const isDev = phase === PHASE_DEVELOPMENT_SERVER;
@@ -41,7 +42,7 @@ const createConfig = (phase: string): NextConfig => {
       ];
     },
     images: {
-      path: activeAssetPrefix ? `${activeAssetPrefix}/_next/image` : '/_next/image',
+      path: imageCdnEnabled && activeAssetPrefix ? `${activeAssetPrefix}/_next/image` : '/_next/image',
       remotePatterns: [
         {
           protocol: 'https',

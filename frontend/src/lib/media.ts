@@ -4,7 +4,10 @@ const specialUrlPattern = /^(?:data|blob):/i;
 const frontendPublicPrefixes = ['catalog-categories/'] as const;
 const catalogCategoryLegacyImagePattern =
   /^\/?(catalog-categories\/(?:1|4|5|6))\.(?:jpe?g|png)$/i;
-const publicCdnOrigin = process.env.NEXT_PUBLIC_CDN_URL?.trim().replace(/\/$/, '');
+const publicAssetCdnEnabled = process.env.NEXT_PUBLIC_ENABLE_PUBLIC_ASSET_CDN === 'true';
+const publicCdnOrigin = publicAssetCdnEnabled
+  ? process.env.NEXT_PUBLIC_CDN_URL?.trim().replace(/\/$/, '')
+  : '';
 
 export function resolvePublicAssetUrl(path: string): string {
   const value = path.trim();
