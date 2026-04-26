@@ -62,7 +62,13 @@ export default function FullscreenMenu({
   }, [isOpen]);
 
   const renderCompactLogo = (className: string) => (
-    <Image src="/logo-small.webp" alt="Foliart logo" width={201} height={200} className={className} />
+    <Image
+      src="/logo-small.webp"
+      alt="Foliart logo"
+      width={201}
+      height={200}
+      className={className}
+    />
   );
 
   const renderFullLogo = (className: string) => (
@@ -149,7 +155,13 @@ export default function FullscreenMenu({
       <div className="flex-1 overflow-y-auto">
         {catalogChildren.length > 0 && (
           <section className="bg-white/[0.06]">
-            <div className="header-catalog py-6 sm:py-8 md:py-10 lg:py-14 xl:py-20">
+            <div className="header-catalog xl:pt-12 py-6 sm:py-8 md:py-10 lg:py-14 xl:py-20">
+              <Link
+                href="/catalog"
+                onClick={onClose}
+                className="block mb-6 text-lg font-light tracking-widest text-white uppercase transition-colors hover:text-white/60">
+                {t('catalog')}
+              </Link>
               <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {catalogChildren.map((item) => (
                   <Link
