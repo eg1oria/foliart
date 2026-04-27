@@ -69,10 +69,10 @@ services:
         BACKEND_URL: http://backend:5000
         SITE_URL: https://nataliagorlach.kz
         NEXT_PUBLIC_SITE_URL: https://nataliagorlach.kz
-        NEXT_PUBLIC_CDN_URL: https://cdn.nataliagorlach.kz
+        NEXT_PUBLIC_CDN_URL: ''
         NEXT_PUBLIC_ENABLE_PUBLIC_ASSET_CDN: 'false'
-        ASSET_PREFIX: https://cdn.nataliagorlach.kz
-        ENABLE_ASSET_PREFIX: 'true'
+        ASSET_PREFIX: ''
+        ENABLE_ASSET_PREFIX: 'false'
         ENABLE_IMAGE_CDN: 'false'
         ADMIN_USERNAME: admin
         ADMIN_PASSWORD: 'Foliart2026!'
@@ -85,10 +85,10 @@ services:
       - BACKEND_URL=http://backend:5000
       - SITE_URL=https://nataliagorlach.kz
       - NEXT_PUBLIC_SITE_URL=https://nataliagorlach.kz
-      - NEXT_PUBLIC_CDN_URL=https://cdn.nataliagorlach.kz
+      - NEXT_PUBLIC_CDN_URL=
       - NEXT_PUBLIC_ENABLE_PUBLIC_ASSET_CDN=false
-      - ASSET_PREFIX=https://cdn.nataliagorlach.kz
-      - ENABLE_ASSET_PREFIX=true
+      - ASSET_PREFIX=
+      - ENABLE_ASSET_PREFIX=false
       - ENABLE_IMAGE_CDN=false
       - ADMIN_USERNAME=admin
       - ADMIN_PASSWORD=Foliart2026!
