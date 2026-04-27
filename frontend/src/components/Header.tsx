@@ -238,9 +238,13 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
           <div className="flex items-center gap-9">
             {renderDesktopLocaleSwitcher()}
 
-            <div className={`${phoneBadgeClassName} p-3`} style={{ backgroundColor: '#074031' }}>
+            <Link
+              href="/contacts"
+              aria-label={t('contacts')}
+              className={`${phoneBadgeClassName} p-3`}
+              style={{ backgroundColor: '#074031' }}>
               <BsTelephoneInbound size={22} />
-            </div>
+            </Link>
           </div>
         </div>
 
@@ -404,9 +408,13 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
 
           <div className="flex items-center gap-9">
             {renderDesktopLocaleSwitcher()}
-            <div className={`${phoneBadgeClassName} p-3`} style={{ backgroundColor: '#074031' }}>
+            <Link
+              href="/contacts"
+              aria-label={t('contacts')}
+              className={`${phoneBadgeClassName} p-3`}
+              style={{ backgroundColor: '#074031' }}>
               <BsTelephoneInbound size={22} />
-            </div>
+            </Link>
           </div>
         </div>
       </div>
