@@ -25,6 +25,7 @@ import {
 } from '@/components/admin/adminStyles';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
+import { requireAdminSession } from '@/lib/adminAuthServer';
 import { getCalendars, noStoreApiFetchOptions, type CalendarEntry } from '@/lib/api';
 import { getCalendarHref, getCalendarsAdminCopy, getCalendarsCopy } from '@/lib/calendars';
 import { parseEntityId } from '@/lib/catalog';
@@ -247,6 +248,8 @@ export default async function AdminCalendarsPage({
   searchParams: Promise<AdminPageSearchParams>;
 }) {
   const { locale } = await params;
+  await requireAdminSession(locale, `/${locale}/admin/calendars`);
+
   const { calendar, edit, error, status } = await searchParams;
   const copy = getCalendarsAdminCopy(locale);
   const publicCopy = getCalendarsCopy(locale);

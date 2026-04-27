@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { getAdminApiHeaders } from '@/lib/adminApi';
+import { requireAdminSession } from '@/lib/adminAuthServer';
 import { getCategories, getProducts, noStoreApiFetchOptions } from '@/lib/api';
 import { getCategoryHref, getProductHref } from '@/lib/catalog';
 
@@ -145,6 +147,8 @@ async function revalidateCategoryTranslationPages(categoryId: string) {
 
 export async function createProductAction(formData: FormData) {
   const locale = normalizeLocale(formData.get('locale'));
+  await requireAdminSession(locale);
+
   const values = getProductFormPayload(formData);
   const image = formData.get('image');
 
@@ -165,6 +169,7 @@ export async function createProductAction(formData: FormData) {
 
   const response = await fetch(`${backendUrl}/api/products`, {
     method: 'POST',
+    headers: getAdminApiHeaders(),
     body: payload,
     cache: 'no-store',
   });
@@ -195,6 +200,8 @@ export async function createProductAction(formData: FormData) {
 
 export async function updateProductAction(formData: FormData) {
   const locale = normalizeLocale(formData.get('locale'));
+  await requireAdminSession(locale);
+
   const productId = normalizeText(formData.get('productId'));
   const previousCategoryId = normalizeText(formData.get('previousCategoryId'));
   const previousName = normalizeText(formData.get('previousName'));
@@ -222,6 +229,7 @@ export async function updateProductAction(formData: FormData) {
 
   const response = await fetch(`${backendUrl}/api/products/${productId}`, {
     method: 'PATCH',
+    headers: getAdminApiHeaders(),
     body: payload,
     cache: 'no-store',
   });
@@ -257,6 +265,8 @@ export async function updateProductAction(formData: FormData) {
 
 export async function updateCategoryTranslationAction(formData: FormData) {
   const locale = normalizeLocale(formData.get('locale'));
+  await requireAdminSession(locale);
+
   const categoryId = normalizeText(formData.get('categoryId'));
   const nameEn = normalizeText(formData.get('nameEn'));
   const descriptionEn = normalizeText(formData.get('descriptionEn'));
@@ -273,6 +283,7 @@ export async function updateCategoryTranslationAction(formData: FormData) {
   const response = await fetch(`${backendUrl}/api/categories/${categoryId}`, {
     method: 'PATCH',
     headers: {
+      ...getAdminApiHeaders(),
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({

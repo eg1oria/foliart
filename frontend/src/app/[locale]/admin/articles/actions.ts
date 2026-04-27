@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { getAdminApiHeaders } from '@/lib/adminApi';
+import { requireAdminSession } from '@/lib/adminAuthServer';
 import { getArticleHref } from '@/lib/articles';
 
 const backendUrl = process.env.BACKEND_URL ?? 'http://localhost:3001';
@@ -93,6 +95,8 @@ async function revalidateArticlePages(args: {
 
 export async function createArticleAction(formData: FormData) {
   const locale = normalizeLocale(formData.get('locale'));
+  await requireAdminSession(locale);
+
   const values = getArticleFormPayload(formData);
   const image = formData.get('image');
 
@@ -113,6 +117,7 @@ export async function createArticleAction(formData: FormData) {
 
   const response = await fetch(`${backendUrl}/api/articles`, {
     method: 'POST',
+    headers: getAdminApiHeaders(),
     body: payload,
     cache: 'no-store',
   });
@@ -142,6 +147,8 @@ export async function createArticleAction(formData: FormData) {
 
 export async function updateArticleAction(formData: FormData) {
   const locale = normalizeLocale(formData.get('locale'));
+  await requireAdminSession(locale);
+
   const articleId = normalizeText(formData.get('articleId'));
   const previousTitle = normalizeText(formData.get('previousTitle'));
   const values = getArticleFormPayload(formData);
@@ -168,6 +175,7 @@ export async function updateArticleAction(formData: FormData) {
 
   const response = await fetch(`${backendUrl}/api/articles/${articleId}`, {
     method: 'PATCH',
+    headers: getAdminApiHeaders(),
     body: payload,
     cache: 'no-store',
   });

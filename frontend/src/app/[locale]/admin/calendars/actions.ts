@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { getAdminApiHeaders } from '@/lib/adminApi';
+import { requireAdminSession } from '@/lib/adminAuthServer';
 
 const backendUrl = process.env.BACKEND_URL ?? 'http://localhost:3001';
 const calendarLocales = ['ru', 'en'] as const;
@@ -78,6 +80,8 @@ async function revalidateCalendarAdminPages() {
 
 export async function createCalendarAction(formData: FormData) {
   const locale = normalizeLocale(formData.get('locale'));
+  await requireAdminSession(locale);
+
   const values = getCalendarFormPayload(formData);
   const requiredImages = requiredImageFieldNames.map((fieldName) => formData.get(fieldName));
 
@@ -105,6 +109,7 @@ export async function createCalendarAction(formData: FormData) {
 
   const response = await fetch(`${backendUrl}/api/calendars`, {
     method: 'POST',
+    headers: getAdminApiHeaders(),
     body: payload,
     cache: 'no-store',
   });
@@ -134,6 +139,8 @@ export async function createCalendarAction(formData: FormData) {
 
 export async function updateCalendarAction(formData: FormData) {
   const locale = normalizeLocale(formData.get('locale'));
+  await requireAdminSession(locale);
+
   const calendarId = normalizeText(formData.get('calendarId'));
   const values = getCalendarFormPayload(formData);
 
@@ -162,6 +169,7 @@ export async function updateCalendarAction(formData: FormData) {
 
   const response = await fetch(`${backendUrl}/api/calendars/${calendarId}`, {
     method: 'PATCH',
+    headers: getAdminApiHeaders(),
     body: payload,
     cache: 'no-store',
   });

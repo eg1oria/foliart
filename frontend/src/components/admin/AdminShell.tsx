@@ -1,6 +1,7 @@
 import { Link } from '@/i18n/routing';
+import { logoutAdminAction } from '@/lib/adminSessionActions';
 import type { ReactNode } from 'react';
-import { FiArrowUpRight, FiChevronRight } from 'react-icons/fi';
+import { FiArrowUpRight, FiChevronRight, FiLogOut } from 'react-icons/fi';
 import { LuPanelTop } from 'react-icons/lu';
 
 import AdminTabs from './AdminTabs';
@@ -46,6 +47,7 @@ export function AdminShell({
     locale === 'en'
       ? 'Quick actions'
       : '\u0411\u044b\u0441\u0442\u0440\u044b\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u044f';
+  const signOutLabel = locale === 'en' ? 'Sign out' : '\u0412\u044b\u0439\u0442\u0438';
 
   return (
     <main className="relative mx-auto flex w-full max-w-[96rem] flex-1 flex-col px-4 pb-16 pt-50 sm:px-6 sm:pb-20 lg:px-8 lg:pt-54">
@@ -72,10 +74,20 @@ export function AdminShell({
           </div>
 
           <div className="flex w-full flex-col gap-3 xl:w-auto xl:min-w-[270px] xl:items-end">
-            <Link href={backHref} className={adminGhostLinkClassName}>
-              <span>{backLabel}</span>
-              <FiArrowUpRight className="ml-2" />
-            </Link>
+            <div className="flex w-full flex-col gap-3 sm:flex-row xl:w-auto xl:flex-col xl:items-stretch">
+              <Link href={backHref} className={adminGhostLinkClassName}>
+                <span>{backLabel}</span>
+                <FiArrowUpRight className="ml-2" />
+              </Link>
+
+              <form action={logoutAdminAction} className="contents">
+                <input type="hidden" name="locale" value={locale} />
+                <button type="submit" className={adminGhostLinkClassName}>
+                  <span>{signOutLabel}</span>
+                  <FiLogOut className="ml-2" />
+                </button>
+              </form>
+            </div>
 
             {shortcuts.length > 0 ? (
               <div className="w-full rounded-[1.5rem] border border-white/12 bg-white/8 p-4 backdrop-blur-sm xl:max-w-[320px]">

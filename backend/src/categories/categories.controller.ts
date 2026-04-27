@@ -6,7 +6,9 @@ import {
   ParseIntPipe,
   Patch,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { AdminApiGuard } from '../admin-api.guard';
 import { CategoriesService } from './categories.service';
 
 @Controller('categories')
@@ -27,6 +29,7 @@ export class CategoriesController {
   }
 
   @Patch(':id')
+  @UseGuards(AdminApiGuard)
   updateTranslations(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: Record<string, string | undefined>,

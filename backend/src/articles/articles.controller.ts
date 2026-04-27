@@ -9,6 +9,7 @@ import {
   Post,
   Query,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import type { Request } from 'express';
@@ -16,6 +17,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
+import { AdminApiGuard } from '../admin-api.guard';
 import {
   sanitizeArticleContent,
   sanitizeArticleExcerpt,
@@ -164,6 +166,7 @@ export class ArticlesController {
   }
 
   @Post()
+  @UseGuards(AdminApiGuard)
   @UseInterceptors(createImageInterceptor())
   async create(
     @Body() body: Record<string, string | undefined>,
@@ -212,6 +215,7 @@ export class ArticlesController {
   }
 
   @Patch(':id')
+  @UseGuards(AdminApiGuard)
   @UseInterceptors(createImageInterceptor())
   async update(
     @Param('id', ParseIntPipe) id: number,

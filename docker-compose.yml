@@ -46,12 +46,14 @@ services:
       context: ./backend
       args:
         DATABASE_URL: file:/app/data/prod.db
+        ADMIN_API_SECRET: 'foliart-admin-api-secret-2026'
     expose:
       - '5000'
     environment:
       - PORT=5000
       - DATABASE_URL=file:/app/data/prod.db
       - FRONTEND_URL=https://nataliagorlach.kz,https://www.nataliagorlach.kz
+      - ADMIN_API_SECRET=foliart-admin-api-secret-2026
     volumes:
       - backend_data:/app/data
       - ./backend/images:/app/images
@@ -72,6 +74,10 @@ services:
         ASSET_PREFIX: https://cdn.nataliagorlach.kz
         ENABLE_ASSET_PREFIX: 'true'
         ENABLE_IMAGE_CDN: 'false'
+        ADMIN_USERNAME: admin
+        ADMIN_PASSWORD: 'Foliart2026!'
+        ADMIN_SESSION_SECRET: 'foliart-admin-session-secret-2026'
+        ADMIN_API_SECRET: 'foliart-admin-api-secret-2026'
     expose:
       - '3000'
     environment:
@@ -84,6 +90,10 @@ services:
       - ASSET_PREFIX=https://cdn.nataliagorlach.kz
       - ENABLE_ASSET_PREFIX=true
       - ENABLE_IMAGE_CDN=false
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=Foliart2026!
+      - ADMIN_SESSION_SECRET=foliart-admin-session-secret-2026
+      - ADMIN_API_SECRET=foliart-admin-api-secret-2026
     networks:
       - dev
     restart: unless-stopped

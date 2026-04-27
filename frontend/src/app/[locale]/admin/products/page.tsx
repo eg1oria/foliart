@@ -25,6 +25,7 @@ import {
 } from '@/components/admin/adminStyles';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
+import { requireAdminSession } from '@/lib/adminAuthServer';
 import { getCategories, getProducts, noStoreApiFetchOptions, type Product } from '@/lib/api';
 import {
   formatProductCount,
@@ -335,6 +336,8 @@ export default async function AdminProductsPage({
   searchParams: Promise<AdminPageSearchParams>;
 }) {
   const { locale } = await params;
+  await requireAdminSession(locale, `/${locale}/admin/products`);
+
   const { category, categoryError, categoryStatus, edit, error, product, status } =
     await searchParams;
   const adminCopy = getCatalogAdminCopy(locale);

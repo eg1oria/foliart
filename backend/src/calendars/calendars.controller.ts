@@ -9,6 +9,7 @@ import {
   Post,
   Query,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import type { Request } from 'express';
@@ -16,6 +17,7 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
+import { AdminApiGuard } from '../admin-api.guard';
 import { CalendarsService } from './calendars.service';
 
 const calendarsImagesDirectory = join(process.cwd(), 'images', 'calendars');
@@ -165,6 +167,7 @@ export class CalendarsController {
   }
 
   @Post()
+  @UseGuards(AdminApiGuard)
   @UseInterceptors(createImagesInterceptor())
   async create(
     @Body() body: Record<string, string | undefined>,
@@ -218,6 +221,7 @@ export class CalendarsController {
   }
 
   @Patch(':id')
+  @UseGuards(AdminApiGuard)
   @UseInterceptors(createImagesInterceptor())
   async update(
     @Param('id', ParseIntPipe) id: number,

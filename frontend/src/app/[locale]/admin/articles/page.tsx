@@ -26,6 +26,7 @@ import {
 import ArticleRichTextEditor from '@/components/admin/ArticleRichTextEditor';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
+import { requireAdminSession } from '@/lib/adminAuthServer';
 import {
   formatArticleDate,
   getArticleHref,
@@ -202,6 +203,8 @@ export default async function AdminArticlesPage({
   searchParams: Promise<AdminPageSearchParams>;
 }) {
   const { locale } = await params;
+  await requireAdminSession(locale, `/${locale}/admin/articles`);
+
   const { article, edit, error, status } = await searchParams;
   const copy = getArticlesCopy(locale);
   const articles = await getArticles(undefined, noStoreApiFetchOptions);
