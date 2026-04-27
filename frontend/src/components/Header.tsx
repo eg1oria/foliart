@@ -3,11 +3,12 @@
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import type { ReactNode } from 'react';
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { BsTelephoneInbound } from 'react-icons/bs';
 import { FiChevronDown } from 'react-icons/fi';
 import { RxHamburgerMenu } from 'react-icons/rx';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
+import { formatProductCount } from '@/lib/catalog';
 import { useLocale, useTranslations } from 'next-intl';
 
 const FullscreenMenu = dynamic(() => import('./FullScreenMenu'), {
@@ -39,6 +40,8 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hasOpenedMenu, setHasOpenedMenu] = useState(false);
+  const [activeDesktopMenu, setActiveDesktopMenu] = useState<string | null>(null);
+  const desktopMenuCloseTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const t = useTranslations('Header');
   const locale = useLocale();
   const router = useRouter();
@@ -50,6 +53,21 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
   const openMenu = () => {
     setHasOpenedMenu(true);
     setIsMenuOpen(true);
+  };
+
+  const clearDesktopMenuClose = () => {
+    if (desktopMenuCloseTimeout.current) {
+      clearTimeout(desktopMenuCloseTimeout.current);
+      desktopMenuCloseTimeout.current = null;
+    }
+  };
+
+  const scheduleDesktopMenuClose = () => {
+    clearDesktopMenuClose();
+    desktopMenuCloseTimeout.current = setTimeout(() => {
+      setActiveDesktopMenu(null);
+      desktopMenuCloseTimeout.current = null;
+    }, 90);
   };
 
   const changeLocale = (nextLocale: LocaleOption) => {
@@ -115,10 +133,19 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (desktopMenuCloseTimeout.current) {
+        clearTimeout(desktopMenuCloseTimeout.current);
+      }
+    };
+  }, []);
+
   const phoneBadgeClassName =
     'flex items-center justify-center rounded-full text-white transition-colors hover:bg-[#074031]/80';
   const mobileActionButtonClassName =
     'flex h-10 w-10 items-center justify-center rounded-full bg-[#074031] text-white transition-colors hover:bg-[#074031]/80 sm:h-11 sm:w-11';
+  const hasCatalogMegaMenu = catalogChildren.length > 0;
 
   const renderDesktopLocaleSwitcher = () => (
     <div className="relative group z-[100] cursor-pointer">
@@ -169,11 +196,21 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
   );
 
   const renderCompactLogo = (className: string) => (
-    <Image src={'/logo-small.webp'} alt="Foliart logo" width={201} height={200} className={className} />
+    <Link href="/" aria-label={t('home')} className={`block ${className}`}>
+      <Image
+        src={'/logo-small.webp'}
+        alt="Foliart logo"
+        width={201}
+        height={200}
+        className="h-auto w-full"
+      />
+    </Link>
   );
 
   const renderFullLogo = (width: number, className: string) => (
-    <Image src={'/logo5.PNG'} alt="Foliart logo" width={width} height={30} className={className} />
+    <Link href="/" aria-label={t('home')} className={className}>
+      <Image src={'/logo5.PNG'} alt="Foliart logo" width={width} height={30} className="h-auto w-full" />
+    </Link>
   );
 
   return (
@@ -229,19 +266,43 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
                   <>
                     <Link
                       href={item.href}
-                      className={`inline-flex items-center gap-1 text-white text-sm hover:text-white/80 transition-colors py-5 px-4 ${item.children ? 'hover:bg-[#074031]' : ''}`}>
+                      onMouseEnter={() => {
+                        clearDesktopMenuClose();
+                        setActiveDesktopMenu(
+                          item.id === 'catalog' && hasCatalogMegaMenu ? item.id : null,
+                        );
+                      }}
+                      onFocus={() => {
+                        clearDesktopMenuClose();
+                        setActiveDesktopMenu(
+                          item.id === 'catalog' && hasCatalogMegaMenu ? item.id : null,
+                        );
+                      }}
+                      onMouseLeave={() => {
+                        if (item.id === 'catalog') {
+                          scheduleDesktopMenuClose();
+                        }
+                      }}
+                      onBlur={() => {
+                        if (item.id === 'catalog') {
+                          setActiveDesktopMenu(null);
+                        }
+                      }}
+                      className={`inline-flex items-center gap-1 text-white text-sm hover:text-white/80 transition-colors py-5 px-4 ${
+                        item.children ? 'hover:bg-[#074031]' : ''
+                      } ${activeDesktopMenu === item.id ? 'bg-[#074031]' : ''}`}>
                       {typeof item.name === 'string' ? item.name.toUpperCase() : item.name}
                       {item.children && <FiChevronDown size={14} className="mt-0.5" />}
                     </Link>
-                    {item.children && (
+                    {item.children && item.id !== 'catalog' && (
                       <ul className="absolute left-0 top-full bg-white shadow-md min-w-[180px] invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-50">
                         {item.children.map((child, childIdx) => (
                           <li
                             key={childIdx}
-                            className="border border-b-gray-200 border-b-1 hover:border-b-gray-900">
+                            className="border-b border-gray-200 bg-white transition-colors hover:border-black last:border-b-0">
                             <Link
                               href={child.href}
-                              className="block px-4 py-4 text-gray-700 hover:bg-gray-200 text-ls transition-colors">
+                              className="block px-4 py-4 text-gray-700 bg-white text-ls transition-colors hover:text-[#074031]">
                               {child.name}
                             </Link>
                           </li>
@@ -254,6 +315,56 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
             ))}
           </ul>
         </nav>
+
+        {hasCatalogMegaMenu && (
+          <div
+            onMouseEnter={() => {
+              clearDesktopMenuClose();
+              setActiveDesktopMenu('catalog');
+            }}
+            onMouseLeave={scheduleDesktopMenuClose}
+            className={`absolute left-0 top-full z-40 hidden w-full bg-white shadow-[0_18px_34px_-24px_rgba(0,0,0,0.45)] transition-all duration-200 md:block ${
+              activeDesktopMenu === 'catalog'
+                ? 'visible translate-y-0 opacity-100'
+                : 'invisible -translate-y-1 opacity-0'
+            }`}>
+            <div className="header-catalog py-10 pb-12">
+              <div className="grid gap-x-10 gap-y-7 md:grid-cols-2 lg:grid-cols-4 xl:gap-x-16">
+                {catalogChildren.map((item) => (
+                  <Link
+                    key={`${item.href}-${item.name}`}
+                    href={item.href}
+                    onClick={() => setActiveDesktopMenu(null)}
+                    className="group flex items-start gap-5">
+                    <div className="relative h-18 w-18 flex-shrink-0 overflow-hidden rounded-full bg-[#eef3ef] shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
+                      {item.image ? (
+                        <Image
+                          src={item.image}
+                          alt={item.name}
+                          fill
+                          sizes="72px"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="h-full w-full bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.85),rgba(120,154,135,0.95))]" />
+                      )}
+                    </div>
+                    <div className="max-w-[15rem]">
+                      <p className="text-lg leading-6 text-[#111] transition-colors group-hover:text-[#4685d4]">
+                        {item.name}
+                      </p>
+                      {item.count !== undefined && (
+                        <p className="mt-1.5 text-sm text-[#8b8b8b]">
+                          {formatProductCount(item.count, locale)}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Sticky header on scroll */}
