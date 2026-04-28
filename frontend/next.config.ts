@@ -29,8 +29,8 @@ const createConfig = (): NextConfig => {
           hostname: 'placehold.co',
         },
       ],
-      formats: ['image/avif', 'image/webp'],
-      minimumCacheTTL: 86400,
+      formats: ['image/webp'],
+      minimumCacheTTL: 604800,
     },
   };
 

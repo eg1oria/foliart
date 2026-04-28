@@ -18,17 +18,16 @@ import { basename, extname, join } from 'node:path';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { AdminApiGuard } from '../admin-api.guard';
+import {
+  allowedImageMimeTypes,
+  optimizeUploadedImage,
+  type StoredImageUploadFile,
+} from '../images/image-upload.util';
 import { ProductsService } from './products.service';
 
 const productsImagesDirectory = join(process.cwd(), 'images', 'products');
-const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
-type StoredUploadFile = {
-  filename: string;
-  mimetype: string;
-  originalname: string;
-  path: string;
-};
+type StoredUploadFile = StoredImageUploadFile;
 
 type DestinationCallback = (error: Error | null, destination: string) => void;
 type FilenameCallback = (error: Error | null, filename: string) => void;
@@ -106,7 +105,7 @@ function createImageInterceptor() {
       file: StoredUploadFile,
       callback: FileFilterCallback,
     ) => {
-      if (!allowedMimeTypes.has(file.mimetype)) {
+      if (!allowedImageMimeTypes.has(file.mimetype)) {
         callback(
           new BadRequestException(
             'Only JPG, PNG, and WEBP images are supported',
@@ -173,6 +172,8 @@ export class ProductsController {
       throw new BadRequestException('Product image is required');
     }
 
+    const imageFile = await optimizeUploadedImage(file);
+
     try {
       return await this.productsService.create({
         categoryId,
@@ -186,10 +187,10 @@ export class ProductsController {
         compositionEn,
         application,
         applicationEn,
-        imageUrl: `products/${file.filename}`,
+        imageUrl: `products/${imageFile.filename}`,
       });
     } catch (error) {
-      removeUploadedFile(file?.path);
+      removeUploadedFile(imageFile.path);
       throw error;
     }
   }
@@ -226,6 +227,9 @@ export class ProductsController {
     }
 
     try {
+      const imageFile = file?.filename
+        ? await optimizeUploadedImage(file)
+        : undefined;
       const currentProduct = await this.productsService.findOne(id);
       const updatedProduct = await this.productsService.update({
         id,
@@ -240,10 +244,12 @@ export class ProductsController {
         compositionEn,
         application,
         applicationEn,
-        imageUrl: file?.filename ? `products/${file.filename}` : undefined,
+        imageUrl: imageFile?.filename
+          ? `products/${imageFile.filename}`
+          : undefined,
       });
 
-      if (file?.filename) {
+      if (imageFile?.filename) {
         removeUploadedFile(getStoredProductImagePath(currentProduct.imageUrl));
       }
 

@@ -18,21 +18,21 @@ import { diskStorage } from 'multer';
 import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
 import { AdminApiGuard } from '../admin-api.guard';
+import {
+  allowedImageMimeTypes,
+  optimizeUploadedImage,
+  type StoredImageUploadFile,
+} from '../images/image-upload.util';
 import { CalendarsService } from './calendars.service';
 
 const calendarsImagesDirectory = join(process.cwd(), 'images', 'calendars');
-const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const calendarImageFields = ['image1', 'image2', 'image3', 'image4'] as const;
 const requiredCalendarImageFields = ['image1', 'image2'] as const;
 
 type CalendarImageField = (typeof calendarImageFields)[number];
 
-type StoredUploadFile = {
+type StoredUploadFile = StoredImageUploadFile & {
   fieldname: string;
-  filename: string;
-  mimetype: string;
-  originalname: string;
-  path: string;
 };
 
 type UploadedCalendarFiles = Partial<
@@ -129,7 +129,7 @@ function createImagesInterceptor() {
         file: StoredUploadFile,
         callback: FileFilterCallback,
       ) => {
-        if (!allowedMimeTypes.has(file.mimetype)) {
+        if (!allowedImageMimeTypes.has(file.mimetype)) {
           callback(
             new BadRequestException(
               'Only JPG, PNG, and WEBP images are supported',
@@ -200,18 +200,24 @@ export class CalendarsController {
     }
 
     try {
+      const optimizedFiles = await Promise.all(
+        uploadedFiles.map((file) =>
+          file ? optimizeUploadedImage(file) : Promise.resolve(undefined),
+        ),
+      );
+
       return await this.calendarsService.create({
         title,
         titleEn,
         description,
         descriptionEn,
-        imageUrl1: `calendars/${uploadedFiles[0]!.filename}`,
-        imageUrl2: `calendars/${uploadedFiles[1]!.filename}`,
-        imageUrl3: uploadedFiles[2]?.filename
-          ? `calendars/${uploadedFiles[2].filename}`
+        imageUrl1: `calendars/${optimizedFiles[0]!.filename}`,
+        imageUrl2: `calendars/${optimizedFiles[1]!.filename}`,
+        imageUrl3: optimizedFiles[2]?.filename
+          ? `calendars/${optimizedFiles[2].filename}`
           : '',
-        imageUrl4: uploadedFiles[3]?.filename
-          ? `calendars/${uploadedFiles[3].filename}`
+        imageUrl4: optimizedFiles[3]?.filename
+          ? `calendars/${optimizedFiles[3].filename}`
           : '',
       });
     } catch (error) {
@@ -247,6 +253,11 @@ export class CalendarsController {
     }
 
     try {
+      const optimizedFiles = await Promise.all(
+        uploadedFiles.map((file) =>
+          file ? optimizeUploadedImage(file) : Promise.resolve(undefined),
+        ),
+      );
       const currentEntry = await this.calendarsService.findOne(id);
       const updatedEntry = await this.calendarsService.update({
         id,
@@ -254,17 +265,17 @@ export class CalendarsController {
         titleEn,
         description,
         descriptionEn,
-        ...(uploadedFiles[0]?.filename
-          ? { imageUrl1: `calendars/${uploadedFiles[0].filename}` }
+        ...(optimizedFiles[0]?.filename
+          ? { imageUrl1: `calendars/${optimizedFiles[0].filename}` }
           : {}),
-        ...(uploadedFiles[1]?.filename
-          ? { imageUrl2: `calendars/${uploadedFiles[1].filename}` }
+        ...(optimizedFiles[1]?.filename
+          ? { imageUrl2: `calendars/${optimizedFiles[1].filename}` }
           : {}),
-        ...(uploadedFiles[2]?.filename
-          ? { imageUrl3: `calendars/${uploadedFiles[2].filename}` }
+        ...(optimizedFiles[2]?.filename
+          ? { imageUrl3: `calendars/${optimizedFiles[2].filename}` }
           : {}),
-        ...(uploadedFiles[3]?.filename
-          ? { imageUrl4: `calendars/${uploadedFiles[3].filename}` }
+        ...(optimizedFiles[3]?.filename
+          ? { imageUrl4: `calendars/${optimizedFiles[3].filename}` }
           : {}),
       });
 
@@ -276,7 +287,7 @@ export class CalendarsController {
       ];
 
       removeUploadedFiles(
-        uploadedFiles.map((file, index) =>
+        optimizedFiles.map((file, index) =>
           file?.filename
             ? getStoredCalendarImagePath(previousImageUrls[index])
             : undefined,

@@ -19,20 +19,19 @@ import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
 import { AdminApiGuard } from '../admin-api.guard';
 import {
+  allowedImageMimeTypes,
+  optimizeUploadedImage,
+  type StoredImageUploadFile,
+} from '../images/image-upload.util';
+import {
   sanitizeArticleContent,
   sanitizeArticleExcerpt,
 } from './article-content.util';
 import { ArticlesService } from './articles.service';
 
 const articlesImagesDirectory = join(process.cwd(), 'images', 'articles');
-const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
-type StoredUploadFile = {
-  filename: string;
-  mimetype: string;
-  originalname: string;
-  path: string;
-};
+type StoredUploadFile = StoredImageUploadFile;
 
 type DestinationCallback = (error: Error | null, destination: string) => void;
 type FilenameCallback = (error: Error | null, filename: string) => void;
@@ -130,7 +129,7 @@ function createImageInterceptor() {
       file: StoredUploadFile,
       callback: FileFilterCallback,
     ) => {
-      if (!allowedMimeTypes.has(file.mimetype)) {
+      if (!allowedImageMimeTypes.has(file.mimetype)) {
         callback(
           new BadRequestException(
             'Only JPG, PNG, and WEBP images are supported',
@@ -197,6 +196,8 @@ export class ArticlesController {
       throw new BadRequestException('Article image is required');
     }
 
+    const imageFile = await optimizeUploadedImage(file);
+
     try {
       return await this.articlesService.create({
         title,
@@ -205,11 +206,11 @@ export class ArticlesController {
         excerptEn,
         content,
         contentEn,
-        imageUrl: `articles/${file.filename}`,
+        imageUrl: `articles/${imageFile.filename}`,
         publishedAt: parsePublishedAt(body.publishedAt),
       });
     } catch (error) {
-      removeUploadedFile(file?.path);
+      removeUploadedFile(imageFile.path);
       throw error;
     }
   }
@@ -244,6 +245,9 @@ export class ArticlesController {
     }
 
     try {
+      const imageFile = file?.filename
+        ? await optimizeUploadedImage(file)
+        : undefined;
       const currentArticle = await this.articlesService.findOne(id);
       const updatedArticle = await this.articlesService.update({
         id,
@@ -254,10 +258,12 @@ export class ArticlesController {
         content,
         contentEn,
         publishedAt: parsePublishedAt(body.publishedAt),
-        imageUrl: file?.filename ? `articles/${file.filename}` : undefined,
+        imageUrl: imageFile?.filename
+          ? `articles/${imageFile.filename}`
+          : undefined,
       });
 
-      if (file?.filename) {
+      if (imageFile?.filename) {
         removeUploadedFile(getStoredArticleImagePath(currentArticle.imageUrl));
       }
 

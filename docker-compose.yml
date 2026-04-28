@@ -111,6 +111,8 @@ services:
       - ADMIN_PASSWORD=Foliart2026!
       - ADMIN_SESSION_SECRET=foliart-admin-session-secret-2026
       - ADMIN_API_SECRET=foliart-admin-api-secret-2026
+    volumes:
+      - frontend_next_cache:/app/.next/cache
     networks:
       - dev
     healthcheck:
@@ -129,4 +131,5 @@ volumes:
   # backend_uploads:
   # postgres_data:
   backend_data:
+  frontend_next_cache:
   certbot_www:

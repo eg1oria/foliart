@@ -12,6 +12,7 @@ async function bootstrap() {
   });
   app.useStaticAssets(join(process.cwd(), 'images'), {
     prefix: '/images/',
+    maxAge: '7d',
   });
   app.setGlobalPrefix('api');
   await app.listen(process.env.PORT ?? 3001);
