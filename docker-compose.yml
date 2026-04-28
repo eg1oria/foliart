@@ -18,6 +18,8 @@ services:
 
   nginx:
     image: nginx:alpine
+    profiles:
+      - container-proxy
     ports:
       - '80:80'
       - '443:443'
@@ -34,6 +36,8 @@ services:
 
   certbot:
     image: certbot/certbot:latest
+    profiles:
+      - container-proxy
     volumes:
       - '/etc/letsencrypt:/etc/letsencrypt'
       - '/var/lib/letsencrypt:/var/lib/letsencrypt'
@@ -49,6 +53,8 @@ services:
         ADMIN_API_SECRET: 'foliart-admin-api-secret-2026'
     expose:
       - '5000'
+    ports:
+      - '127.0.0.1:5000:5000'
     environment:
       - PORT=5000
       - DATABASE_URL=file:/app/data/prod.db
@@ -80,6 +86,8 @@ services:
         ADMIN_API_SECRET: 'foliart-admin-api-secret-2026'
     expose:
       - '3000'
+    ports:
+      - '127.0.0.1:3000:3000'
     environment:
       - NEXT_PUBLIC_API_URL=/api
       - BACKEND_URL=http://backend:5000

@@ -209,7 +209,13 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
 
   const renderFullLogo = (width: number, className: string) => (
     <Link href="/" aria-label={t('home')} className={className}>
-      <Image src={'/logo5.PNG'} alt="Foliart logo" width={width} height={30} className="h-auto w-full" />
+      <Image
+        src={'/logo5.PNG'}
+        alt="Foliart logo"
+        width={width}
+        height={30}
+        className="h-auto w-full"
+      />
     </Link>
   );
 
