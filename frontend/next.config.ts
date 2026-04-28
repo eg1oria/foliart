@@ -3,7 +3,7 @@ import { PHASE_DEVELOPMENT_SERVER } from 'next/constants';
 import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
-const defaultCdnOrigin = 'https://cdn.nataliagorlach.kz';
+const defaultCdnOrigin = 'https://cdn.foliart.me';
 const backendUrl = (process.env.BACKEND_URL ?? 'http://localhost:3001').replace(/\/$/, '');
 
 function normalizeOrigin(value: string): string {

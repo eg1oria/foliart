@@ -52,7 +52,7 @@ services:
     environment:
       - PORT=5000
       - DATABASE_URL=file:/app/data/prod.db
-      - FRONTEND_URL=https://nataliagorlach.kz,https://www.nataliagorlach.kz
+      - FRONTEND_URL=https://foliart.me,https://www.foliart.me
       - ADMIN_API_SECRET=foliart-admin-api-secret-2026
     volumes:
       - backend_data:/app/data
@@ -67,8 +67,8 @@ services:
       args:
         NEXT_PUBLIC_API_URL: /api
         BACKEND_URL: http://backend:5000
-        SITE_URL: https://nataliagorlach.kz
-        NEXT_PUBLIC_SITE_URL: https://nataliagorlach.kz
+        SITE_URL: https://foliart.me
+        NEXT_PUBLIC_SITE_URL: https://foliart.me
         NEXT_PUBLIC_CDN_URL: ''
         NEXT_PUBLIC_ENABLE_PUBLIC_ASSET_CDN: 'false'
         ASSET_PREFIX: ''
@@ -83,8 +83,8 @@ services:
     environment:
       - NEXT_PUBLIC_API_URL=/api
       - BACKEND_URL=http://backend:5000
-      - SITE_URL=https://nataliagorlach.kz
-      - NEXT_PUBLIC_SITE_URL=https://nataliagorlach.kz
+      - SITE_URL=https://foliart.me
+      - NEXT_PUBLIC_SITE_URL=https://foliart.me
       - NEXT_PUBLIC_CDN_URL=
       - NEXT_PUBLIC_ENABLE_PUBLIC_ASSET_CDN=false
       - ASSET_PREFIX=

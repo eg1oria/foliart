@@ -63,7 +63,7 @@ export default function PrivacyPage() {
   const renderRichText = (key: string): ReactNode =>
     t.rich(key, {
       site: (chunks) => (
-        <a href="https://фолиарт.рф" className={linkClassName}>
+        <a href="https://foliart.me" className={linkClassName}>
           {chunks}
         </a>
       ),
@@ -73,7 +73,7 @@ export default function PrivacyPage() {
         </a>
       ),
       privacy: (chunks) => (
-        <a href="https://фолиарт.рф/privacy" className={linkClassName}>
+        <a href="https://foliart.me/privacy" className={linkClassName}>
           {chunks}
         </a>
       ),

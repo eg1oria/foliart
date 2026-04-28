@@ -5,7 +5,7 @@ export const SITE_NAME = 'Foliart';
 export const SITE_URL = new URL(
   process.env.SITE_URL?.trim() ||
     process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
-    'https://nataliagorlach.kz',
+    'https://foliart.me',
 );
 export const DEFAULT_OG_IMAGE = '/hero.webp';
 export const GOOGLE_SITE_VERIFICATION = process.env.GOOGLE_SITE_VERIFICATION?.trim() || undefined;
