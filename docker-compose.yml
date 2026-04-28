@@ -1,3 +1,7 @@
+#
+# Default deployment expects nginx on the host and uses nginx.system.conf.
+# If you want nginx inside Docker, run with: docker compose --profile container-proxy up -d --build
+#
 networks:
   dev:
 
@@ -28,8 +32,10 @@ services:
       - '/etc/letsencrypt:/etc/letsencrypt:ro'
       - 'certbot_www:/var/www/certbot:ro'
     depends_on:
-      - backend
-      - frontend
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
     networks:
       - dev
     restart: unless-stopped
@@ -65,6 +71,16 @@ services:
       - ./backend/images:/app/images
     networks:
       - dev
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:5000/api').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
     restart: unless-stopped
 
   frontend:
@@ -88,6 +104,9 @@ services:
       - '3000'
     ports:
       - '127.0.0.1:3000:3000'
+    depends_on:
+      backend:
+        condition: service_healthy
     environment:
       - NEXT_PUBLIC_API_URL=/api
       - BACKEND_URL=http://backend:5000
@@ -104,6 +123,16 @@ services:
       - ADMIN_API_SECRET=foliart-admin-api-secret-2026
     networks:
       - dev
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/ru/catalog').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
     restart: unless-stopped
 
 volumes:
