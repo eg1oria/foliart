@@ -91,11 +91,6 @@ services:
         BACKEND_URL: http://backend:5000
         SITE_URL: https://foliart.me
         NEXT_PUBLIC_SITE_URL: https://foliart.me
-        NEXT_PUBLIC_CDN_URL: ''
-        NEXT_PUBLIC_ENABLE_PUBLIC_ASSET_CDN: 'false'
-        ASSET_PREFIX: ''
-        ENABLE_ASSET_PREFIX: 'false'
-        ENABLE_IMAGE_CDN: 'false'
         ADMIN_USERNAME: admin
         ADMIN_PASSWORD: 'Foliart2026!'
         ADMIN_SESSION_SECRET: 'foliart-admin-session-secret-2026'
@@ -112,11 +107,6 @@ services:
       - BACKEND_URL=http://backend:5000
       - SITE_URL=https://foliart.me
       - NEXT_PUBLIC_SITE_URL=https://foliart.me
-      - NEXT_PUBLIC_CDN_URL=
-      - NEXT_PUBLIC_ENABLE_PUBLIC_ASSET_CDN=false
-      - ASSET_PREFIX=
-      - ENABLE_ASSET_PREFIX=false
-      - ENABLE_IMAGE_CDN=false
       - ADMIN_USERNAME=admin
       - ADMIN_PASSWORD=Foliart2026!
       - ADMIN_SESSION_SECRET=foliart-admin-session-secret-2026

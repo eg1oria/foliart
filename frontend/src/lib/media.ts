@@ -1,28 +1,10 @@
 const absoluteUrlPattern = /^https?:\/\//i;
-const protocolRelativeUrlPattern = /^\/\//;
-const specialUrlPattern = /^(?:data|blob):/i;
 const frontendPublicPrefixes = ['catalog-categories/'] as const;
 const catalogCategoryLegacyImagePattern =
   /^\/?(catalog-categories\/(?:1|4|5|6))\.(?:jpe?g|png)$/i;
-const publicAssetCdnEnabled = process.env.NEXT_PUBLIC_ENABLE_PUBLIC_ASSET_CDN === 'true';
-const publicCdnOrigin = publicAssetCdnEnabled
-  ? process.env.NEXT_PUBLIC_CDN_URL?.trim().replace(/\/$/, '')
-  : '';
 
 export function resolvePublicAssetUrl(path: string): string {
-  const value = path.trim();
-
-  if (
-    !value ||
-    !publicCdnOrigin ||
-    absoluteUrlPattern.test(value) ||
-    protocolRelativeUrlPattern.test(value) ||
-    specialUrlPattern.test(value)
-  ) {
-    return path;
-  }
-
-  return `${publicCdnOrigin}${value.startsWith('/') ? value : `/${value}`}`;
+  return path;
 }
 
 export function resolveMediaUrl(path?: string | null): string | null {
