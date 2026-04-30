@@ -112,6 +112,17 @@
     "consent": "I give my consent to the lawful processing of personal data.",
     "consentLink": "compiled in accordance with the requirements of Federal Law No. 152-FZ of 27.07.2006 \"On Personal Data\""
   },
+  "CallbackModal": {
+    "title": "LEAVE YOUR PHONE NUMBER",
+    "subtitle": "Your call is very important to us",
+    "close": "Close form"
+  },
+  "QuestionModal": {
+    "title": "ASK YOUR QUESTION",
+    "subtitle": "Leave your question and contact details so we can reply. Thank you!",
+    "submit": "Send question",
+    "close": "Close form"
+  },
   "Privacy": {
     "title": "Personal Data Processing Policy",
     "subtitle": "A document of LLC \"Astoria\" governing the procedure for processing and protecting website visitors' personal data.",

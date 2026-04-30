@@ -163,7 +163,7 @@ export default async function CategoryProductsPage({
                   <Link
                     key={product.id}
                     href={getProductHref(category, product)}
-                    className="group flex h-full flex-col bg-white transition duration-300 hover:shadow-[0_0px_20px_0px_rgba(11,62,49,0.2)]">
+                    className="group flex h-full w-[80%] justify-self-center flex-col bg-white transition duration-300 hover:shadow-[0_0px_20px_0px_rgba(11,62,49,0.2)]">
                     <div className="relative aspect-[4/5] bg-white">
                       <MediaImage
                         src={productImage}
@@ -172,7 +172,7 @@ export default async function CategoryProductsPage({
                         sizes="(max-width: 767px) 50vw, 33vw"
                         className="object-contain md:p-0 p-4"
                         emptyState={
-                          <div className="flex h-full w-full items-center justify-center px-8 text-center text-sm leading-6 text-[#6d6d63]">
+                          <div className="flex h-full w-full items-center justify-center px-12 text-center text-sm leading-6 text-[#6d6d63]">
                             {copy.productPlaceholder}
                           </div>
                         }
@@ -180,8 +180,8 @@ export default async function CategoryProductsPage({
                     </div>
 
                     <div className="relative flex flex-1 flex-col overflow-hidden">
-                      <div className="px-6 pb-6 pt-5 text-center min-[900px]:pb-30">
-                        <h2 className="text-[1rem] md:text-[1.5rem] font-medium tracking-[0.01em] text-[#0b0b0b]">
+                      <div className="px-6 pb-6 pt-0 text-center min-[900px]:pb-30">
+                        <h2 className="text-[1rem] md:text-[1.15rem] font-[300] tracking-[0.01em] text-black">
                           {product.name}
                         </h2>
                       </div>

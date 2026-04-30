@@ -222,7 +222,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
   return (
     <>
       <header
-        className="absolute top-0 left-0 z-50 flex w-full flex-col gap-6 px-8 pt-4 pb-0 sm:px-6 md:gap-12 md:px-12 md:pt-6 xl:px-90 min-[1570px]:px-70"
+        className="absolute top-0 left-0 z-50 flex w-full flex-col gap-4 px-8 pt-4 pb-0 sm:px-6 md:gap-10 md:px-12 md:pt-6 xl:px-90 min-[1570px]:px-70"
         style={{ backgroundColor: 'rgba(7,64,49, 0.1)' }}>
         <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 md:hidden">
           <button

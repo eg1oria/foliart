@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { Link } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
+import ContactModalTrigger from './ContactModalTrigger';
 
 export default function Footer() {
   const t = useTranslations('Footer');
@@ -12,11 +13,10 @@ export default function Footer() {
 
       <div className="footer-section relative z-10 flex flex-col items-center gap-6 py-5 md:flex-row md:items-start">
         <div className="flex flex-col items-center gap-6 py-10 md:flex-row md:items-start md:gap-30">
-          <Link
-            href="/contacts"
+          <ContactModalTrigger
             className="flex w-fit rounded-full bg-[#074031] px-6 py-3 text-lg text-white">
             {t('callOrder')}
-          </Link>
+          </ContactModalTrigger>
 
           <div className="flex flex-col ">
             <p

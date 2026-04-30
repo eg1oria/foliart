@@ -93,9 +93,6 @@ export default async function CatalogPage({ params }: { params: Promise<{ locale
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent transition duration-300 group-hover:from-black/78" />
                 <div className="relative flex h-full flex-col justify-end p-6 text-white md:p-7">
-                  <p className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-white/70">
-                    {copy.categoryBadge}
-                  </p>
                   <h2 className="max-w-xl text-xl font-semibold leading-tight md:text-2xl min-[900px]:text-3xl">
                     {' '}
                     {category.name}

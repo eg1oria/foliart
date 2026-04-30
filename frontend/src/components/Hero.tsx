@@ -30,8 +30,8 @@ export default function Hero() {
       <Image
         src="/logo5.PNG"
         alt="Foliart logo"
-        width={500}
-        height={80}
+        width={420}
+        height={70}
         className="mt-0 h-auto w-auto md:mt-20"
       />
       <h1 className="text-xl text-center text-white/85" style={{ fontWeight: 100 }}>
@@ -43,7 +43,13 @@ export default function Hero() {
           <li
             key={item.title}
             className="flex tablet:max-w-[250px] tablet:flex-col items-start tablet:items-center gap-9">
-            <Image src={item.img} alt={item.title} width={50} height={50} className="h-auto w-auto" />
+            <Image
+              src={item.img}
+              alt={item.title}
+              width={45}
+              height={45}
+              className="h-auto w-auto"
+            />
             <span className="text-white/85 text-start tablet:text-center mt-2">{item.title}</span>
           </li>
         ))}

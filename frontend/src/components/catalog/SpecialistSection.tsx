@@ -1,4 +1,4 @@
-import { Link } from '@/i18n/routing';
+import ContactModalTrigger from '@/components/ContactModalTrigger';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { FaQuoteLeft } from 'react-icons/fa6';
@@ -51,11 +51,11 @@ export default function SpecialistSection() {
 
           <div className="mt-8 border-t border-[#d8ddd6] pt-6">
             <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
-              <Link
-                href="/contacts"
+              <ContactModalTrigger
+                modalType="question"
                 className="inline-flex items-center justify-center rounded-full bg-[#0b5a45] px-6 py-3 text-base font-medium text-white transition hover:bg-[#094635] sm:min-w-[210px]">
                 {t('action')}
-              </Link>
+              </ContactModalTrigger>
 
               <div className="space-y-3">
                 <a

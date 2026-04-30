@@ -7,6 +7,7 @@ import { RxCross1 } from 'react-icons/rx';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { formatProductCount } from '@/lib/catalog';
 import { useLocale, useTranslations } from 'next-intl';
+import ContactModalTrigger from './ContactModalTrigger';
 
 type LocaleOption = 'ru' | 'en';
 
@@ -43,11 +44,6 @@ export default function FullscreenMenu({
     startTransition(() => {
       router.replace(pathname, { locale: nextLocale, scroll: false });
     });
-  };
-
-  const handleContactsClick = () => {
-    onClose();
-    router.push('/contacts');
   };
 
   useEffect(() => {
@@ -264,12 +260,11 @@ export default function FullscreenMenu({
 
       <div className="flex-shrink-0 border-t border-white/10 px-4 py-5 sm:px-6 md:px-8 md:py-6 xl:px-90">
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:gap-10 xl:gap-20">
-          <Link
-            href="/contacts"
-            onClick={handleContactsClick}
+          <ContactModalTrigger
+            onOpen={onClose}
             className="inline-flex w-fit cursor-pointer items-center justify-center rounded-full bg-[#074031] px-7 py-3 text-sm text-white transition-colors hover:bg-[#074031]/80">
             {footerT('callOrder')}
-          </Link>
+          </ContactModalTrigger>
           <div>
             <p className="text-xs text-white/30">{footerT('slogan')}</p>
             <Link

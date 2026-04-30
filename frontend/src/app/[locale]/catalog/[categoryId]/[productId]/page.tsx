@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import ContactModalTrigger from '@/components/ContactModalTrigger';
 import MediaImage from '@/components/catalog/MediaImage';
 import SpecialistSection from '@/components/catalog/SpecialistSection';
 import { Link } from '@/i18n/routing';
@@ -265,11 +266,11 @@ export default async function ProductDetailsPage({
             </a>
 
             <div className="mt-10 flex flex-col items-start gap-8">
-              <Link
-                href="/contacts"
+              <ContactModalTrigger
+                modalType="question"
                 className="w-full inline-flex min-h-[50px] items-center justify-center rounded-full bg-[#0b5a45] px-9 py-3 text-[1.05rem] font-medium text-white transition hover:bg-[#094635]">
                 {askQuestionLabel}
-              </Link>
+              </ContactModalTrigger>
 
               <p className="text-[0.90rem] leading-6 text-[#a8a49b] italic">{compatibilityNote}</p>
             </div>
