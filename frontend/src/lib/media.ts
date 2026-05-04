@@ -1,7 +1,13 @@
 const absoluteUrlPattern = /^https?:\/\//i;
 const frontendPublicPrefixes = ['catalog-categories/'] as const;
 const catalogCategoryLegacyImagePattern =
-  /^\/?(catalog-categories\/(?:1|4|5|6))\.(?:jpe?g|png)$/i;
+  /^\/?catalog-categories\/(1|4|5|6)\.(?:jpe?g|png|webp)$/i;
+const catalogCategoryImageMap: Record<string, string> = {
+  '1': 'category1',
+  '5': 'category2',
+  '6': 'category3',
+  '4': 'category4',
+};
 
 export function resolvePublicAssetUrl(path: string): string {
   return path;
@@ -23,7 +29,8 @@ export function resolveMediaUrl(path?: string | null): string | null {
     .replace(/^\/+/, '/');
   const catalogCategoryImage = normalized.replace(
     catalogCategoryLegacyImagePattern,
-    '/$1.webp',
+    (_match, categoryId: string) =>
+      `/catalog-categories/${catalogCategoryImageMap[categoryId]}.webp`,
   );
 
   if (

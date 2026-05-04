@@ -32,6 +32,7 @@ export async function generateMetadata({
 export default async function CatalogPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const copy = getCatalogCopy(locale);
+  const categoryCta = locale === 'en' ? 'View catalog' : 'Посмотреть каталог';
   const [categories, products] = await Promise.all([
     getCategories(locale),
     getProducts(undefined, locale),
@@ -65,48 +66,61 @@ export default async function CatalogPage({ params }: { params: Promise<{ locale
           {copy.emptyCategories}
         </section>
       ) : (
-        <section className="catalog-grid grid mt-20 mb-20 auto-rows-[240px] gap-5 grid-cols-1 md:grid-cols-2 min-[1100px]:grid-cols-3">
+        <section className="catalog-grid mt-12 mb-16 grid auto-rows-[220px] grid-cols-1 gap-2.5 md:mt-16 md:mb-20 md:auto-rows-[250px] min-[1000px]:mt-20 min-[900px]:auto-rows-[250px] min-[900px]:grid-cols-4">
           {categories.map((category, index) => {
             const categoryProducts = products.filter(
               (product) => product.categoryId === category.id,
             );
             const productCount = getCategoryProductCount(category, categoryProducts);
             const imageSrc = resolveMediaUrl(category.imageUrl);
+            const isWideCard = index === 0 || index === 3;
+            const desktopPlacementClassName =
+              index === 0
+                ? 'min-[900px]:col-span-2 min-[900px]:col-start-1'
+                : index === 3
+                  ? 'min-[900px]:col-span-2 min-[900px]:col-start-1'
+                  : '';
+            const cardClassName = [
+              'group relative overflow-hidden bg-[#e7efe9] outline-none focus-visible:ring-2 focus-visible:ring-[#00664f] focus-visible:ring-offset-4',
+              desktopPlacementClassName,
+            ]
+              .filter(Boolean)
+              .join(' ');
 
             return (
               <Link
                 key={category.id}
                 href={getCategoryHref(category)}
-                className="group relative overflow-hidden bg-[#e7efe9] shadow-[0_24px_60px_-40px_rgba(11,62,49,0.9)]">
+                aria-label={`${category.name}: ${categoryCta}`}
+                className={cardClassName}>
                 <div className="absolute inset-0">
                   <MediaImage
                     src={imageSrc}
                     alt={category.name}
                     fill
                     priority={index === 0}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1100px) 50vw, 33vw"
-                    className="object-cover transition duration-500 group-hover:scale-[1.04]"
+                    sizes={
+                      isWideCard
+                        ? '(max-width: 999px) 100vw, 50vw'
+                        : '(max-width: 999px) 100vw, 25vw'
+                    }
+                    className="object-cover transition duration-700 ease-out group-hover:scale-[1.04] group-focus-visible:scale-[1.04]"
                     emptyState={
                       <div className="flex h-full w-full items-end bg-[radial-gradient(circle_at_top,_rgba(164,205,165,0.95),_rgba(11,90,69,1))] p-8" />
                     }
                   />
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent transition duration-300 group-hover:from-black/78" />
-                <div className="relative flex h-full flex-col justify-end p-6 text-white md:p-7">
-                  <h2 className="max-w-xl text-xl font-semibold leading-tight md:text-2xl min-[900px]:text-3xl">
-                    {' '}
-                    {category.name}
-                  </h2>
-                  <div className="mt-4 flex flex-col items-start justify-between gap-3 md:flex-row md:items-center">
-                    {' '}
-                    <span className="text-base text-white/82">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/22 to-transparent transition duration-500 group-hover:from-black/84 group-hover:via-black/38 group-focus-visible:from-black/84 group-focus-visible:via-black/38" />
+                <div className="absolute inset-x-0 bottom-0 z-10 p-6 text-white md:p-7">
+                  <div className="max-w-[34rem] transition-transform duration-500 ease-out group-hover:-translate-y-24 group-focus-visible:-translate-y-24 min-[1000px]:group-hover:-translate-y-[7.5rem] min-[1000px]:group-focus-visible:-translate-y-[7.5rem]">
+                    <h2 className="text-xl font-bold leading-tight md:text-2xl">{category.name}</h2>
+                    <span className="mt-1.5 block text-base font-medium text-white">
                       {formatProductCount(productCount, locale)}
                     </span>
-                    <span className="bg-[#074031] block w-full md:w-auto text-center rounded-full px-4 py-2 text-sm font-medium">
-                      {' '}
-                      {copy.openCategory}
-                    </span>
                   </div>
+                  <span className="absolute bottom-6 left-6 inline-flex translate-y-[calc(100%+1.5rem)] items-center justify-center rounded-full bg-[#074031] px-6 py-3.5 text-sm text-white opacity-0 shadow-[0_16px_28px_-18px_rgba(0,0,0,0.85)] transition-all duration-500 ease-out group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 md:bottom-7 md:left-7 md:px-7">
+                    {categoryCta}
+                  </span>
                 </div>
               </Link>
             );

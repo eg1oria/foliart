@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import localFont from 'next/font/local';
 import Script from 'next/script';
 import '../globals.css';
 import { NextIntlClientProvider } from 'next-intl';
@@ -24,14 +24,56 @@ import {
   stringifyJsonLd,
 } from '@/lib/seo';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
+const exo2 = localFont({
+  src: [
+    {
+      path: '../../../public/fonts/exo2_0_extralight.otf',
+      weight: '200',
+      style: 'normal',
+    },
+    {
+      path: '../../../public/fonts/exo2_0_light.otf',
+      weight: '300',
+      style: 'normal',
+    },
+    {
+      path: '../../../public/fonts/exo2_0_regular.otf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../../public/fonts/exo2_0_italic.otf',
+      weight: '400',
+      style: 'italic',
+    },
+    {
+      path: '../../../public/fonts/exo2_0_medium.otf',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: '../../../public/fonts/exo2_0_bold.otf',
+      weight: '600',
+      style: 'normal',
+    },
+    {
+      path: '../../../public/fonts/exo2_0_bold.otf',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: '../../../public/fonts/exo2_0_extrabold.otf',
+      weight: '800',
+      style: 'normal',
+    },
+    {
+      path: '../../../public/fonts/exo2_0_black.otf',
+      weight: '900',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-exo-2',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -132,10 +174,8 @@ export default async function RootLayout({
   ]);
 
   return (
-    <html
-      lang={locale}
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
+    <html lang={locale} className={`${exo2.variable} h-full antialiased`}>
+      <body className={`${exo2.className} min-h-full flex flex-col`}>
         <NextIntlClientProvider messages={messages}>
           <script
             type="application/ld+json"

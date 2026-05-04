@@ -261,8 +261,8 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
                 key={idx}
                 className={`relative group border-b-4 border-transparent -mb-1 ${
                   typeof item.name === 'string' ? 'hover:border-[#074031]' : ''
-                } ${item.id === 'contacts' ? 'max-[1450px]:hidden' : ''} ${
-                  item.id === 'calendar' ? 'max-[1050px]:hidden' : ''
+                } ${item.id === 'contacts' ? 'max-[1140px]:hidden' : ''} ${
+                  item.id === 'calendar' ? 'max-[950px]:hidden' : ''
                 } transition-colors`}>
                 {item.href === '#' ? (
                   <button

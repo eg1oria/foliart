@@ -2,7 +2,13 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 const catalogCategoryLegacyImagePattern =
-  /^\/?(catalog-categories\/(?:1|4|5|6))\.(?:jpe?g|png)$/i;
+  /^\/?catalog-categories\/(1|4|5|6)\.(?:jpe?g|png|webp)$/i;
+const catalogCategoryImageMap: Record<string, string> = {
+  '1': 'category1',
+  '5': 'category2',
+  '6': 'category3',
+  '4': 'category4',
+};
 
 @Injectable()
 export class CategoriesService {
@@ -12,7 +18,11 @@ export class CategoriesService {
     return imageUrl
       .trim()
       .replace(/\\/g, '/')
-      .replace(catalogCategoryLegacyImagePattern, '/$1.webp');
+      .replace(
+        catalogCategoryLegacyImagePattern,
+        (_match, categoryId: string) =>
+          `/catalog-categories/${catalogCategoryImageMap[categoryId]}.webp`,
+      );
   }
 
   private resolveLocale<
