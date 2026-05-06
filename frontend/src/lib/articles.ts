@@ -55,7 +55,7 @@ export function toDateInputValue(value?: string) {
 export function getArticlesCopy(locale: string) {
   if (locale === 'en') {
     return {
-      title: 'Useful Articles for Plants',
+      title: 'Useful Articles',
       emptyState: 'Articles will appear here after they are added in the admin panel.',
       readMore: 'Read article',
       backToArticles: 'Back to article list',
