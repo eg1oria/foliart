@@ -1,5 +1,11 @@
 import { Link } from '@/i18n/routing';
 import { logoutAdminAction } from '@/lib/adminSessionActions';
+import {
+  contentLocales,
+  getContentLocaleLabel,
+  normalizeContentLocale,
+  withContentLocale,
+} from '@/lib/contentLocales';
 import type { ReactNode } from 'react';
 import { FiArrowUpRight, FiChevronRight, FiLogOut } from 'react-icons/fi';
 import { LuPanelTop } from 'react-icons/lu';
@@ -28,90 +34,157 @@ export function AdminShell({
   backHref,
   backLabel,
   children,
+  contentLocale,
   description,
   locale,
   shortcuts = [],
+  stats = [],
   title,
 }: {
   activeTab: 'products' | 'articles' | 'calendars';
   backHref: string;
   backLabel: string;
   children: ReactNode;
+  contentLocale: string;
   description: string;
   locale: string;
   shortcuts?: AdminShortcut[];
   stats?: AdminStat[];
   title: string;
 }) {
+  const safeContentLocale = normalizeContentLocale(contentLocale);
   const shortcutsTitle =
     locale === 'en'
       ? 'Quick actions'
       : '\u0411\u044b\u0441\u0442\u0440\u044b\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u044f';
   const signOutLabel = locale === 'en' ? 'Sign out' : '\u0412\u044b\u0439\u0442\u0438';
+  const contentLanguageTitle =
+    locale === 'en' ? 'Input language' : '\u042f\u0437\u044b\u043a \u043f\u043e\u043b\u0435\u0439';
+  const contentLanguageHint =
+    locale === 'en'
+      ? 'Forms save text for the selected language.'
+      : '\u0424\u043e\u0440\u043c\u044b \u0441\u043e\u0445\u0440\u0430\u043d\u044f\u044e\u0442 \u0442\u0435\u043a\u0441\u0442 \u0434\u043b\u044f \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0433\u043e \u044f\u0437\u044b\u043a\u0430.';
+  const currentAdminHref = `/admin/${activeTab}`;
 
   return (
-    <main className="relative mx-auto flex w-full max-w-[96rem] flex-1 flex-col px-4 pb-16 pt-50 sm:px-6 sm:pb-20 lg:px-8 lg:pt-54">
-      <div className="pointer-events-none absolute inset-x-0 top-24 -z-10 h-80 bg-[radial-gradient(circle_at_top,rgba(11,90,69,0.18),transparent_68%)] blur-3xl" />
+    <main className="relative min-h-screen bg-[#f3f5f1] pt-24 text-[#0b3e31] sm:pt-28 md:pt-52">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[#0b5a45] sm:h-28 md:h-52" />
 
-      <section className="overflow-hidden rounded-[2.2rem] border border-[#0b5a45]/10 bg-[linear-gradient(135deg,#0b5a45,#0a3e31_55%,#082b23)] px-5 py-6 text-white shadow-[0_35px_120px_-65px_rgba(11,62,49,1)] sm:px-8 sm:py-8 lg:px-10 lg:py-10">
-        <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-          <div className="max-w-4xl">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#d8ead8]">
-                <LuPanelTop className="text-sm" />
-                Foliart Admin
-              </span>
-            </div>
-
-            <h1 className="mt-4 text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">
-              {title}
-            </h1>
-            <p className="mt-4 max-w-3xl text-sm leading-7 text-white/78 sm:text-base lg:text-lg">
-              {description}
-            </p>
-
-            <AdminTabs active={activeTab} locale={locale} />
-          </div>
-
-          <div className="flex w-full flex-col gap-3 xl:w-auto xl:min-w-[270px] xl:items-end">
-            <div className="flex w-full flex-col gap-3 sm:flex-row xl:w-auto xl:flex-col xl:items-stretch">
-              <Link href={backHref} className={adminGhostLinkClassName}>
-                <span>{backLabel}</span>
-                <FiArrowUpRight className="ml-2" />
-              </Link>
-
-              <form action={logoutAdminAction} className="contents">
-                <input type="hidden" name="locale" value={locale} />
-                <button type="submit" className={adminGhostLinkClassName}>
-                  <span>{signOutLabel}</span>
-                  <FiLogOut className="ml-2" />
-                </button>
-              </form>
-            </div>
-
-            {shortcuts.length > 0 ? (
-              <div className="w-full rounded-[1.5rem] border border-white/12 bg-white/8 p-4 backdrop-blur-sm xl:max-w-[320px]">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#d8ead8]">
-                  {shortcutsTitle}
-                </p>
-                <div className="mt-3 flex flex-col gap-2">
-                  {shortcuts.map((shortcut) => (
-                    <Link
-                      key={shortcut.href}
-                      href={shortcut.href}
-                      className="inline-flex items-center justify-between rounded-[1rem] border border-white/10 bg-white/8 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/14">
-                      <span>{shortcut.label}</span>
-                      <FiChevronRight className="shrink-0" />
-                    </Link>
-                  ))}
-                </div>
+      <section className="relative border-y border-[#0b5a45]/10 bg-white shadow-[0_14px_45px_-36px_rgba(11,62,49,0.75)]">
+        <div className="mx-auto w-full max-w-[1500px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-7">
+          <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+            <div className="min-w-0 max-w-4xl flex-1">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="inline-flex items-center gap-2 rounded-md border border-[#0b5a45]/12 bg-[#eef4ef] px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#0b5a45]">
+                  <LuPanelTop className="text-sm" />
+                  Foliart Admin
+                </span>
               </div>
-            ) : null}
+
+              <h1 className="mt-3 text-2xl font-semibold leading-tight text-[#0b3e31] sm:text-3xl lg:text-4xl">
+                {title}
+              </h1>
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-[#567068] sm:text-base sm:leading-7">
+                {description}
+              </p>
+
+              <AdminTabs active={activeTab} contentLocale={safeContentLocale} locale={locale} />
+            </div>
+
+            <div className="flex w-full min-w-0 flex-col gap-3 xl:w-[360px] xl:shrink-0">
+              <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-1">
+                <Link
+                  href={backHref}
+                  className={adminCx(adminGhostLinkClassName, 'w-full gap-2')}>
+                  <span>{backLabel}</span>
+                  <FiArrowUpRight className="shrink-0" />
+                </Link>
+
+                <form action={logoutAdminAction} className="contents">
+                  <input type="hidden" name="locale" value={locale} />
+                  <button
+                    type="submit"
+                    className={adminCx(adminGhostLinkClassName, 'w-full gap-2')}>
+                    <span>{signOutLabel}</span>
+                    <FiLogOut className="shrink-0" />
+                  </button>
+                </form>
+              </div>
+
+              {shortcuts.length > 0 ? (
+                <div className="w-full rounded-lg border border-[#0b5a45]/10 bg-[#f7f9f6] p-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6a7f76]">
+                    {shortcutsTitle}
+                  </p>
+                  <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-1">
+                    {shortcuts.map((shortcut) => (
+                      <Link
+                        key={shortcut.href}
+                        href={shortcut.href}
+                        className="inline-flex min-h-10 min-w-0 items-center justify-between gap-2 rounded-lg border border-[#0b5a45]/10 bg-white px-3 py-2 text-sm font-semibold text-[#0b3e31] transition hover:border-[#0b5a45]/25 hover:bg-[#eef4ef]">
+                        <span>{shortcut.label}</span>
+                        <FiChevronRight className="shrink-0" />
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="w-full rounded-lg border border-[#0b5a45]/10 bg-[#f7f9f6] p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6a7f76]">
+                  {contentLanguageTitle}
+                </p>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  {contentLocales.map((item) => {
+                    const isActive = item === safeContentLocale;
+
+                    return (
+                      <Link
+                        key={item}
+                        href={withContentLocale(currentAdminHref, item)}
+                        className={adminCx(
+                          'inline-flex min-h-10 items-center justify-center rounded-lg border px-3 py-2 text-sm font-semibold transition',
+                          isActive
+                            ? 'border-[#0b5a45] bg-[#0b5a45] text-white'
+                            : 'border-[#0b5a45]/10 bg-white text-[#0b3e31] hover:border-[#0b5a45]/25 hover:bg-[#eef4ef]',
+                        )}>
+                        {getContentLocaleLabel(item)}
+                      </Link>
+                    );
+                  })}
+                </div>
+                <p className="mt-2 text-xs leading-5 text-[#6a7f76]">{contentLanguageHint}</p>
+              </div>
+            </div>
           </div>
+
+          {stats.length > 0 ? (
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {stats.map((stat) => (
+                <div
+                  key={stat.label}
+                  className="min-w-0 rounded-lg border border-[#0b5a45]/10 bg-[#f8faf7] p-4">
+                  <p className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6a7f76]">
+                    {stat.label}
+                  </p>
+                  <p className="mt-2 break-words text-2xl font-semibold leading-none text-[#0b3e31]">
+                    {stat.value}
+                  </p>
+                  {stat.hint ? (
+                    <p className="mt-2 line-clamp-2 text-xs leading-5 text-[#6a7f76]">
+                      {stat.hint}
+                    </p>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
       </section>
 
-      {children}
+      <div className="mx-auto w-full max-w-[1500px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        {children}
+      </div>
     </main>
   );
 }
@@ -126,7 +199,7 @@ export function AdminWorkspace({
   return (
     <section
       className={adminCx(
-        'mt-8 grid gap-6 xl:grid-cols-[minmax(0,0.94fr)_minmax(0,1.06fr)]',
+        'grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,0.94fr)_minmax(0,1.06fr)]',
         reverseOnDesktop && 'xl:[&>*:first-child]:order-2 xl:[&>*:last-child]:order-1',
       )}>
       {children}
@@ -157,20 +230,22 @@ export function AdminPanel({
     <section
       id={id}
       className={adminCx(
-        'rounded-[1.9rem] border p-5 shadow-[0_28px_90px_-64px_rgba(11,62,49,0.95)] sm:p-6 lg:p-8',
-        tone === 'default' ? 'border-[#0b5a45]/10 bg-white' : 'border-[#0b5a45]/10 bg-[#f7f6f1]',
+        'min-w-0 rounded-lg border p-4 shadow-[0_18px_45px_-38px_rgba(11,62,49,0.8)] sm:p-5 lg:p-6',
+        tone === 'default' ? 'border-[#0b5a45]/10 bg-white' : 'border-[#0b5a45]/10 bg-[#fbfaf6]',
         className,
       )}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="max-w-3xl">
+        <div className="min-w-0 max-w-3xl">
           {badge ? <p className={adminBadgeClassName}>{badge}</p> : null}
-          <h2 className="mt-3 text-2xl font-semibold text-[#0b3e31] sm:text-[2rem]">{title}</h2>
+          <h2 className="mt-3 text-xl font-semibold leading-tight text-[#0b3e31] sm:text-2xl">
+            {title}
+          </h2>
           {description ? (
             <p className={adminCx('mt-3', adminMutedTextClassName)}>{description}</p>
           ) : null}
         </div>
 
-        {headerContent ? <div className="shrink-0">{headerContent}</div> : null}
+        {headerContent ? <div className="min-w-0 shrink-0">{headerContent}</div> : null}
       </div>
 
       <div className="mt-6">{children}</div>
@@ -188,7 +263,7 @@ export function AdminNotice({
   return (
     <div
       className={adminCx(
-        'rounded-[1.2rem] border px-4 py-3 text-sm leading-6',
+        'rounded-lg border px-4 py-3 text-sm leading-6',
         tone === 'success'
           ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
           : 'border-rose-200 bg-rose-50 text-rose-800',
@@ -208,7 +283,7 @@ export function AdminEmptyState({
   title: string;
 }) {
   return (
-    <div className="rounded-[1.5rem] border border-dashed border-[#0b5a45]/18 bg-white/70 px-5 py-8 text-center sm:px-8">
+    <div className="rounded-lg border border-dashed border-[#0b5a45]/18 bg-white/70 px-5 py-8 text-center sm:px-8">
       {badge ? <p className={adminBadgeClassName}>{badge}</p> : null}
       <h3 className="mt-4 text-lg font-semibold text-[#0b3e31]">{title}</h3>
       <p className={adminCx('mt-2', adminMutedTextClassName)}>{description}</p>

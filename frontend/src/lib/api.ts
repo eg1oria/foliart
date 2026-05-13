@@ -1,5 +1,35 @@
 import { PUBLIC_REVALIDATE_SECONDS } from './seo';
 
+export type AdminTranslationBase = {
+  hasTranslation: boolean;
+  isComplete: boolean;
+  locale: string;
+};
+
+export type CategoryAdminTranslation = AdminTranslationBase & {
+  name: string;
+  description: string;
+};
+
+export type ProductAdminTranslation = AdminTranslationBase & {
+  name: string;
+  description: string;
+  advantages: string;
+  composition: string;
+  application: string;
+};
+
+export type ArticleAdminTranslation = AdminTranslationBase & {
+  title: string;
+  excerpt: string;
+  content: string;
+};
+
+export type CalendarAdminTranslation = AdminTranslationBase & {
+  title: string;
+  description: string;
+};
+
 export type Category = {
   id: number;
   name: string;
@@ -9,6 +39,7 @@ export type Category = {
   imageUrl: string;
   productCount: number;
   slugSourceName?: string;
+  adminTranslation?: CategoryAdminTranslation;
 };
 
 export type Product = {
@@ -26,6 +57,7 @@ export type Product = {
   applicationEn: string;
   imageUrl: string;
   slugSourceName?: string;
+  adminTranslation?: ProductAdminTranslation;
 };
 
 export type Article = {
@@ -40,6 +72,7 @@ export type Article = {
   publishedAt: string;
   viewCount: number;
   slugSourceTitle?: string;
+  adminTranslation?: ArticleAdminTranslation;
 };
 
 export type CalendarEntry = {
@@ -54,6 +87,7 @@ export type CalendarEntry = {
   imageUrl4: string;
   imageUrls: string[];
   slugSourceTitle?: string;
+  adminTranslation?: CalendarAdminTranslation;
 };
 
 export class ApiError extends Error {
@@ -104,29 +138,39 @@ async function fetchJson<T>(path: string, fetchOptions?: ApiFetchOptions): Promi
   return res.json() as Promise<T>;
 }
 
-function buildLocalizedPath(path: string, locale?: string) {
-  if (!locale) {
+function appendSearchParam(path: string, name: string, value?: string) {
+  if (!value) {
     return path;
   }
 
   const separator = path.includes('?') ? '&' : '?';
-  return `${path}${separator}locale=${encodeURIComponent(locale)}`;
+  return `${path}${separator}${name}=${encodeURIComponent(value)}`;
+}
+
+function buildLocalizedPath(path: string, locale?: string, contentLocale?: string) {
+  const localizedPath = appendSearchParam(path, 'locale', locale);
+  return appendSearchParam(localizedPath, 'contentLocale', contentLocale);
 }
 
 export async function getCategories(
   locale?: string,
   fetchOptions?: ApiFetchOptions,
+  contentLocale?: string,
 ): Promise<Category[]> {
-  return fetchJson<Category[]>(buildLocalizedPath('/api/categories', locale), fetchOptions);
+  return fetchJson<Category[]>(
+    buildLocalizedPath('/api/categories', locale, contentLocale),
+    fetchOptions,
+  );
 }
 
 export async function getCategory(
   categoryId: number,
   locale?: string,
   fetchOptions?: ApiFetchOptions,
+  contentLocale?: string,
 ): Promise<Category> {
   return fetchJson<Category>(
-    buildLocalizedPath(`/api/categories/${categoryId}`, locale),
+    buildLocalizedPath(`/api/categories/${categoryId}`, locale, contentLocale),
     fetchOptions,
   );
 }
@@ -135,9 +179,10 @@ export async function getProducts(
   categoryId?: number,
   locale?: string,
   fetchOptions?: ApiFetchOptions,
+  contentLocale?: string,
 ): Promise<Product[]> {
   const path = categoryId ? `/api/products?categoryId=${categoryId}` : '/api/products';
-  const url = `${baseUrl}${buildLocalizedPath(path, locale)}`;
+  const url = `${baseUrl}${buildLocalizedPath(path, locale, contentLocale)}`;
   let res: Response;
 
   try {
@@ -156,24 +201,33 @@ export async function getProduct(
   productId: number,
   locale?: string,
   fetchOptions?: ApiFetchOptions,
+  contentLocale?: string,
 ): Promise<Product> {
-  return fetchJson<Product>(buildLocalizedPath(`/api/products/${productId}`, locale), fetchOptions);
+  return fetchJson<Product>(
+    buildLocalizedPath(`/api/products/${productId}`, locale, contentLocale),
+    fetchOptions,
+  );
 }
 
 export async function getArticles(
   locale?: string,
   fetchOptions?: ApiFetchOptions,
+  contentLocale?: string,
 ): Promise<Article[]> {
-  return fetchJson<Article[]>(buildLocalizedPath('/api/articles', locale), fetchOptions);
+  return fetchJson<Article[]>(
+    buildLocalizedPath('/api/articles', locale, contentLocale),
+    fetchOptions,
+  );
 }
 
 export async function getArticle(
   articleId: number,
   locale?: string,
   fetchOptions?: ApiFetchOptions,
+  contentLocale?: string,
 ): Promise<Article> {
   return fetchJson<Article>(
-    buildLocalizedPath(`/api/articles/${articleId}`, locale),
+    buildLocalizedPath(`/api/articles/${articleId}`, locale, contentLocale),
     fetchOptions,
   );
 }
@@ -181,17 +235,22 @@ export async function getArticle(
 export async function getCalendars(
   locale?: string,
   fetchOptions?: ApiFetchOptions,
+  contentLocale?: string,
 ): Promise<CalendarEntry[]> {
-  return fetchJson<CalendarEntry[]>(buildLocalizedPath('/api/calendars', locale), fetchOptions);
+  return fetchJson<CalendarEntry[]>(
+    buildLocalizedPath('/api/calendars', locale, contentLocale),
+    fetchOptions,
+  );
 }
 
 export async function getCalendar(
   calendarId: number,
   locale?: string,
   fetchOptions?: ApiFetchOptions,
+  contentLocale?: string,
 ): Promise<CalendarEntry> {
   return fetchJson<CalendarEntry>(
-    buildLocalizedPath(`/api/calendars/${calendarId}`, locale),
+    buildLocalizedPath(`/api/calendars/${calendarId}`, locale, contentLocale),
     fetchOptions,
   );
 }

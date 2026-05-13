@@ -1,4 +1,5 @@
 import { Link } from '@/i18n/routing';
+import { withContentLocale } from '@/lib/contentLocales';
 import type { IconType } from 'react-icons';
 import { FiBookOpen, FiBox, FiCalendar } from 'react-icons/fi';
 
@@ -6,9 +7,11 @@ import { adminCx } from './adminStyles';
 
 export default function AdminTabs({
   active,
+  contentLocale,
   locale,
 }: {
   active: 'products' | 'articles' | 'calendars';
+  contentLocale: string;
   locale: string;
 }) {
   const items: Array<{
@@ -51,7 +54,7 @@ export default function AdminTabs({
   ];
 
   return (
-    <div className="mt-6 grid gap-3 md:grid-cols-3">
+    <nav className="-mx-1 mt-5 flex gap-2 overflow-x-auto px-1 pb-1 [&::-webkit-scrollbar]:hidden">
       {items.map((item) => {
         const Icon = item.icon;
         const isActive = item.key === active;
@@ -59,44 +62,24 @@ export default function AdminTabs({
         return (
           <Link
             key={item.key}
-            href={item.href}
+            href={withContentLocale(item.href, contentLocale)}
             className={adminCx(
-              'rounded-[1.35rem] border px-4 py-4 text-left transition',
+              'flex min-h-10 shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition',
               isActive
-                ? 'border-white/15 bg-white text-[#0b3e31] shadow-[0_24px_40px_-34px_rgba(11,62,49,0.9)]'
-                : 'border-white/12 bg-white/8 text-white hover:bg-white/12',
+                ? 'border-[#0b5a45] bg-[#0b5a45] text-white shadow-[0_8px_20px_-14px_rgba(11,62,49,0.8)]'
+                : 'border-[#0b5a45]/12 bg-[#f7f9f6] text-[#0b3e31] hover:border-[#0b5a45]/25 hover:bg-[#eef4ef]',
             )}>
-            <div className="flex items-start gap-3">
-              <span
-                className={adminCx(
-                  'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border text-lg',
-                  isActive
-                    ? 'border-[#0b5a45]/12 bg-[#eef4ef] text-[#0b5a45]'
-                    : 'border-white/12 bg-white/10 text-white',
-                )}>
-                <Icon />
-              </span>
-
-              <div className="min-w-0">
-                <p
-                  className={adminCx(
-                    'text-sm font-semibold sm:text-base',
-                    isActive ? 'text-[#0b3e31]' : 'text-white',
-                  )}>
-                  {item.label}
-                </p>
-                <p
-                  className={adminCx(
-                    'mt-1 text-sm leading-6',
-                    isActive ? 'text-[#567068]' : 'text-white/72',
-                  )}>
-                  {item.description}
-                </p>
-              </div>
-            </div>
+            <span
+              className={adminCx(
+                'inline-flex h-5 w-5 shrink-0 items-center justify-center',
+                isActive ? 'text-white' : 'text-[#0b5a45]',
+              )}>
+              <Icon />
+            </span>
+            <span>{item.label}</span>
           </Link>
         );
       })}
-    </div>
+    </nav>
   );
 }

@@ -21,12 +21,16 @@ import {
   adminSummaryClassName,
   adminTextareaClassName,
   adminTextareaOnWhiteClassName,
-  adminTranslationCardClassName,
 } from '@/components/admin/adminStyles';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
 import { requireAdminSession } from '@/lib/adminAuthServer';
 import { getCategories, getProducts, noStoreApiFetchOptions, type Product } from '@/lib/api';
+import {
+  getContentLocaleLabel,
+  normalizeContentLocale,
+  withContentLocale,
+} from '@/lib/contentLocales';
 import {
   formatProductCount,
   getCatalogAdminCopy,
@@ -48,6 +52,7 @@ type AdminPageSearchParams = {
   category?: string;
   categoryError?: string;
   categoryStatus?: string;
+  contentLocale?: string;
   edit?: string;
   error?: string;
   product?: string;
@@ -70,30 +75,28 @@ type ProductFormValues = Pick<
 >;
 
 function ProductFormFields({
+  contentLocale,
   locale,
   adminCopy,
   categories,
   values,
   imageRequired,
 }: {
+  contentLocale: string;
   locale: string;
   adminCopy: ReturnType<typeof getCatalogAdminCopy>;
   categories: Awaited<ReturnType<typeof getCategories>>;
   values?: Partial<ProductFormValues>;
   imageRequired: boolean;
 }) {
-  const translationSectionTitle =
-    locale === 'en' ? 'English translation' : 'Английская версия';
+  const translationSectionTitle = locale === 'en' ? 'English translation' : 'Английская версия';
   const translationSectionHint =
     locale === 'en'
       ? 'Leave fields empty if you want the English catalog to fall back to Russian.'
       : 'Оставьте поля пустыми, если в английской версии каталога должен использоваться русский текст.';
-  const nameEnLabel =
-    locale === 'en' ? 'Product name in English' : 'Название товара на английском';
-  const descriptionEnLabel =
-    locale === 'en' ? 'Description in English' : 'Описание на английском';
-  const compositionEnLabel =
-    locale === 'en' ? 'Composition in English' : 'Состав на английском';
+  const nameEnLabel = locale === 'en' ? 'Product name in English' : 'Название товара на английском';
+  const descriptionEnLabel = locale === 'en' ? 'Description in English' : 'Описание на английском';
+  const compositionEnLabel = locale === 'en' ? 'Composition in English' : 'Состав на английском';
   const compositionEnHint =
     locale === 'en'
       ? 'One component per line in English.'
@@ -105,9 +108,7 @@ function ProductFormFields({
       ? 'These values are shown on the English product page.'
       : 'Эти значения будут показаны в английской версии карточки товара.';
   const applicationEnLabel =
-    locale === 'en'
-      ? 'Application guide in English'
-      : 'Регламент применения на английском';
+    locale === 'en' ? 'Application guide in English' : 'Регламент применения на английском';
   const applicationEnHint =
     locale === 'en'
       ? 'Separate cards with an empty line. First line is the title.'
@@ -139,7 +140,7 @@ function ProductFormFields({
             type="text"
             required
             defaultValue={values?.name ?? ''}
-            placeholder={locale === 'en' ? 'For example, Copper-88' : 'Например, Медь-88'}
+            placeholder={contentLocale === 'en' ? 'For example, Copper-88' : 'Например, Медь-88'}
             className={adminInputClassName}
           />
         </label>
@@ -177,7 +178,7 @@ function ProductFormFields({
         />
       </label>
 
-      <div className={adminTranslationCardClassName}>
+      <div className="hidden">
         <div>
           <p className={adminBadgeClassName}>{translationSectionTitle}</p>
           <p className={adminCx('mt-3', adminHintClassName)}>{translationSectionHint}</p>
@@ -224,7 +225,7 @@ function ProductFormFields({
             rows={5}
             defaultValue={values?.composition ?? ''}
             placeholder={
-              locale === 'en'
+              contentLocale === 'en'
                 ? 'Nitrogen | 20 g/l\nPhosphorus | 60 g/l\nPotassium | 60 g/l'
                 : 'Азот | 20 г/л\nФосфор | 60 г/л\nКалий | 60 г/л'
             }
@@ -233,7 +234,7 @@ function ProductFormFields({
           <span className={adminHintClassName}>{adminCopy.compositionHint}</span>
         </label>
 
-        <label className={adminFieldClassName}>
+        <label className="hidden">
           <span className={adminLabelClassName}>
             {compositionEnLabel}
             <span className={adminOptionalLabelClassName}> ({adminCopy.optionalLabel})</span>
@@ -260,7 +261,7 @@ function ProductFormFields({
             rows={5}
             defaultValue={values?.advantages ?? ''}
             placeholder={
-              locale === 'en' ? 'One advantage per line' : 'По одному преимуществу в строке'
+              contentLocale === 'en' ? 'One advantage per line' : 'По одному преимуществу в строке'
             }
             className={adminTextareaClassName}
           />
@@ -271,7 +272,7 @@ function ProductFormFields({
           </span>
         </label>
 
-        <label className={adminFieldClassName}>
+        <label className="hidden">
           <span className={adminLabelClassName}>
             {advantagesEnLabel}
             <span className={adminOptionalLabelClassName}> ({adminCopy.optionalLabel})</span>
@@ -298,7 +299,7 @@ function ProductFormFields({
             rows={8}
             defaultValue={values?.application ?? ''}
             placeholder={
-              locale === 'en'
+              contentLocale === 'en'
                 ? 'Grapes, apple, pear:\n1 l/ha for spray volume up to 600 l/ha\n1.5 l/ha for 700-1000 l/ha\n\nBerries:\n1 l/ha for spray volume up to 500 l/ha'
                 : 'Виноград, яблоня, груша:\n1 л/га при объеме рабочей жидкости до 600 л/га\n1,5 л/га при объеме рабочей жидкости 700-1000 л/га\n\nЯгодники:\n1 л/га при объеме рабочей жидкости до 500 л/га'
             }
@@ -307,7 +308,7 @@ function ProductFormFields({
           <span className={adminHintClassName}>{adminCopy.applicationHint}</span>
         </label>
 
-        <label className={adminFieldClassName}>
+        <label className="hidden">
           <span className={adminLabelClassName}>
             {applicationEnLabel}
             <span className={adminOptionalLabelClassName}> ({adminCopy.optionalLabel})</span>
@@ -338,13 +339,23 @@ export default async function AdminProductsPage({
   const { locale } = await params;
   await requireAdminSession(locale, `/${locale}/admin/products`);
 
-  const { category, categoryError, categoryStatus, edit, error, product, status } =
-    await searchParams;
+  const {
+    category,
+    categoryError,
+    categoryStatus,
+    contentLocale: contentLocaleParam,
+    edit,
+    error,
+    product,
+    status,
+  } = await searchParams;
+  const contentLocale = normalizeContentLocale(contentLocaleParam);
+  const contentLocaleLabel = getContentLocaleLabel(contentLocale);
   const adminCopy = getCatalogAdminCopy(locale);
   const catalogCopy = getCatalogCopy(locale);
   const [categories, products] = await Promise.all([
-    getCategories(undefined, noStoreApiFetchOptions),
-    getProducts(undefined, undefined, noStoreApiFetchOptions),
+    getCategories(contentLocale, noStoreApiFetchOptions, contentLocale),
+    getProducts(undefined, contentLocale, noStoreApiFetchOptions, contentLocale),
   ]);
   const activeCategoryId = parseEntityId(category ?? '');
   const editProductId = parseEntityId(edit ?? '');
@@ -352,21 +363,25 @@ export default async function AdminProductsPage({
   const topLevelError = error && !editProductId ? error : null;
   const topLevelStatus = status === 'created' ? adminCopy.statusCreated : null;
   const untranslatedCategories = categories.filter(
-    (categoryItem) => !categoryItem.nameEn?.trim() || !categoryItem.descriptionEn?.trim(),
+    (categoryItem) => !categoryItem.adminTranslation?.isComplete,
   ).length;
-  const untranslatedProducts = products.filter((productItem) => !productItem.nameEn?.trim()).length;
+  const untranslatedProducts = products.filter(
+    (productItem) => !productItem.adminTranslation?.isComplete,
+  ).length;
   const categoryTranslationTitle =
-    locale === 'en' ? 'Category translation' : 'Перевод категории';
-  const categoryTranslationHint =
     locale === 'en'
-      ? 'These values are used on the English catalog pages. URLs remain stable.'
-      : 'Эти значения используются в английском каталоге. URL при этом не меняются.';
+      ? `${contentLocaleLabel} category content`
+      : `${contentLocaleLabel}: контент категории`;
   const categoryNameEnLabel =
-    locale === 'en' ? 'Category name in English' : 'Название категории на английском';
+    locale === 'en'
+      ? `Category name (${contentLocaleLabel})`
+      : `Название категории (${contentLocaleLabel})`;
   const categoryDescriptionEnLabel =
-    locale === 'en' ? 'Category description in English' : 'Описание категории на английском';
+    locale === 'en'
+      ? `Category description (${contentLocaleLabel})`
+      : `Описание категории (${contentLocaleLabel})`;
   const saveCategoryTranslationLabel =
-    locale === 'en' ? 'Save category translation' : 'Сохранить перевод категории';
+    locale === 'en' ? 'Save category content' : 'Сохранить контент категории';
   const categoryStatusMessage =
     categoryStatus === 'updated'
       ? locale === 'en'
@@ -378,8 +393,7 @@ export default async function AdminProductsPage({
   const emptyManageTitle =
     locale === 'en' ? 'Categories will appear here' : 'Категории появятся здесь';
   const openEditorLabel = locale === 'en' ? 'Open editor' : 'Открыть редактор';
-  const editCategoryLabel =
-    locale === 'en' ? 'Open translation form' : 'Открыть форму перевода';
+  const editCategoryLabel = locale === 'en' ? 'Open translation form' : 'Открыть форму перевода';
   const stats = [
     {
       label: locale === 'en' ? 'Categories' : 'Категории',
@@ -398,7 +412,7 @@ export default async function AdminProductsPage({
           : 'Все карточки товаров, которые уже есть в каталоге.',
     },
     {
-      label: locale === 'en' ? 'Need EN' : 'Нужен EN',
+      label: locale === 'en' ? `Need ${contentLocaleLabel}` : `Нужен ${contentLocaleLabel}`,
       value: String(untranslatedProducts),
       hint:
         locale === 'en'
@@ -406,7 +420,7 @@ export default async function AdminProductsPage({
           : 'Товары, которые еще используют русский fallback в английской версии.',
     },
     {
-      label: locale === 'en' ? 'Category EN' : 'EN категорий',
+      label: locale === 'en' ? `Category ${contentLocaleLabel}` : `${contentLocaleLabel} категорий`,
       value: String(untranslatedCategories),
       hint:
         locale === 'en'
@@ -431,6 +445,7 @@ export default async function AdminProductsPage({
       backHref="/catalog"
       backLabel={adminCopy.backToCatalog}
       description={adminCopy.subtitle}
+      contentLocale={contentLocale}
       locale={locale}
       shortcuts={shortcuts}
       stats={stats}
@@ -448,8 +463,10 @@ export default async function AdminProductsPage({
 
           <form action={createProductAction} className="mt-6 space-y-6">
             <input type="hidden" name="locale" value={locale} />
+            <input type="hidden" name="contentLocale" value={contentLocale} />
 
             <ProductFormFields
+              contentLocale={contentLocale}
               locale={locale}
               adminCopy={adminCopy}
               categories={categories}
@@ -495,59 +512,70 @@ export default async function AdminProductsPage({
                   (productItem) => productItem.categoryId === categoryItem.id,
                 );
                 const isCategoryEditing = activeCategoryId === categoryItem.id;
-                const hasTranslation =
-                  Boolean(categoryItem.nameEn?.trim()) && Boolean(categoryItem.descriptionEn?.trim());
+                const hasTranslation = Boolean(categoryItem.adminTranslation?.isComplete);
 
                 return (
                   <div
                     key={categoryItem.id}
                     id={`category-${categoryItem.id}`}
-                    className="scroll-mt-32 rounded-[1.6rem] border border-[#0b5a45]/10 bg-white p-4 shadow-[0_20px_60px_-48px_rgba(11,62,49,0.9)] sm:p-5">
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="text-xl font-semibold text-[#0b3e31]">
-                            {categoryItem.name}
-                          </h3>
-                          <span className={adminBadgeClassName}>
-                            {formatProductCount(categoryProducts.length, locale)}
-                          </span>
-                          <span
-                            className={adminCx(
-                              'inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]',
-                              hasTranslation
-                                ? 'bg-emerald-50 text-emerald-700'
-                                : 'bg-amber-50 text-amber-700',
-                            )}>
-                            {hasTranslation
-                              ? locale === 'en'
-                                ? 'EN ready'
-                                : 'EN готов'
-                              : locale === 'en'
-                                ? 'Needs EN'
-                                : 'Нужен EN'}
-                          </span>
+                    className="scroll-mt-6 rounded-lg border border-[#0b5a45]/10 bg-white p-4 shadow-[0_12px_40px_-30px_rgba(11,62,49,0.8)] sm:p-5">
+                    <div className="flex flex-col gap-3">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="text-base font-semibold text-[#0b3e31] sm:text-lg">
+                              {categoryItem.name}
+                            </h3>
+                            <span className={adminBadgeClassName}>
+                              {formatProductCount(categoryProducts.length, locale)}
+                            </span>
+                            <span
+                              className={adminCx(
+                                'inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.18em]',
+                                hasTranslation
+                                  ? 'bg-emerald-50 text-emerald-700'
+                                  : 'bg-amber-50 text-amber-700',
+                              )}>
+                              {hasTranslation
+                                ? locale === 'en'
+                                  ? `${contentLocaleLabel} ✓`
+                                  : `${contentLocaleLabel} ✓`
+                                : locale === 'en'
+                                  ? `Needs ${contentLocaleLabel}`
+                                  : `Нужен ${contentLocaleLabel}`}
+                            </span>
+                          </div>
                         </div>
-                        <p className="mt-3 text-sm leading-6 text-[#567068]">
-                          {categoryTranslationHint}
-                        </p>
-                      </div>
 
-                      <div className="flex flex-col gap-2 sm:flex-row">
-                        <Link href={getCategoryHref(categoryItem)} className={adminSecondaryButtonClassName}>
-                          <FiExternalLink className="mr-2" />
-                          {catalogCopy.openCategory}
-                        </Link>
-                        <Link
-                          href={`/admin/products?category=${categoryItem.id}#category-${categoryItem.id}`}
-                          className={adminSecondaryButtonClassName}>
-                          <FiGlobe className="mr-2" />
-                          {editCategoryLabel}
-                        </Link>
+                        <div className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:flex sm:shrink-0">
+                          <Link
+                            href={getCategoryHref(categoryItem)}
+                            className={adminCx(
+                              adminSecondaryButtonClassName,
+                              'min-h-9 p-2 text-xs',
+                            )}>
+                            <FiExternalLink className="mr-1.5" />
+                            <span className="hidden sm:inline">{catalogCopy.openCategory}</span>
+                          </Link>
+                          <Link
+                            href={withContentLocale(
+                              `/admin/products?category=${categoryItem.id}#category-${categoryItem.id}`,
+                              contentLocale,
+                            )}
+                            className={adminCx(
+                              adminSecondaryButtonClassName,
+                              'min-h-9 p-2 text-xs',
+                            )}>
+                            <FiGlobe className="mr-1.5" />
+                            {editCategoryLabel}
+                          </Link>
+                        </div>
                       </div>
                     </div>
 
-                    <details open={isCategoryEditing} className={adminCx('mt-5', adminDetailsClassName)}>
+                    <details
+                      open={isCategoryEditing}
+                      className={adminCx('mt-5', adminDetailsClassName)}>
                       <summary className={adminSummaryClassName}>
                         <span>{categoryTranslationTitle}</span>
                         <span className="text-xs font-medium text-[#6a7f76]">
@@ -570,15 +598,16 @@ export default async function AdminProductsPage({
 
                         <form action={updateCategoryTranslationAction} className="mt-5 space-y-5">
                           <input type="hidden" name="locale" value={locale} />
+                          <input type="hidden" name="contentLocale" value={contentLocale} />
                           <input type="hidden" name="categoryId" value={categoryItem.id} />
 
                           <div className="grid gap-5 md:grid-cols-2">
                             <label className={adminFieldClassName}>
                               <span className={adminLabelClassName}>{categoryNameEnLabel}</span>
                               <input
-                                name="nameEn"
+                                name="name"
                                 type="text"
-                                defaultValue={categoryItem.nameEn ?? ''}
+                                defaultValue={categoryItem.adminTranslation?.name ?? ''}
                                 className={adminInputOnWhiteClassName}
                               />
                             </label>
@@ -588,9 +617,9 @@ export default async function AdminProductsPage({
                                 {categoryDescriptionEnLabel}
                               </span>
                               <textarea
-                                name="descriptionEn"
+                                name="description"
                                 rows={3}
-                                defaultValue={categoryItem.descriptionEn ?? ''}
+                                defaultValue={categoryItem.adminTranslation?.description ?? ''}
                                 className={adminTextareaOnWhiteClassName}
                               />
                             </label>
@@ -606,7 +635,7 @@ export default async function AdminProductsPage({
                     </details>
 
                     {categoryProducts.length === 0 ? (
-                      <div className="mt-5 rounded-[1.3rem] border border-dashed border-[#0b5a45]/16 bg-[#f8f7f2] px-4 py-5 text-sm text-[#6a7f76]">
+                      <div className="mt-5 rounded-lg border border-dashed border-[#0b5a45]/16 bg-[#f8f7f2] px-4 py-5 text-sm text-[#6a7f76]">
                         {adminCopy.emptyState}
                       </div>
                     ) : (
@@ -620,65 +649,73 @@ export default async function AdminProductsPage({
                             <div
                               key={productItem.id}
                               id={`product-${productItem.id}`}
-                              className="scroll-mt-32 rounded-[1.35rem] border border-[#0b5a45]/10 bg-[#f8f7f2] p-4">
-                              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                                <div className="flex min-w-0 gap-4">
-                                  <div className="relative h-[86px] w-[86px] shrink-0 overflow-hidden rounded-[1.25rem] border border-[#0b5a45]/10 bg-white">
-                                    <MediaImage
-                                      src={imageSrc}
-                                      alt={productItem.name}
-                                      fill
-                                      sizes="86px"
-                                      className="object-contain p-2"
-                                      emptyState={
-                                        <div className="flex h-full w-full items-center justify-center text-[10px] text-[#6a7f76]">
-                                          IMG
-                                        </div>
-                                      }
-                                    />
-                                  </div>
+                              className="scroll-mt-6 rounded-lg border border-[#0b5a45]/10 bg-[#f8f7f2] p-3 sm:p-4">
+                              <div className="flex items-start gap-3">
+                                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md border border-[#0b5a45]/10 bg-white sm:h-[72px] sm:w-[72px]">
+                                  <MediaImage
+                                    src={imageSrc}
+                                    alt={productItem.name}
+                                    fill
+                                    sizes="72px"
+                                    className="object-contain p-1.5"
+                                    emptyState={
+                                      <div className="flex h-full w-full items-center justify-center text-[10px] text-[#6a7f76]">
+                                        IMG
+                                      </div>
+                                    }
+                                  />
+                                </div>
 
-                                  <div className="min-w-0 flex-1">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                      <p className="text-base font-semibold text-[#0b3e31]">
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex flex-wrap items-start justify-between gap-2">
+                                    <div className="min-w-0">
+                                      <p className="text-sm font-semibold text-[#0b3e31] sm:text-base">
                                         {productItem.name}
                                       </p>
-                                      {!productItem.nameEn?.trim() ? (
-                                        <span className="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700">
-                                          {locale === 'en' ? 'Needs EN' : 'Нужен EN'}
+                                      {!productItem.adminTranslation?.isComplete ? (
+                                        <span className="mt-1 inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-700">
+                                          {locale === 'en'
+                                            ? `Needs ${contentLocaleLabel}`
+                                            : `Нужен ${contentLocaleLabel}`}
                                         </span>
                                       ) : null}
                                     </div>
 
-                                    {productItem.description ? (
-                                      <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#567068]">
-                                        {productItem.description}
-                                      </p>
-                                    ) : null}
-
-                                    <p className="mt-3 text-xs leading-5 text-[#7f8f88]">
-                                      {adminCopy.imagePathLabel}: {productItem.imageUrl}
-                                    </p>
+                                    <div className="grid w-full grid-cols-[2.5rem_minmax(0,1fr)] gap-1.5 sm:w-auto sm:flex sm:shrink-0">
+                                      <Link
+                                        href={getProductHref(categoryItem, productItem)}
+                                        className={adminCx(
+                                          adminSecondaryButtonClassName,
+                                          'min-h-8 px-2.5 py-1.5 text-xs',
+                                        )}>
+                                        <FiExternalLink />
+                                      </Link>
+                                      <Link
+                                        href={withContentLocale(
+                                          `/admin/products?edit=${productItem.id}#product-${productItem.id}`,
+                                          contentLocale,
+                                        )}
+                                        className={adminCx(
+                                          adminSecondaryButtonClassName,
+                                          'min-h-8 px-2.5 py-1.5 text-xs',
+                                        )}>
+                                        <FiEdit3 className="mr-1" />
+                                        {openEditorLabel}
+                                      </Link>
+                                    </div>
                                   </div>
-                                </div>
 
-                                <div className="flex flex-col gap-2 sm:flex-row lg:flex-col lg:items-end">
-                                  <Link
-                                    href={getProductHref(categoryItem, productItem)}
-                                    className={adminSecondaryButtonClassName}>
-                                    <FiExternalLink className="mr-2" />
-                                    {adminCopy.openProduct}
-                                  </Link>
-                                  <Link
-                                    href={`/admin/products?edit=${productItem.id}#product-${productItem.id}`}
-                                    className={adminSecondaryButtonClassName}>
-                                    <FiEdit3 className="mr-2" />
-                                    {openEditorLabel}
-                                  </Link>
+                                  {productItem.description ? (
+                                    <p className="mt-1.5 line-clamp-1 text-xs leading-5 text-[#567068]">
+                                      {productItem.description}
+                                    </p>
+                                  ) : null}
                                 </div>
                               </div>
 
-                              <details open={isEditing} className={adminCx('mt-4', adminDetailsClassName)}>
+                              <details
+                                open={isEditing}
+                                className={adminCx('mt-4', adminDetailsClassName)}>
                                 <summary className={adminSummaryClassName}>
                                   <span>{adminCopy.editLabel}</span>
                                   <span className="text-xs font-medium text-[#6a7f76]">
@@ -703,6 +740,11 @@ export default async function AdminProductsPage({
 
                                   <form action={updateProductAction} className="mt-5 space-y-6">
                                     <input type="hidden" name="locale" value={locale} />
+                                    <input
+                                      type="hidden"
+                                      name="contentLocale"
+                                      value={contentLocale}
+                                    />
                                     <input type="hidden" name="productId" value={productItem.id} />
                                     <input
                                       type="hidden"
@@ -712,14 +754,25 @@ export default async function AdminProductsPage({
                                     <input
                                       type="hidden"
                                       name="previousName"
-                                      value={productItem.name}
+                                      value={productItem.slugSourceName ?? productItem.name}
                                     />
 
                                     <ProductFormFields
+                                      contentLocale={contentLocale}
                                       locale={locale}
                                       adminCopy={adminCopy}
                                       categories={categories}
-                                      values={productItem}
+                                      values={{
+                                        categoryId: productItem.categoryId,
+                                        name: productItem.adminTranslation?.name ?? '',
+                                        description:
+                                          productItem.adminTranslation?.description ?? '',
+                                        advantages: productItem.adminTranslation?.advantages ?? '',
+                                        composition:
+                                          productItem.adminTranslation?.composition ?? '',
+                                        application:
+                                          productItem.adminTranslation?.application ?? '',
+                                      }}
                                       imageRequired={false}
                                     />
 

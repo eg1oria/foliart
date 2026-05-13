@@ -18,6 +18,7 @@ model Category {
   imageUrl     String
   productCount Int       @default(0)
   products     Product[]
+  translations  CategoryTranslation[]
 }
 
 model Product {
@@ -35,6 +36,7 @@ model Product {
   application   String   @default("") // JSON string or blank-line separated blocks
   applicationEn String   @default("") // English translation or blank fallback
   imageUrl      String
+  translations  ProductTranslation[]
 }
 
 model Article {
@@ -48,6 +50,7 @@ model Article {
   imageUrl   String
   publishedAt DateTime @default(now())
   viewCount  Int      @default(0)
+  translations ArticleTranslation[]
 }
 
 model CalendarEntry {
@@ -60,4 +63,57 @@ model CalendarEntry {
   imageUrl2     String
   imageUrl3     String
   imageUrl4     String
+  translations  CalendarEntryTranslation[]
+}
+
+model CategoryTranslation {
+  id          Int      @id @default(autoincrement())
+  categoryId  Int
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  locale      String
+  name        String   @default("")
+  description String   @default("")
+
+  @@unique([categoryId, locale])
+  @@index([locale])
+}
+
+model ProductTranslation {
+  id          Int     @id @default(autoincrement())
+  productId   Int
+  product     Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  locale      String
+  name        String  @default("")
+  description String  @default("")
+  advantages  String  @default("")
+  composition String  @default("")
+  application String  @default("")
+
+  @@unique([productId, locale])
+  @@index([locale])
+}
+
+model ArticleTranslation {
+  id        Int     @id @default(autoincrement())
+  articleId Int
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  locale    String
+  title     String  @default("")
+  excerpt   String  @default("")
+  content   String  @default("")
+
+  @@unique([articleId, locale])
+  @@index([locale])
+}
+
+model CalendarEntryTranslation {
+  id              Int           @id @default(autoincrement())
+  calendarEntryId Int
+  calendarEntry   CalendarEntry @relation(fields: [calendarEntryId], references: [id], onDelete: Cascade)
+  locale          String
+  title           String        @default("")
+  description     String        @default("")
+
+  @@unique([calendarEntryId, locale])
+  @@index([locale])
 }

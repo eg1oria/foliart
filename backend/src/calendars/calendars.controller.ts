@@ -18,6 +18,7 @@ import { diskStorage } from 'multer';
 import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
 import { AdminApiGuard } from '../admin-api.guard';
+import { normalizeContentLocale } from '../content-locales';
 import {
   allowedImageMimeTypes,
   optimizeUploadedImage,
@@ -53,7 +54,14 @@ function removeUploadedFiles(filePaths: Array<string | undefined>) {
       continue;
     }
 
-    unlinkSync(filePath);
+    try {
+      unlinkSync(filePath);
+    } catch (error) {
+      console.warn('Uploaded calendar image could not be removed', {
+        message: error instanceof Error ? error.message : String(error),
+        path: filePath,
+      });
+    }
   }
 }
 
@@ -154,16 +162,20 @@ export class CalendarsController {
   constructor(private readonly calendarsService: CalendarsService) {}
 
   @Get()
-  findAll(@Query('locale') locale?: string) {
-    return this.calendarsService.findAll(locale);
+  findAll(
+    @Query('locale') locale?: string,
+    @Query('contentLocale') contentLocale?: string,
+  ) {
+    return this.calendarsService.findAll(locale, contentLocale);
   }
 
   @Get(':id')
   findOne(
     @Param('id', ParseIntPipe) id: number,
     @Query('locale') locale?: string,
+    @Query('contentLocale') contentLocale?: string,
   ) {
-    return this.calendarsService.findOne(id, locale);
+    return this.calendarsService.findOne(id, locale, contentLocale);
   }
 
   @Post()
@@ -173,10 +185,9 @@ export class CalendarsController {
     @Body() body: Record<string, string | undefined>,
     @UploadedFiles() files?: UploadedCalendarFiles,
   ) {
+    const contentLocale = normalizeContentLocale(body.contentLocale);
     const title = body.title?.trim() ?? '';
-    const titleEn = body.titleEn?.trim() ?? '';
     const description = body.description?.trim() ?? '';
-    const descriptionEn = body.descriptionEn?.trim() ?? '';
     const uploadedFiles = calendarImageFields.map((fieldName) =>
       getUploadedFile(files, fieldName),
     );
@@ -207,10 +218,9 @@ export class CalendarsController {
       );
 
       return await this.calendarsService.create({
+        contentLocale,
         title,
-        titleEn,
         description,
-        descriptionEn,
         imageUrl1: `calendars/${optimizedFiles[0]!.filename}`,
         imageUrl2: `calendars/${optimizedFiles[1]!.filename}`,
         imageUrl3: optimizedFiles[2]?.filename
@@ -234,10 +244,9 @@ export class CalendarsController {
     @Body() body: Record<string, string | undefined>,
     @UploadedFiles() files?: UploadedCalendarFiles,
   ) {
+    const contentLocale = normalizeContentLocale(body.contentLocale);
     const title = body.title?.trim() ?? '';
-    const titleEn = body.titleEn?.trim() ?? '';
     const description = body.description?.trim() ?? '';
-    const descriptionEn = body.descriptionEn?.trim() ?? '';
     const uploadedFiles = calendarImageFields.map((fieldName) =>
       getUploadedFile(files, fieldName),
     );
@@ -261,10 +270,9 @@ export class CalendarsController {
       const currentEntry = await this.calendarsService.findOne(id);
       const updatedEntry = await this.calendarsService.update({
         id,
+        contentLocale,
         title,
-        titleEn,
         description,
-        descriptionEn,
         ...(optimizedFiles[0]?.filename
           ? { imageUrl1: `calendars/${optimizedFiles[0].filename}` }
           : {}),

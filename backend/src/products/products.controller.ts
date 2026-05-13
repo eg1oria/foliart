@@ -18,6 +18,7 @@ import { basename, extname, join } from 'node:path';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { AdminApiGuard } from '../admin-api.guard';
+import { normalizeContentLocale } from '../content-locales';
 import {
   allowedImageMimeTypes,
   optimizeUploadedImage,
@@ -42,7 +43,14 @@ function removeUploadedFile(filePath?: string) {
     return;
   }
 
-  unlinkSync(filePath);
+  try {
+    unlinkSync(filePath);
+  } catch (error) {
+    console.warn('Uploaded product image could not be removed', {
+      message: error instanceof Error ? error.message : String(error),
+      path: filePath,
+    });
+  }
 }
 
 function getStoredProductImagePath(imageUrl?: string) {
@@ -131,11 +139,16 @@ export class ProductsController {
   findAll(
     @Query('categoryId') categoryId?: string,
     @Query('locale') locale?: string,
+    @Query('contentLocale') contentLocale?: string,
   ) {
     if (categoryId) {
-      return this.productsService.findByCategory(+categoryId, locale);
+      return this.productsService.findByCategory(
+        +categoryId,
+        locale,
+        contentLocale,
+      );
     }
-    return this.productsService.findAll(locale);
+    return this.productsService.findAll(locale, contentLocale);
   }
 
   @Post()
@@ -146,17 +159,13 @@ export class ProductsController {
     @UploadedFile()
     file?: StoredUploadFile,
   ) {
+    const contentLocale = normalizeContentLocale(body.contentLocale);
     const categoryId = Number.parseInt(body.categoryId ?? '', 10);
     const name = body.name?.trim() ?? '';
-    const nameEn = body.nameEn?.trim() ?? '';
     const description = body.description?.trim() ?? '';
-    const descriptionEn = body.descriptionEn?.trim() ?? '';
     const advantages = body.advantages?.trim() ?? '';
-    const advantagesEn = body.advantagesEn?.trim() ?? '';
     const composition = body.composition?.trim() ?? '';
-    const compositionEn = body.compositionEn?.trim() ?? '';
     const application = body.application?.trim() ?? '';
-    const applicationEn = body.applicationEn?.trim() ?? '';
 
     if (!Number.isInteger(categoryId) || categoryId < 1) {
       removeUploadedFile(file?.path);
@@ -177,16 +186,12 @@ export class ProductsController {
     try {
       return await this.productsService.create({
         categoryId,
+        contentLocale,
         name,
-        nameEn,
         description,
-        descriptionEn,
         advantages,
-        advantagesEn,
         composition,
-        compositionEn,
         application,
-        applicationEn,
         imageUrl: `products/${imageFile.filename}`,
       });
     } catch (error) {
@@ -204,17 +209,13 @@ export class ProductsController {
     @UploadedFile()
     file?: StoredUploadFile,
   ) {
+    const contentLocale = normalizeContentLocale(body.contentLocale);
     const categoryId = Number.parseInt(body.categoryId ?? '', 10);
     const name = body.name?.trim() ?? '';
-    const nameEn = body.nameEn?.trim() ?? '';
     const description = body.description?.trim() ?? '';
-    const descriptionEn = body.descriptionEn?.trim() ?? '';
     const advantages = body.advantages?.trim() ?? '';
-    const advantagesEn = body.advantagesEn?.trim() ?? '';
     const composition = body.composition?.trim() ?? '';
-    const compositionEn = body.compositionEn?.trim() ?? '';
     const application = body.application?.trim() ?? '';
-    const applicationEn = body.applicationEn?.trim() ?? '';
 
     if (!Number.isInteger(categoryId) || categoryId < 1) {
       removeUploadedFile(file?.path);
@@ -234,16 +235,12 @@ export class ProductsController {
       const updatedProduct = await this.productsService.update({
         id,
         categoryId,
+        contentLocale,
         name,
-        nameEn,
         description,
-        descriptionEn,
         advantages,
-        advantagesEn,
         composition,
-        compositionEn,
         application,
-        applicationEn,
         imageUrl: imageFile?.filename
           ? `products/${imageFile.filename}`
           : undefined,
@@ -264,7 +261,8 @@ export class ProductsController {
   findOne(
     @Param('id', ParseIntPipe) id: number,
     @Query('locale') locale?: string,
+    @Query('contentLocale') contentLocale?: string,
   ) {
-    return this.productsService.findOne(id, locale);
+    return this.productsService.findOne(id, locale, contentLocale);
   }
 }

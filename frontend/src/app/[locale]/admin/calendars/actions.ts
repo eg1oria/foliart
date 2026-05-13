@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getAdminApiHeaders } from '@/lib/adminApi';
 import { requireAdminSession } from '@/lib/adminAuthServer';
+import { normalizeContentLocale } from '@/lib/contentLocales';
 
 const backendUrl = process.env.BACKEND_URL ?? 'http://localhost:3001';
 const calendarLocales = ['ru', 'en'] as const;
@@ -12,9 +13,7 @@ const requiredImageFieldNames = ['image1', 'image2'] as const;
 
 type CalendarFormPayload = {
   title: string;
-  titleEn: string;
   description: string;
-  descriptionEn: string;
 };
 
 function buildAdminRedirectPath(
@@ -45,17 +44,18 @@ function normalizeText(value: FormDataEntryValue | null) {
 function getCalendarFormPayload(formData: FormData): CalendarFormPayload {
   return {
     title: normalizeText(formData.get('title')),
-    titleEn: normalizeText(formData.get('titleEn')),
     description: normalizeText(formData.get('description')),
-    descriptionEn: normalizeText(formData.get('descriptionEn')),
   };
 }
 
-function appendCalendarPayload(payload: FormData, values: CalendarFormPayload) {
+function appendCalendarPayload(
+  payload: FormData,
+  values: CalendarFormPayload,
+  contentLocale: string,
+) {
+  payload.append('contentLocale', contentLocale);
   payload.append('title', values.title);
-  payload.append('titleEn', values.titleEn);
   payload.append('description', values.description);
-  payload.append('descriptionEn', values.descriptionEn);
 }
 
 function hasFile(value: FormDataEntryValue | null): value is File {
@@ -80,6 +80,7 @@ async function revalidateCalendarAdminPages() {
 
 export async function createCalendarAction(formData: FormData) {
   const locale = normalizeLocale(formData.get('locale'));
+  const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
   await requireAdminSession(locale);
 
   const values = getCalendarFormPayload(formData);
@@ -88,6 +89,7 @@ export async function createCalendarAction(formData: FormData) {
   if (!values.title || !values.description || requiredImages.some((image) => !hasFile(image))) {
     redirect(
       buildAdminRedirectPath(locale, {
+        contentLocale,
         error:
           locale === 'en'
             ? 'Fill in the title, description, and upload the first 2 photos.'
@@ -97,7 +99,7 @@ export async function createCalendarAction(formData: FormData) {
   }
 
   const payload = new FormData();
-  appendCalendarPayload(payload, values);
+  appendCalendarPayload(payload, values, contentLocale);
 
   for (const fieldName of imageFieldNames) {
     const image = formData.get(fieldName);
@@ -119,6 +121,7 @@ export async function createCalendarAction(formData: FormData) {
 
     redirect(
       buildAdminRedirectPath(locale, {
+        contentLocale,
         error:
           rawMessage ||
           (locale === 'en'
@@ -132,6 +135,7 @@ export async function createCalendarAction(formData: FormData) {
 
   redirect(
     buildAdminRedirectPath(locale, {
+      contentLocale,
       status: 'created',
     }, 'create-calendar'),
   );
@@ -139,6 +143,7 @@ export async function createCalendarAction(formData: FormData) {
 
 export async function updateCalendarAction(formData: FormData) {
   const locale = normalizeLocale(formData.get('locale'));
+  const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
   await requireAdminSession(locale);
 
   const calendarId = normalizeText(formData.get('calendarId'));
@@ -147,6 +152,7 @@ export async function updateCalendarAction(formData: FormData) {
   if (!calendarId || !values.title || !values.description) {
     redirect(
       buildAdminRedirectPath(locale, {
+        contentLocale,
         edit: calendarId,
         error:
           locale === 'en'
@@ -157,7 +163,7 @@ export async function updateCalendarAction(formData: FormData) {
   }
 
   const payload = new FormData();
-  appendCalendarPayload(payload, values);
+  appendCalendarPayload(payload, values, contentLocale);
 
   for (const fieldName of imageFieldNames) {
     const image = formData.get(fieldName);
@@ -179,6 +185,7 @@ export async function updateCalendarAction(formData: FormData) {
 
     redirect(
       buildAdminRedirectPath(locale, {
+        contentLocale,
         edit: calendarId,
         error:
           rawMessage ||
@@ -193,6 +200,7 @@ export async function updateCalendarAction(formData: FormData) {
 
   redirect(
     buildAdminRedirectPath(locale, {
+      contentLocale,
       status: 'updated',
       calendar: calendarId,
       edit: calendarId,

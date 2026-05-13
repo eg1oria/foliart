@@ -18,6 +18,7 @@ import { diskStorage } from 'multer';
 import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
 import { AdminApiGuard } from '../admin-api.guard';
+import { normalizeContentLocale } from '../content-locales';
 import {
   allowedImageMimeTypes,
   optimizeUploadedImage,
@@ -46,7 +47,14 @@ function removeUploadedFile(filePath?: string) {
     return;
   }
 
-  unlinkSync(filePath);
+  try {
+    unlinkSync(filePath);
+  } catch (error) {
+    console.warn('Uploaded article image could not be removed', {
+      message: error instanceof Error ? error.message : String(error),
+      path: filePath,
+    });
+  }
 }
 
 function getStoredArticleImagePath(imageUrl?: string) {
@@ -152,16 +160,20 @@ export class ArticlesController {
   constructor(private readonly articlesService: ArticlesService) {}
 
   @Get()
-  findAll(@Query('locale') locale?: string) {
-    return this.articlesService.findAll(locale);
+  findAll(
+    @Query('locale') locale?: string,
+    @Query('contentLocale') contentLocale?: string,
+  ) {
+    return this.articlesService.findAll(locale, contentLocale);
   }
 
   @Get(':id')
   findOne(
     @Param('id', ParseIntPipe) id: number,
     @Query('locale') locale?: string,
+    @Query('contentLocale') contentLocale?: string,
   ) {
-    return this.articlesService.findOne(id, locale);
+    return this.articlesService.findOne(id, locale, contentLocale);
   }
 
   @Post()
@@ -172,15 +184,10 @@ export class ArticlesController {
     @UploadedFile()
     file?: StoredUploadFile,
   ) {
+    const contentLocale = normalizeContentLocale(body.contentLocale);
     const title = body.title?.trim() ?? '';
-    const titleEn = body.titleEn?.trim() ?? '';
     const content = sanitizeArticleContent(body.content ?? '');
-    const contentEn = sanitizeArticleContent(body.contentEn ?? '');
     const excerpt = sanitizeArticleExcerpt(body.excerpt?.trim() ?? '', content);
-    const excerptEn = sanitizeArticleExcerpt(
-      body.excerptEn?.trim() ?? '',
-      contentEn,
-    );
 
     if (!title) {
       removeUploadedFile(file?.path);
@@ -200,12 +207,10 @@ export class ArticlesController {
 
     try {
       return await this.articlesService.create({
+        contentLocale,
         title,
-        titleEn,
         excerpt,
-        excerptEn,
         content,
-        contentEn,
         imageUrl: `articles/${imageFile.filename}`,
         publishedAt: parsePublishedAt(body.publishedAt),
       });
@@ -224,15 +229,10 @@ export class ArticlesController {
     @UploadedFile()
     file?: StoredUploadFile,
   ) {
+    const contentLocale = normalizeContentLocale(body.contentLocale);
     const title = body.title?.trim() ?? '';
-    const titleEn = body.titleEn?.trim() ?? '';
     const content = sanitizeArticleContent(body.content ?? '');
-    const contentEn = sanitizeArticleContent(body.contentEn ?? '');
     const excerpt = sanitizeArticleExcerpt(body.excerpt?.trim() ?? '', content);
-    const excerptEn = sanitizeArticleExcerpt(
-      body.excerptEn?.trim() ?? '',
-      contentEn,
-    );
 
     if (!title) {
       removeUploadedFile(file?.path);
@@ -251,12 +251,10 @@ export class ArticlesController {
       const currentArticle = await this.articlesService.findOne(id);
       const updatedArticle = await this.articlesService.update({
         id,
+        contentLocale,
         title,
-        titleEn,
         excerpt,
-        excerptEn,
         content,
-        contentEn,
         publishedAt: parsePublishedAt(body.publishedAt),
         imageUrl: imageFile?.filename
           ? `articles/${imageFile.filename}`

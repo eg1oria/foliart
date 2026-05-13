@@ -84,6 +84,8 @@ export default function ArticleRichTextEditor({
         heading: {
           levels: [2, 3],
         },
+        link: false,
+        underline: false,
       }),
       Underline,
       Link.configure({
@@ -100,7 +102,7 @@ export default function ArticleRichTextEditor({
     editorProps: {
       attributes: {
         class:
-          'admin-rich-text min-h-[260px] px-4 py-4 text-[1rem] leading-7 text-[#0b3e31] outline-none sm:min-h-[320px] sm:px-5 sm:py-5',
+          'admin-rich-text min-h-[240px] px-3.5 py-4 text-sm leading-7 text-[#0b3e31] outline-none sm:min-h-[300px] sm:px-5 sm:py-5 sm:text-[1rem]',
       },
     },
     onCreate: ({ editor: nextEditor }) => {
@@ -264,7 +266,7 @@ export default function ArticleRichTextEditor({
   ];
 
   return (
-    <div className="overflow-hidden rounded-[1.45rem] border border-[#0b5a45]/12 bg-[#f8f7f2] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]">
+    <div className="min-w-0 overflow-hidden rounded-lg border border-[#0b5a45]/12 bg-[#f8f7f2] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]">
       <input type="hidden" name={name} value={html} />
 
       <div className="flex flex-nowrap gap-2 overflow-x-auto border-b border-[#0b5a45]/10 bg-white/75 px-3 py-3 sm:flex-wrap sm:px-4">
@@ -278,7 +280,7 @@ export default function ArticleRichTextEditor({
               event.preventDefault();
               item.onClick();
             }}
-            className={`inline-flex h-11 min-w-11 shrink-0 items-center justify-center rounded-[0.95rem] border px-3 transition ${
+            className={`inline-flex h-10 min-w-10 shrink-0 items-center justify-center rounded-lg border px-2.5 transition sm:h-11 sm:min-w-11 sm:px-3 ${
               item.active
                 ? 'border-[#0b5a45] bg-[#0b5a45] text-white'
                 : 'border-[#0b5a45]/12 bg-white text-[#0b3e31] hover:border-[#0b5a45]/30 hover:bg-[#eef4ef]'
@@ -290,7 +292,7 @@ export default function ArticleRichTextEditor({
 
       <div className="relative">
         {!editor || editor.isEmpty ? (
-          <div className="pointer-events-none absolute left-4 top-4 text-sm text-[#7e9088] sm:left-5 sm:top-5">
+          <div className="pointer-events-none absolute inset-x-3.5 top-4 text-sm leading-6 text-[#7e9088] sm:inset-x-5 sm:top-5">
             {placeholder}
           </div>
         ) : null}

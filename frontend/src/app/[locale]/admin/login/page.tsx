@@ -50,31 +50,31 @@ export default async function AdminLoginPage({
   };
 
   return (
-    <main className="relative mx-auto flex w-full max-w-[92rem] flex-1 items-center px-4 pb-16 pt-44 sm:px-6 sm:pb-20 lg:px-8 lg:pt-48">
-      <div className="pointer-events-none absolute inset-x-0 top-24 -z-10 h-80 bg-[radial-gradient(circle_at_top,rgba(11,90,69,0.18),transparent_68%)] blur-3xl" />
+    <main className="relative flex min-h-screen w-full flex-1 items-center bg-[#f3f5f1] px-4 pb-12 pt-28 sm:px-6 sm:pb-16 sm:pt-32 md:pt-52 lg:px-8">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[#0b5a45] sm:h-28 md:h-52" />
 
-      <section className="grid w-full overflow-hidden rounded-[2rem] border border-[#0b5a45]/10 bg-white shadow-[0_35px_120px_-72px_rgba(11,62,49,0.95)] lg:grid-cols-[minmax(0,0.92fr)_minmax(360px,0.58fr)]">
-        <div className="bg-[linear-gradient(135deg,#0b5a45,#0a3e31_56%,#082b23)] px-6 py-9 text-white sm:px-8 sm:py-12 lg:px-10 lg:py-16">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#d8ead8]">
+      <section className="relative mx-auto grid w-full max-w-[980px] overflow-hidden rounded-lg border border-[#0b5a45]/10 bg-white shadow-[0_24px_70px_-54px_rgba(11,62,49,0.95)] lg:grid-cols-[minmax(0,0.95fr)_minmax(340px,0.62fr)]">
+        <div className="bg-[#0b5a45] px-5 py-7 text-white sm:px-7 sm:py-9 lg:px-8 lg:py-12">
+          <span className="inline-flex items-center gap-2 rounded-md border border-white/15 bg-white/10 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#d8ead8]">
             <FiLock className="text-sm" />
             Foliart Admin
           </span>
 
-          <h1 className="mt-5 max-w-2xl text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">
+          <h1 className="mt-4 max-w-2xl text-2xl font-semibold leading-tight sm:text-3xl">
             {copy.title}
           </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-white/78 sm:text-base lg:text-lg">
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-white/78 sm:text-base sm:leading-7">
             {copy.subtitle}
           </p>
         </div>
 
-        <form action={loginAdminAction} className="px-6 py-8 sm:px-8 sm:py-10 lg:px-10">
+        <form action={loginAdminAction} className="min-w-0 px-5 py-7 sm:px-7 sm:py-9 lg:px-8">
           <input type="hidden" name="locale" value={locale} />
           <input type="hidden" name="next" value={nextPath} />
 
           <div className="space-y-5">
             {error ? (
-              <div className="rounded-[1.2rem] border border-rose-200 bg-rose-50 px-4 py-3 text-sm leading-6 text-rose-800">
+              <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm leading-6 text-rose-800">
                 {copy.error}
               </div>
             ) : null}

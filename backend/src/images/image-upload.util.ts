@@ -41,7 +41,10 @@ export async function optimizeUploadedImage<T extends StoredImageUploadFile>(
   );
 
   try {
-    await sharp(file.path, { failOn: 'none' })
+    const input =
+      outputPath === file.path ? await fs.readFile(file.path) : file.path;
+
+    await sharp(input, { failOn: 'none' })
       .rotate()
       .resize({
         width: maxDimension,
@@ -68,7 +71,14 @@ export async function optimizeUploadedImage<T extends StoredImageUploadFile>(
     file.mimetype = 'image/webp';
 
     return file;
-  } catch {
+  } catch (error) {
+    console.error('Image optimization failed', {
+      message: error instanceof Error ? error.message : String(error),
+      input: file.path,
+      output: outputPath,
+      temp: tempPath,
+    });
+
     await Promise.allSettled([
       fs.rm(tempPath, { force: true }),
       fs.rm(file.path, { force: true }),

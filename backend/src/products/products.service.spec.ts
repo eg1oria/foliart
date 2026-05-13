@@ -17,8 +17,37 @@ describe('ProductsService', () => {
       update: jest.fn(),
     },
   };
+  const baseProduct = {
+    id: 1,
+    categoryId: 1,
+    name: 'Риза',
+    nameEn: '',
+    description: 'Русское описание',
+    descriptionEn: '',
+    advantages: 'Русское преимущество',
+    advantagesEn: '',
+    composition: 'Азот | 20 г/л',
+    compositionEn: '',
+    application: 'Русская схема',
+    applicationEn: '',
+    imageUrl: 'products/riza.webp',
+    translations: [
+      {
+        id: 1,
+        productId: 1,
+        locale: 'ru',
+        name: 'Риза',
+        description: 'Русское описание',
+        advantages: 'Русское преимущество',
+        composition: 'Азот | 20 г/л',
+        application: 'Русская схема',
+      },
+    ],
+  };
 
   beforeEach(async () => {
+    jest.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProductsService,
@@ -34,5 +63,111 @@ describe('ProductsService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  it('returns the requested translation when it exists', async () => {
+    prismaServiceMock.product.findMany.mockResolvedValue([
+      {
+        ...baseProduct,
+        translations: [
+          ...baseProduct.translations,
+          {
+            id: 2,
+            productId: 1,
+            locale: 'en',
+            name: 'Riza',
+            description: 'English description',
+            advantages: 'English advantage',
+            composition: 'Nitrogen | 20 g/l',
+            application: 'English guide',
+          },
+        ],
+      },
+    ]);
+
+    const products = await service.findAll('en');
+
+    expect(products[0]).toMatchObject({
+      name: 'Riza',
+      description: 'English description',
+      advantages: 'English advantage',
+      composition: 'Nitrogen | 20 g/l',
+      application: 'English guide',
+      slugSourceName: 'Риза',
+    });
+  });
+
+  it('falls back to Russian text when the requested translation is empty', async () => {
+    prismaServiceMock.product.findMany.mockResolvedValue([
+      {
+        ...baseProduct,
+        translations: [
+          ...baseProduct.translations,
+          {
+            id: 2,
+            productId: 1,
+            locale: 'en',
+            name: '',
+            description: '',
+            advantages: '',
+            composition: '',
+            application: '',
+          },
+        ],
+      },
+    ]);
+
+    const products = await service.findAll('en', 'en');
+
+    expect(products[0]).toMatchObject({
+      name: 'Риза',
+      description: 'Русское описание',
+      adminTranslation: {
+        locale: 'en',
+        isComplete: false,
+        name: '',
+      },
+    });
+  });
+
+  it('updates only the selected translation and mirrors legacy English columns', async () => {
+    prismaServiceMock.product.findUnique.mockResolvedValue(baseProduct);
+    prismaServiceMock.category.findUnique.mockResolvedValue({ id: 1 });
+    prismaServiceMock.product.update.mockResolvedValue({
+      ...baseProduct,
+      nameEn: 'Riza',
+    });
+
+    await service.update({
+      id: 1,
+      categoryId: 1,
+      contentLocale: 'en',
+      name: 'Riza',
+      description: 'English description',
+      advantages: 'English advantage',
+      composition: 'Nitrogen | 20 g/l',
+      application: 'English guide',
+    });
+
+    expect(prismaServiceMock.product.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 1 },
+        data: expect.objectContaining({
+          nameEn: 'Riza',
+          descriptionEn: 'English description',
+          translations: {
+            upsert: expect.objectContaining({
+              where: {
+                productId_locale: {
+                  productId: 1,
+                  locale: 'en',
+                },
+              },
+            }),
+          },
+        }),
+      }),
+    );
+    expect(prismaServiceMock.product.update.mock.calls[0][0].data.name).toBeUndefined();
   });
 });

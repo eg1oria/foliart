@@ -60,6 +60,42 @@ async function main() {
           update: category,
           create: category,
         });
+        await target.categoryTranslation.upsert({
+          where: {
+            categoryId_locale: {
+              categoryId: category.id,
+              locale: 'ru',
+            },
+          },
+          update: {
+            name: category.name,
+            description: category.description,
+          },
+          create: {
+            categoryId: category.id,
+            locale: 'ru',
+            name: category.name,
+            description: category.description,
+          },
+        });
+        await target.categoryTranslation.upsert({
+          where: {
+            categoryId_locale: {
+              categoryId: category.id,
+              locale: 'en',
+            },
+          },
+          update: {
+            name: category.nameEn,
+            description: category.descriptionEn,
+          },
+          create: {
+            categoryId: category.id,
+            locale: 'en',
+            name: category.nameEn,
+            description: category.descriptionEn,
+          },
+        });
       }
 
       for (const product of products) {
@@ -67,6 +103,54 @@ async function main() {
           where: { id: product.id },
           update: product,
           create: product,
+        });
+        await target.productTranslation.upsert({
+          where: {
+            productId_locale: {
+              productId: product.id,
+              locale: 'ru',
+            },
+          },
+          update: {
+            name: product.name,
+            description: product.description,
+            advantages: product.advantages,
+            composition: product.composition,
+            application: product.application,
+          },
+          create: {
+            productId: product.id,
+            locale: 'ru',
+            name: product.name,
+            description: product.description,
+            advantages: product.advantages,
+            composition: product.composition,
+            application: product.application,
+          },
+        });
+        await target.productTranslation.upsert({
+          where: {
+            productId_locale: {
+              productId: product.id,
+              locale: 'en',
+            },
+          },
+          update: {
+            name: product.nameEn,
+            description: product.descriptionEn,
+            advantages: product.advantagesEn,
+            composition: product.compositionEn,
+            application: product.applicationEn,
+          },
+          create: {
+            productId: product.id,
+            locale: 'en',
+            name: product.nameEn,
+            description: product.descriptionEn,
+            advantages: product.advantagesEn,
+            composition: product.compositionEn,
+            application: product.applicationEn,
+          },
         });
       }
 

@@ -21,7 +21,6 @@ import {
   adminSummaryClassName,
   adminTextareaClassName,
   adminTextareaOnWhiteClassName,
-  adminTranslationCardClassName,
 } from '@/components/admin/adminStyles';
 import ArticleRichTextEditor from '@/components/admin/ArticleRichTextEditor';
 import MediaImage from '@/components/catalog/MediaImage';
@@ -34,6 +33,11 @@ import {
   toDateInputValue,
 } from '@/lib/articles';
 import { getArticles, noStoreApiFetchOptions, type Article } from '@/lib/api';
+import {
+  getContentLocaleLabel,
+  normalizeContentLocale,
+  withContentLocale,
+} from '@/lib/contentLocales';
 import { parseEntityId } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
 import { FiEdit3, FiExternalLink } from 'react-icons/fi';
@@ -42,6 +46,7 @@ import { createArticleAction, updateArticleAction } from './actions';
 
 type AdminPageSearchParams = {
   article?: string;
+  contentLocale?: string;
   edit?: string;
   error?: string;
   status?: string;
@@ -53,18 +58,20 @@ type ArticleFormValues = Pick<
 >;
 
 function ArticleFormFields({
+  contentLocale,
   locale,
   copy,
   values,
   imageRequired,
 }: {
+  contentLocale: string;
   locale: string;
   copy: ReturnType<typeof getArticlesCopy>;
   values?: Partial<ArticleFormValues>;
   imageRequired: boolean;
 }) {
   const primaryPlaceholder =
-    locale === 'en'
+    contentLocale === 'en'
       ? 'Start with an intro paragraph, then add headings and lists.'
       : 'Начните с вводного абзаца, затем добавьте подзаголовки и списки.';
   const translationPlaceholder =
@@ -142,7 +149,7 @@ function ArticleFormFields({
         <span className={adminHintClassName}>{copy.contentHint}</span>
       </div>
 
-      <div className={adminTranslationCardClassName}>
+      <div className="hidden">
         <div>
           <p className={adminBadgeClassName}>
             {locale === 'en' ? 'English translation' : 'Английская версия'}
@@ -205,9 +212,11 @@ export default async function AdminArticlesPage({
   const { locale } = await params;
   await requireAdminSession(locale, `/${locale}/admin/articles`);
 
-  const { article, edit, error, status } = await searchParams;
+  const { article, contentLocale: contentLocaleParam, edit, error, status } = await searchParams;
+  const contentLocale = normalizeContentLocale(contentLocaleParam);
+  const contentLocaleLabel = getContentLocaleLabel(contentLocale);
   const copy = getArticlesCopy(locale);
-  const articles = await getArticles(undefined, noStoreApiFetchOptions);
+  const articles = await getArticles(contentLocale, noStoreApiFetchOptions, contentLocale);
   const editArticleId = parseEntityId(edit ?? '');
   const statusArticleId = parseEntityId(article ?? '');
   const topLevelError = error && !editArticleId ? error : null;
@@ -222,7 +231,7 @@ export default async function AdminArticlesPage({
       : current;
   }, null);
   const untranslatedArticles = articles.filter(
-    (articleItem) => !articleItem.titleEn?.trim() || !articleItem.contentEn?.trim(),
+    (articleItem) => !articleItem.adminTranslation?.isComplete,
   ).length;
   const createBadge = locale === 'en' ? 'Create' : 'Создание';
   const manageBadge = locale === 'en' ? 'Manage' : 'Управление';
@@ -245,7 +254,7 @@ export default async function AdminArticlesPage({
           : 'Самая свежая публикация, которая сейчас есть в админке.',
     },
     {
-      label: locale === 'en' ? 'Need EN' : 'Нужен EN',
+      label: locale === 'en' ? `Need ${contentLocaleLabel}` : `Нужен ${contentLocaleLabel}`,
       value: String(untranslatedArticles),
       hint:
         locale === 'en'
@@ -270,6 +279,7 @@ export default async function AdminArticlesPage({
       backHref="/articles"
       backLabel={copy.backToSite}
       description={copy.adminSubtitle}
+      contentLocale={contentLocale}
       locale={locale}
       shortcuts={shortcuts}
       stats={stats}
@@ -287,8 +297,14 @@ export default async function AdminArticlesPage({
 
           <form action={createArticleAction} className="mt-6 space-y-6">
             <input type="hidden" name="locale" value={locale} />
+            <input type="hidden" name="contentLocale" value={contentLocale} />
 
-            <ArticleFormFields locale={locale} copy={copy} imageRequired />
+            <ArticleFormFields
+              contentLocale={contentLocale}
+              locale={locale}
+              copy={copy}
+              imageRequired
+            />
 
             <div className="flex flex-col gap-3 border-t border-[#0b5a45]/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
               <button
@@ -324,76 +340,72 @@ export default async function AdminArticlesPage({
                 const imageSrc = resolveMediaUrl(articleItem.imageUrl);
                 const isEditing =
                   editArticleId === articleItem.id || statusArticleId === articleItem.id;
-                const hasEnglishVersion =
-                  Boolean(articleItem.titleEn?.trim()) && Boolean(articleItem.contentEn?.trim());
+                const hasContentTranslation = Boolean(articleItem.adminTranslation?.isComplete);
 
                 return (
                   <div
                     key={articleItem.id}
                     id={`article-${articleItem.id}`}
-                    className="scroll-mt-32 rounded-[1.55rem] border border-[#0b5a45]/10 bg-white p-4 shadow-[0_22px_70px_-54px_rgba(11,62,49,0.9)] sm:p-5">
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                      <div className="flex min-w-0 gap-4">
-                        <div className="relative h-[104px] w-[132px] shrink-0 overflow-hidden rounded-[1.25rem] border border-[#0b5a45]/10 bg-[#eef3ef]">
-                          <MediaImage
-                            src={imageSrc}
-                            alt={articleItem.title}
-                            fill
-                            sizes="132px"
-                            className="object-cover"
-                            emptyState={
-                              <div className="h-full w-full bg-[linear-gradient(135deg,#dfe9df,#b1c9b3,#6d8f70)]" />
-                            }
-                          />
-                        </div>
+                    className="scroll-mt-6 rounded-lg border border-[#0b5a45]/10 bg-white p-4 shadow-[0_12px_40px_-30px_rgba(11,62,49,0.8)] sm:p-5">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
+                      <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden rounded-md border border-[#0b5a45]/10 bg-[#eef3ef] sm:h-[90px] sm:w-[116px]">
+                        <MediaImage
+                          src={imageSrc}
+                          alt={articleItem.title}
+                          fill
+                          sizes="(max-width: 640px) calc(100vw - 4rem), 116px"
+                          className="object-cover"
+                          emptyState={
+                            <div className="h-full w-full bg-[linear-gradient(135deg,#dfe9df,#b1c9b3,#6d8f70)]" />
+                          }
+                        />
+                      </div>
 
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <div className="flex flex-wrap items-center gap-1.5">
                             <span className={adminBadgeClassName}>
                               {formatArticleDate(articleItem.publishedAt, locale)}
                             </span>
                             <span
                               className={adminCx(
-                                'inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]',
-                                hasEnglishVersion
+                                'inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em]',
+                                hasContentTranslation
                                   ? 'bg-emerald-50 text-emerald-700'
                                   : 'bg-amber-50 text-amber-700',
                               )}>
-                              {hasEnglishVersion
-                                ? locale === 'en'
-                                  ? 'EN ready'
-                                  : 'EN готов'
+                              {hasContentTranslation
+                                ? `${contentLocaleLabel} ✓`
                                 : locale === 'en'
-                                  ? 'Needs EN'
-                                  : 'Нужен EN'}
+                                  ? `Needs ${contentLocaleLabel}`
+                                  : `Нужен ${contentLocaleLabel}`}
                             </span>
                           </div>
 
-                          <h3 className="mt-3 text-xl font-semibold leading-7 text-[#0b3e31]">
-                            {articleItem.title}
-                          </h3>
-                          {articleItem.excerpt ? (
-                            <p className="mt-3 line-clamp-3 text-sm leading-6 text-[#567068]">
-                              {articleItem.excerpt}
-                            </p>
-                          ) : null}
-                          <p className="mt-3 text-xs leading-5 text-[#7f8f88]">
-                            {copy.imagePathLabel}: {articleItem.imageUrl}
-                          </p>
+                          <div className="grid w-full grid-cols-[2.5rem_minmax(0,1fr)] gap-1.5 sm:w-auto sm:flex sm:shrink-0">
+                            <Link href={getArticleHref(articleItem)} className={adminCx(adminSecondaryButtonClassName, 'min-h-8 px-2.5 py-1.5 text-xs')}>
+                              <FiExternalLink />
+                            </Link>
+                            <Link
+                              href={withContentLocale(
+                                `/admin/articles?edit=${articleItem.id}#article-${articleItem.id}`,
+                                contentLocale,
+                              )}
+                              className={adminCx(adminSecondaryButtonClassName, 'min-h-8 px-2.5 py-1.5 text-xs')}>
+                              <FiEdit3 className="mr-1" />
+                              {openEditorLabel}
+                            </Link>
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="flex flex-col gap-2 sm:flex-row lg:flex-col lg:items-end">
-                        <Link href={getArticleHref(articleItem)} className={adminSecondaryButtonClassName}>
-                          <FiExternalLink className="mr-2" />
-                          {copy.openArticle}
-                        </Link>
-                        <Link
-                          href={`/admin/articles?edit=${articleItem.id}#article-${articleItem.id}`}
-                          className={adminSecondaryButtonClassName}>
-                          <FiEdit3 className="mr-2" />
-                          {openEditorLabel}
-                        </Link>
+                        <h3 className="mt-2 text-sm font-semibold leading-6 text-[#0b3e31] sm:text-base sm:leading-7">
+                          {articleItem.title}
+                        </h3>
+                        {articleItem.excerpt ? (
+                          <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-[#567068] sm:text-sm sm:leading-6">
+                            {articleItem.excerpt}
+                          </p>
+                        ) : null}
                       </div>
                     </div>
 
@@ -420,13 +432,24 @@ export default async function AdminArticlesPage({
 
                         <form action={updateArticleAction} className="mt-5 space-y-6">
                           <input type="hidden" name="locale" value={locale} />
+                          <input type="hidden" name="contentLocale" value={contentLocale} />
                           <input type="hidden" name="articleId" value={articleItem.id} />
-                          <input type="hidden" name="previousTitle" value={articleItem.title} />
+                          <input
+                            type="hidden"
+                            name="previousTitle"
+                            value={articleItem.slugSourceTitle ?? articleItem.title}
+                          />
 
                           <ArticleFormFields
+                            contentLocale={contentLocale}
                             locale={locale}
                             copy={copy}
-                            values={articleItem}
+                            values={{
+                              title: articleItem.adminTranslation?.title ?? '',
+                              excerpt: articleItem.adminTranslation?.excerpt ?? '',
+                              content: articleItem.adminTranslation?.content ?? '',
+                              publishedAt: articleItem.publishedAt,
+                            }}
                             imageRequired={false}
                           />
 

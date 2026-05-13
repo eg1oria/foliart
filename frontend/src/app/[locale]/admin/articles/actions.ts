@@ -5,17 +5,15 @@ import { redirect } from 'next/navigation';
 import { getAdminApiHeaders } from '@/lib/adminApi';
 import { requireAdminSession } from '@/lib/adminAuthServer';
 import { getArticleHref } from '@/lib/articles';
+import { normalizeContentLocale } from '@/lib/contentLocales';
 
 const backendUrl = process.env.BACKEND_URL ?? 'http://localhost:3001';
 const articleLocales = ['ru', 'en'] as const;
 
 type ArticleFormPayload = {
   title: string;
-  titleEn: string;
   excerpt: string;
-  excerptEn: string;
   content: string;
-  contentEn: string;
   publishedAt: string;
 };
 
@@ -47,22 +45,21 @@ function normalizeText(value: FormDataEntryValue | null) {
 function getArticleFormPayload(formData: FormData): ArticleFormPayload {
   return {
     title: normalizeText(formData.get('title')),
-    titleEn: normalizeText(formData.get('titleEn')),
     excerpt: normalizeText(formData.get('excerpt')),
-    excerptEn: normalizeText(formData.get('excerptEn')),
     content: normalizeText(formData.get('content')),
-    contentEn: normalizeText(formData.get('contentEn')),
     publishedAt: normalizeText(formData.get('publishedAt')),
   };
 }
 
-function appendArticlePayload(payload: FormData, values: ArticleFormPayload) {
+function appendArticlePayload(
+  payload: FormData,
+  values: ArticleFormPayload,
+  contentLocale: string,
+) {
+  payload.append('contentLocale', contentLocale);
   payload.append('title', values.title);
-  payload.append('titleEn', values.titleEn);
   payload.append('excerpt', values.excerpt);
-  payload.append('excerptEn', values.excerptEn);
   payload.append('content', values.content);
-  payload.append('contentEn', values.contentEn);
   payload.append('publishedAt', values.publishedAt);
 }
 
@@ -95,6 +92,7 @@ async function revalidateArticlePages(args: {
 
 export async function createArticleAction(formData: FormData) {
   const locale = normalizeLocale(formData.get('locale'));
+  const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
   await requireAdminSession(locale);
 
   const values = getArticleFormPayload(formData);
@@ -103,6 +101,7 @@ export async function createArticleAction(formData: FormData) {
   if (!values.title || !values.content || !(image instanceof File) || image.size === 0) {
     redirect(
       buildAdminRedirectPath(locale, {
+        contentLocale,
         error:
           locale === 'en'
             ? 'Fill in the article title, content, and cover image.'
@@ -112,7 +111,7 @@ export async function createArticleAction(formData: FormData) {
   }
 
   const payload = new FormData();
-  appendArticlePayload(payload, values);
+  appendArticlePayload(payload, values, contentLocale);
   payload.append('image', image);
 
   const response = await fetch(`${backendUrl}/api/articles`, {
@@ -127,6 +126,7 @@ export async function createArticleAction(formData: FormData) {
 
     redirect(
       buildAdminRedirectPath(locale, {
+        contentLocale,
         error:
           rawMessage ||
           (locale === 'en' ? 'Failed to create article.' : 'Не удалось создать статью.'),
@@ -140,6 +140,7 @@ export async function createArticleAction(formData: FormData) {
 
   redirect(
     buildAdminRedirectPath(locale, {
+      contentLocale,
       status: 'created',
     }, 'create-article'),
   );
@@ -147,6 +148,7 @@ export async function createArticleAction(formData: FormData) {
 
 export async function updateArticleAction(formData: FormData) {
   const locale = normalizeLocale(formData.get('locale'));
+  const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
   await requireAdminSession(locale);
 
   const articleId = normalizeText(formData.get('articleId'));
@@ -157,6 +159,7 @@ export async function updateArticleAction(formData: FormData) {
   if (!articleId || !values.title || !values.content) {
     redirect(
       buildAdminRedirectPath(locale, {
+        contentLocale,
         edit: articleId,
         error:
           locale === 'en'
@@ -167,7 +170,7 @@ export async function updateArticleAction(formData: FormData) {
   }
 
   const payload = new FormData();
-  appendArticlePayload(payload, values);
+  appendArticlePayload(payload, values, contentLocale);
 
   if (image instanceof File && image.size > 0) {
     payload.append('image', image);
@@ -185,6 +188,7 @@ export async function updateArticleAction(formData: FormData) {
 
     redirect(
       buildAdminRedirectPath(locale, {
+        contentLocale,
         edit: articleId,
         error:
           rawMessage ||
@@ -194,12 +198,13 @@ export async function updateArticleAction(formData: FormData) {
   }
 
   await revalidateArticlePages({
-    articleTitle: values.title,
+    articleTitle: contentLocale === 'ru' ? values.title : previousTitle || values.title,
     previousTitle,
   });
 
   redirect(
     buildAdminRedirectPath(locale, {
+      contentLocale,
       status: 'updated',
       article: articleId,
       edit: articleId,
