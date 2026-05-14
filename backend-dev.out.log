@@ -36,3 +36,79 @@
 [32m[Nest] 12136  - [39m14.05.2026, 12:01:31 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/calendars, POST} route[39m[38;5;3m +1ms[39m
 [32m[Nest] 12136  - [39m14.05.2026, 12:01:31 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/calendars/:id, PATCH} route[39m[38;5;3m +0ms[39m
 [32m[Nest] 12136  - [39m14.05.2026, 12:01:31 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +289ms[39m
+[2J[3J[H[[90m12:55:00[0m] File change detected. Starting incremental compilation...
+
+[[90m12:55:01[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m12:55:01[0m] File change detected. Starting incremental compilation...
+
+[[90m12:55:02[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m12:55:02[0m] File change detected. Starting incremental compilation...
+
+[[90m12:55:03[0m] Found 0 errors. Watching for file changes.
+
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPrismaModule dependencies initialized[39m[38;5;3m +20ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +2ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCategoriesModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mProductsModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mArticlesModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCalendarsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAppController {/api}:[39m[38;5;3m +6ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mCategoriesController {/api/categories}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/categories, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/categories/:id, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/categories/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mProductsController {/api/products}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/products, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/products, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/products/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/products/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mArticlesController {/api/articles}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/articles, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/articles/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/articles, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/articles/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/articles/:id/views, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mCalendarsController {/api/calendars}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/calendars, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/calendars/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/calendars, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/calendars/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 21640  - [39m14.05.2026, 12:55:05 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +175ms[39m
+[2J[3J[H[[90m12:55:05[0m] File change detected. Starting incremental compilation...
+
+[[90m12:55:06[0m] Found 0 errors. Watching for file changes.
+
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPrismaModule dependencies initialized[39m[38;5;3m +16ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCategoriesModule dependencies initialized[39m[38;5;3m +2ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mProductsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mArticlesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCalendarsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAppController {/api}:[39m[38;5;3m +5ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mCategoriesController {/api/categories}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/categories, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/categories/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/categories/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mProductsController {/api/products}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/products, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/products, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/products/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/products/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mArticlesController {/api/articles}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/articles, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/articles/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/articles, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/articles/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/articles/:id/views, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mCalendarsController {/api/calendars}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/calendars, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/calendars/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/calendars, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/calendars/:id, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 13368  - [39m14.05.2026, 12:55:07 [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +77ms[39m

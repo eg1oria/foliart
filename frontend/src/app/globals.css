@@ -21,7 +21,45 @@ body {
 }
 
 :root {
-  --site-gutter: clamp(16px, 6vw, 96px);
+  --site-gutter: 12px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --site-gutter: 24px;
+  }
+}
+@media (min-width: 1024px) {
+  :root {
+    --site-gutter: 48px;
+  }
+}
+@media (min-width: 1280px) {
+  :root {
+    --site-gutter: 80px;
+  }
+}
+@media (min-width: 1440px) {
+  :root {
+    --site-gutter: 120px;
+  }
+}
+@media (min-width: 1600px) {
+  :root {
+    --site-gutter: 200px;
+  }
+}
+
+/* Дальше меняй под себя */
+@media (min-width: 1800px) {
+  :root {
+    --site-gutter: 240px;
+  }
+}
+@media (min-width: 2000px) {
+  :root {
+    --site-gutter: 260px;
+  }
 }
 
 main {

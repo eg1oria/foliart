@@ -163,7 +163,7 @@ export default async function CategoryProductsPage({
                   <Link
                     key={product.id}
                     href={getProductHref(category, product)}
-                    className="group flex h-full w-[80%] justify-self-center flex-col bg-white transition duration-300 hover:shadow-[0_0px_20px_0px_rgba(11,62,49,0.2)]">
+                    className="group flex h-full w-[90%] md:w-[70%] justify-self-center flex-col bg-white transition duration-300 hover:shadow-[0_0px_20px_0px_rgba(11,62,49,0.2)]">
                     <div className="relative aspect-[4/5] bg-white">
                       <MediaImage
                         src={productImage}
