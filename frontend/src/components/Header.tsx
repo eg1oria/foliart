@@ -4,9 +4,11 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import type { ReactNode } from 'react';
 import { useEffect, useRef, useState, useTransition } from 'react';
+import type { IconType } from 'react-icons';
 import { BsTelephoneInbound } from 'react-icons/bs';
 import { FiChevronDown } from 'react-icons/fi';
 import { RxHamburgerMenu } from 'react-icons/rx';
+import { SiOdnoklassniki, SiVk } from 'react-icons/si';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { formatProductCount } from '@/lib/catalog';
 import { useLocale, useTranslations } from 'next-intl';
@@ -36,6 +38,41 @@ type HeaderProps = {
   catalogChildren?: HeaderChildItem[];
   calendarChildren?: HeaderChildItem[];
 };
+
+type SocialLink = {
+  id: string;
+  label: string;
+  href: string;
+  icon?: IconType;
+  text?: string;
+};
+
+const socialLinks: SocialLink[] = [
+  {
+    id: 'dzen',
+    label: 'Dzen',
+    href: 'https://dzen.ru/foliart',
+    text: 'DZ',
+  },
+  {
+    id: 'vk',
+    label: 'VK',
+    href: 'https://vk.com/foliart',
+    icon: SiVk,
+  },
+  {
+    id: 'ok',
+    label: 'OK',
+    href: 'https://ok.ru/group/70000047721968',
+    icon: SiOdnoklassniki,
+  },
+  {
+    id: 'max',
+    label: 'MAX',
+    href: 'https://max.ru/id2309181772_biz',
+    text: 'MAX',
+  },
+];
 
 export default function Header({ catalogChildren = [], calendarChildren = [] }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -228,10 +265,33 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
     </ContactModalTrigger>
   );
 
+  const renderSocialLinks = () => (
+    <nav aria-label="Foliart social links" className="flex items-center gap-2">
+      {socialLinks.map(({ id, label, href, icon: Icon, text }) => (
+        <a
+          key={id}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Foliart ${label}`}
+          title={label}
+          className="flex h-12 w-12 items-center justify-center rounded-full border border-white/25  text-white transition-colors hover:border-transparent hover:bg-[#074031]  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+          {Icon ? (
+            <Icon size={20} aria-hidden="true" />
+          ) : (
+            <span aria-hidden="true" className={`font-bold uppercase leading-none text-[14px]`}>
+              {text}
+            </span>
+          )}
+        </a>
+      ))}
+    </nav>
+  );
+
   return (
     <>
       <header
-        className="absolute top-0 left-0 z-50 flex w-full flex-col gap-4 pb-4 pt-4 md:gap-10 md:pb-4 md:pt-6"
+        className="absolute top-0 left-0 z-50 flex w-full flex-col gap-4 pb-4 pt-4 md:gap-10 md:pb-0 md:pt-6"
         style={{ backgroundColor: 'rgba(7,64,49, 0.1)' }}>
         <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 md:hidden">
           <button
@@ -250,10 +310,13 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
         <div className="hidden items-center justify-between md:flex">
           {renderCompactLogo('h-auto w-14 lg:hidden')}
           {renderFullLogo(135, 'hidden h-auto lg:block lg:w-[135px]')}
-          <div className="flex items-center gap-9">
+          <div className="flex items-center gap-6 lg:gap-9">
             {renderDesktopLocaleSwitcher()}
 
-            {renderPhoneModalTrigger()}
+            <div className="flex items-center gap-3">
+              {renderSocialLinks()}
+              {renderPhoneModalTrigger()}
+            </div>
           </div>
         </div>
 
@@ -415,9 +478,12 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
             {renderFullLogo(110, 'hidden h-auto lg:block lg:w-[110px]')}
           </div>
 
-          <div className="flex items-center gap-9">
+          <div className="flex items-center gap-6 lg:gap-9">
             {renderDesktopLocaleSwitcher()}
-            {renderPhoneModalTrigger()}
+            <div className="flex items-center gap-3">
+              {renderSocialLinks()}
+              {renderPhoneModalTrigger()}
+            </div>
           </div>
         </div>
       </div>
