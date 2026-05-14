@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import ContactModalTrigger from '@/components/ContactModalTrigger';
 import MediaImage from '@/components/catalog/MediaImage';
+import ProductImageLightbox from '@/components/catalog/ProductImageLightbox';
 import SpecialistSection from '@/components/catalog/SpecialistSection';
 import { Link } from '@/i18n/routing';
 import { getCategories, getProducts } from '@/lib/api';
@@ -235,12 +236,12 @@ export default async function ProductDetailsPage({
           <div className="order-1 relative flex min-h-[420px] items-center justify-center lg:order-2 lg:min-h-[520px]">
             <div className="absolute bottom-9 h-10 w-[58%] rounded-full bg-black/10 blur-2xl" />
             <div className="relative aspect-[4/5] w-full max-w-[430px]">
-              <MediaImage
+              <ProductImageLightbox
                 src={productImage}
                 alt={product.name}
-                fill
+                productName={product.name}
+                locale={locale}
                 sizes="(max-width: 1024px) 100vw, 34vw"
-                className="object-contain drop-shadow-[0_28px_34px_rgba(0,0,0,0.12)]"
                 emptyState={
                   <div className="flex h-full w-full items-center justify-center rounded-[1.75rem] bg-[#f4f0e7] px-10 text-center text-sm leading-6 text-[#6d6d63]">
                     {copy.productPlaceholder}
