@@ -20,6 +20,7 @@ type BuildPageMetadataArgs = {
   title: string;
   description?: string;
   image?: string | null;
+  keywords?: string[];
   type?: 'website' | 'article';
 };
 
@@ -64,6 +65,34 @@ export function getDefaultSiteDescription(locale: string) {
   }
 
   return 'Фолиарт разрабатывает органо-минеральные комплексы и системы питания растений для хозяйств с лабораторным сопровождением.';
+}
+
+export function getDefaultSiteKeywords(locale: string) {
+  if (locale === 'en') {
+    return [
+      'Foliart',
+      'organo-mineral fertilizers',
+      'plant nutrition systems',
+      'foliar feeding',
+      'micronutrient fertilizers',
+      'crop nutrition',
+      'agronomy support',
+      'fertilizer catalog',
+      'fertilizers for farms',
+    ];
+  }
+
+  return [
+    'Фолиарт',
+    'органо-минеральные удобрения',
+    'системы питания растений',
+    'листовые подкормки',
+    'микроудобрения',
+    'удобрения для сельского хозяйства',
+    'удобрения для растений',
+    'каталог удобрений',
+    'агрономическое сопровождение',
+  ];
 }
 
 export function buildDocumentTitle(title: string) {
@@ -165,14 +194,23 @@ export function buildPageMetadata({
   title,
   description,
   image,
+  keywords = [],
   type = 'website',
 }: BuildPageMetadataArgs): Metadata {
   const resolvedDescription = trimDescription(description || getDefaultSiteDescription(locale));
   const fullTitle = buildDocumentTitle(title);
+  const resolvedKeywords = Array.from(
+    new Set(
+      [...getDefaultSiteKeywords(locale), title, ...keywords]
+        .map((keyword) => keyword.trim())
+        .filter(Boolean),
+    ),
+  );
 
   return {
     title,
     description: resolvedDescription,
+    keywords: resolvedKeywords,
     alternates: buildLocalizedAlternates(locale, path),
     openGraph: {
       type,

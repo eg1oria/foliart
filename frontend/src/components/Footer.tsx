@@ -23,6 +23,9 @@ export default function Footer() {
               style={{ fontWeight: 100 }}>
               {t('slogan')}
             </p>
+            <p className="mt-3 max-w-2xl text-center text-xs leading-5 text-white/70 md:text-start">
+              {t('seoText')}
+            </p>
             <Link
               href="/privacy"
               className="text-center text-sm text-white/80 underline md:text-start ">

@@ -18,6 +18,7 @@ import {
   buildWebsiteSchema,
   DEFAULT_OG_IMAGE,
   getDefaultSiteDescription,
+  getDefaultSiteKeywords,
   getSiteUrl,
   GOOGLE_ANALYTICS_ID,
   GOOGLE_SITE_VERIFICATION,
@@ -84,6 +85,7 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_NAME}`,
   },
   description: getDefaultSiteDescription(routing.defaultLocale),
+  keywords: getDefaultSiteKeywords(routing.defaultLocale),
   openGraph: {
     type: 'website',
     siteName: SITE_NAME,
