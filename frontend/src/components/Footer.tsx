@@ -9,12 +9,11 @@ export default function Footer() {
   return (
     <footer className="relative overflow-hidden">
       <Image src="/footer3.webp" alt="" fill sizes="100vw" className="object-cover" />
-      <div className="absolute inset-0 bg-black/45" />
+      <div className="absolute inset-0 bg-black/50" />
 
       <div className="footer-section relative z-10 flex flex-col items-center gap-6 py-5 md:flex-row md:items-start">
         <div className="flex flex-col items-center gap-6 py-10 md:flex-row md:items-start md:gap-30">
-          <ContactModalTrigger
-            className="flex w-fit rounded-full bg-[#074031] px-6 py-3 text-lg text-white">
+          <ContactModalTrigger className="flex w-fit rounded-full bg-[#074031] px-6 py-3 text-lg text-white">
             {t('callOrder')}
           </ContactModalTrigger>
 

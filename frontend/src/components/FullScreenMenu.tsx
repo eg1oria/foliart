@@ -8,6 +8,7 @@ import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { formatProductCount } from '@/lib/catalog';
 import { useLocale, useTranslations } from 'next-intl';
 import ContactModalTrigger from './ContactModalTrigger';
+import SocialLinks from './SocialLinks';
 
 type LocaleOption = 'ru' | 'en';
 
@@ -260,12 +261,18 @@ export default function FullscreenMenu({
       </div>
 
       <div className="site-gutter flex-shrink-0 border-t border-white/10 py-5 md:py-6">
-        <div className="flex flex-col gap-5 md:flex-row md:items-center md:gap-10 xl:gap-20">
-          <ContactModalTrigger
-            onOpen={onClose}
-            className="inline-flex w-fit cursor-pointer items-center justify-center rounded-full bg-[#074031] px-7 py-3 text-sm text-white transition-colors hover:bg-[#074031]/80">
-            {footerT('callOrder')}
-          </ContactModalTrigger>
+        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between md:gap-10 xl:gap-20">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
+            <ContactModalTrigger
+              onOpen={onClose}
+              className="inline-flex w-fit cursor-pointer items-center justify-center rounded-full bg-[#074031] px-7 py-3 text-sm text-white transition-colors hover:bg-[#074031]/80">
+              {footerT('callOrder')}
+            </ContactModalTrigger>
+            <SocialLinks
+              onLinkClick={onClose}
+              linkClassName="flex h-11 w-11 items-center justify-center rounded-full border border-white/25 text-white transition-colors hover:border-transparent hover:bg-[#074031] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            />
+          </div>
           <div>
             <p className="text-xs text-white/30">{footerT('slogan')}</p>
             <Link
