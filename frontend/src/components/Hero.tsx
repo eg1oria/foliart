@@ -1,8 +1,10 @@
 import Image from 'next/image';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 export default function Hero() {
   const t = useTranslations('Hero');
+  const locale = useLocale();
+  const logoSrc = locale === 'en' ? '/logo_eng.png' : '/logo5.PNG';
 
   const items = [
     {
@@ -24,17 +26,22 @@ export default function Hero() {
   ];
 
   return (
-    <section className="hero-section relative flex h-full md:min-h-screen flex-col items-center justify-start  md:justify-center pt-30 pb-20 md:pb-40 md:pt-40">
+    <section className="hero-section relative flex min-h-[100svh] flex-col items-center justify-start pb-20 pt-30 md:justify-center md:pb-40 md:pt-40">
       <Image src="/hero.webp" alt="" fill sizes="100vw" className="object-cover -z-10" priority />
       <div className="absolute inset-0 bg-black/50 -z-10" />
       <Image
-        src="/logo5.PNG"
+        src={logoSrc}
         alt="Foliart logo"
         width={420}
         height={70}
-        className="mt-0 h-auto w-auto md:mt-20"
+        sizes="(max-width: 767px) calc(100vw - 32px), 420px"
+        className="mt-0 h-auto md:mt-20"
+        style={{
+          width: 'min(420px, calc(100vw - 32px))',
+          maxWidth: '100%',
+        }}
       />
-      <h1 className="text-xl text-center text-white/85" style={{ fontWeight: 100 }}>
+      <h1 className="w-full max-w-3xl text-center text-xl text-white/85" style={{ fontWeight: 100 }}>
         {t('title')}
       </h1>
 
@@ -42,15 +49,17 @@ export default function Hero() {
         {items.map((item) => (
           <li
             key={item.title}
-            className="flex tablet:max-w-[250px] tablet:flex-col items-start tablet:items-center gap-9">
+            className="flex w-full min-w-0 items-start gap-5 tablet:max-w-[250px] tablet:flex-col tablet:items-center tablet:gap-9">
             <Image
               src={item.img}
               alt={item.title}
               width={45}
               height={45}
-              className="h-auto w-auto"
+              className="h-auto w-auto shrink-0"
             />
-            <span className="text-white/85 text-start tablet:text-center mt-2">{item.title}</span>
+            <span className="mt-2 min-w-0 flex-1 text-start text-white/85 tablet:text-center">
+              {item.title}
+            </span>
           </li>
         ))}
       </ul>

@@ -10,6 +10,7 @@ import { RxHamburgerMenu } from 'react-icons/rx';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { formatProductCount } from '@/lib/catalog';
 import { useLocale, useTranslations } from 'next-intl';
+import ContactModalTrigger from './ContactModalTrigger';
 
 const FullscreenMenu = dynamic(() => import('./FullScreenMenu'), {
   ssr: false,
@@ -142,10 +143,11 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
   }, []);
 
   const phoneBadgeClassName =
-    'flex items-center justify-center rounded-full text-white transition-colors hover:bg-[#074031]/80';
+    'flex cursor-pointer items-center justify-center rounded-full text-white transition-colors hover:bg-[#074031]/80';
   const mobileActionButtonClassName =
     'flex h-10 w-10 items-center justify-center rounded-full bg-[#074031] text-white transition-colors hover:bg-[#074031]/80 sm:h-11 sm:w-11';
   const hasCatalogMegaMenu = catalogChildren.length > 0;
+  const fullLogoSrc = locale === 'en' ? '/logo_eng.png' : '/logo5.PNG';
 
   const renderDesktopLocaleSwitcher = () => (
     <div className="relative group z-[100] cursor-pointer">
@@ -210,7 +212,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
   const renderFullLogo = (width: number, className: string) => (
     <Link href="/" aria-label={t('home')} className={className}>
       <Image
-        src={'/logo5.PNG'}
+        src={fullLogoSrc}
         alt="Foliart logo"
         width={width}
         height={30}
@@ -219,10 +221,17 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
     </Link>
   );
 
+  const renderPhoneModalTrigger = () => (
+    <ContactModalTrigger className={`${phoneBadgeClassName} bg-[#074031] p-3`}>
+      <span className="sr-only">{t('contacts')}</span>
+      <BsTelephoneInbound size={22} aria-hidden="true" />
+    </ContactModalTrigger>
+  );
+
   return (
     <>
       <header
-        className="absolute top-0 left-0 z-50 flex w-full flex-col gap-4 px-8 pt-4 pb-4 md:pb-4 sm:px-6 md:gap-10 md:px-12 md:pt-6 xl:px-90 min-[1570px]:px-70"
+        className="absolute top-0 left-0 z-50 flex w-full flex-col gap-4 pb-4 pt-4 md:gap-10 md:pb-4 md:pt-6"
         style={{ backgroundColor: 'rgba(7,64,49, 0.1)' }}>
         <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 md:hidden">
           <button
@@ -244,13 +253,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
           <div className="flex items-center gap-9">
             {renderDesktopLocaleSwitcher()}
 
-            <Link
-              href="/contacts"
-              aria-label={t('contacts')}
-              className={`${phoneBadgeClassName} p-3`}
-              style={{ backgroundColor: '#074031' }}>
-              <BsTelephoneInbound size={22} />
-            </Link>
+            {renderPhoneModalTrigger()}
           </div>
         </div>
 
@@ -379,7 +382,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
 
       {/* Sticky header on scroll */}
       <div
-        className={`fixed top-0 left-0 z-50 w-full px-4 py-3 transition-all duration-300 sm:px-6 md:px-8 md:py-2 xl:px-90 ${
+        className={`site-gutter fixed top-0 px-90 left-0 z-50 w-full py-3 transition-all duration-300 md:py-2 ${
           isScrolled ? 'translate-y-0 opacity-100 visible' : '-translate-y-full opacity-0 invisible'
         }`}
         style={{
@@ -414,13 +417,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
 
           <div className="flex items-center gap-9">
             {renderDesktopLocaleSwitcher()}
-            <Link
-              href="/contacts"
-              aria-label={t('contacts')}
-              className={`${phoneBadgeClassName} p-3`}
-              style={{ backgroundColor: '#074031' }}>
-              <BsTelephoneInbound size={22} />
-            </Link>
+            {renderPhoneModalTrigger()}
           </div>
         </div>
       </div>

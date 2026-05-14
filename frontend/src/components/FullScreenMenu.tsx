@@ -38,6 +38,7 @@ export default function FullscreenMenu({
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
   const localeOptions: LocaleOption[] = ['ru', 'en'];
+  const fullLogoSrc = locale === 'en' ? '/logo_eng.png' : '/logo5.PNG';
 
   const changeLocale = (nextLocale: LocaleOption) => {
     if (nextLocale === locale) return;
@@ -68,7 +69,7 @@ export default function FullscreenMenu({
   );
 
   const renderFullLogo = (className: string) => (
-    <Image src="/logo5.PNG" alt="Foliart logo" width={135} height={30} className={className} />
+    <Image src={fullLogoSrc} alt="Foliart logo" width={135} height={30} className={className} />
   );
 
   const renderDesktopLocaleSwitcher = () => (
@@ -258,7 +259,7 @@ export default function FullscreenMenu({
         </div>
       </div>
 
-      <div className="flex-shrink-0 border-t border-white/10 px-4 py-5 sm:px-6 md:px-8 md:py-6 xl:px-90">
+      <div className="site-gutter flex-shrink-0 border-t border-white/10 py-5 md:py-6">
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:gap-10 xl:gap-20">
           <ContactModalTrigger
             onOpen={onClose}

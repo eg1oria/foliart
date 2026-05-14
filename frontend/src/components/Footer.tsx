@@ -33,7 +33,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <p className="relative z-10 bg-black/25 px-6 py-5 text-center text-sm text-white/80 md:px-90 md:text-start">
+      <p className="site-gutter relative z-10 bg-black/25 py-5 text-center text-sm text-white/80 md:text-start">
         {t('copyright')}
       </p>
     </footer>

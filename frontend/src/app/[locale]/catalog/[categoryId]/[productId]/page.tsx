@@ -202,7 +202,7 @@ export default async function ProductDetailsPage({
         <h1 className="relative z-10 text-[40px] font-bold text-white">{product.name}</h1>
       </div>
 
-      <section className="px-6 py-2 md:py-12 xl:px-90">
+      <section className="site-gutter py-2 md:py-12">
         <div className="grid gap-6 md:gap-x-12 gap-y-16 lg:grid-cols-[230px_minmax(340px,1fr)_minmax(280px,360px)]">
           <aside className="hidden order-3 min-[1000px]:block lg:order-1 lg:row-span-2 lg:self-stretch">
             <div className="lg:h-full">
