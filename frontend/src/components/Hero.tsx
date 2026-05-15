@@ -4,7 +4,9 @@ import { useLocale, useTranslations } from 'next-intl';
 export default function Hero() {
   const t = useTranslations('Hero');
   const locale = useLocale();
-  const logoSrc = locale === 'en' ? '/logo_eng.png' : '/logo5.PNG';
+  const isEn = locale === 'en';
+  const logoSrc = isEn ? '/logo_eng.png' : '/logo5.PNG';
+  const logoWidth = isEn ? 520 : 440;
 
   const items = [
     {
@@ -32,16 +34,18 @@ export default function Hero() {
       <Image
         src={logoSrc}
         alt="Foliart logo"
-        width={420}
+        width={logoWidth}
         height={70}
-        sizes="(max-width: 767px) calc(100vw - 32px), 420px"
+        sizes="(max-width: 767px) calc(100vw - 32px), 520px"
         className="mt-0 h-auto md:mt-20"
         style={{
-          width: 'min(420px, calc(100vw - 32px))',
+          width: `min(${logoWidth}px, calc(100vw - 32px))`,
           maxWidth: '100%',
         }}
       />
-      <h1 className="w-full max-w-3xl text-center text-xl text-white/85" style={{ fontWeight: 100 }}>
+      <h1
+        className="w-full max-w-3xl text-center text-xl text-white/85"
+        style={{ fontWeight: 100 }}>
         {t('title')}
       </h1>
 

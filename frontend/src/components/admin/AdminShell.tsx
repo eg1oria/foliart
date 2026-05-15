@@ -38,7 +38,6 @@ export function AdminShell({
   description,
   locale,
   shortcuts = [],
-  stats = [],
   title,
 }: {
   activeTab: 'products' | 'articles' | 'calendars';
@@ -93,9 +92,7 @@ export function AdminShell({
 
             <div className="flex w-full min-w-0 flex-col gap-3 xl:w-[360px] xl:shrink-0">
               <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-1">
-                <Link
-                  href={backHref}
-                  className={adminCx(adminGhostLinkClassName, 'w-full gap-2')}>
+                <Link href={backHref} className={adminCx(adminGhostLinkClassName, 'w-full gap-2')}>
                   <span>{backLabel}</span>
                   <FiArrowUpRight className="shrink-0" />
                 </Link>
@@ -157,28 +154,6 @@ export function AdminShell({
               </div>
             </div>
           </div>
-
-          {stats.length > 0 ? (
-            <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              {stats.map((stat) => (
-                <div
-                  key={stat.label}
-                  className="min-w-0 rounded-lg border border-[#0b5a45]/10 bg-[#f8faf7] p-4">
-                  <p className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6a7f76]">
-                    {stat.label}
-                  </p>
-                  <p className="mt-2 break-words text-2xl font-semibold leading-none text-[#0b3e31]">
-                    {stat.value}
-                  </p>
-                  {stat.hint ? (
-                    <p className="mt-2 line-clamp-2 text-xs leading-5 text-[#6a7f76]">
-                      {stat.hint}
-                    </p>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          ) : null}
         </div>
       </section>
 

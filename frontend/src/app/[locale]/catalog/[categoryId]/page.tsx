@@ -170,7 +170,7 @@ export default async function CategoryProductsPage({
                         alt={product.name}
                         fill
                         sizes="(max-width: 767px) 50vw, 33vw"
-                        className="object-contain md:p-0 p-4"
+                        className="object-contain max-[767px]:p-[50px] max-[500px]:p-[20px] md:p-[30px]"
                         emptyState={
                           <div className="flex h-full w-full items-center justify-center px-12 text-center text-sm leading-6 text-[#6d6d63]">
                             {copy.productPlaceholder}
