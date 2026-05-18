@@ -5,8 +5,8 @@ export default function Hero() {
   const t = useTranslations('Hero');
   const locale = useLocale();
   const isEn = locale === 'en';
-  const logoSrc = isEn ? '/logo_eng.png' : '/logo5.PNG';
-  const logoWidth = isEn ? 520 : 440;
+  const logoSrc = isEn ? '/logo_eng-w.webp' : '/logo5.PNG';
+  const logoWidth = isEn ? 500 : 440;
 
   const items = [
     {
