@@ -56,14 +56,14 @@ export default async function ArticlesPage({ params }: { params: Promise<{ local
             {copy.emptyState}
           </div>
         ) : (
-          <div className="grid items-stretch gap-2  md:gap-x-10 md:gap-y-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid items-stretch gap-2  md:gap-x-8 md:gap-y-4 md:grid-cols-2 xl:grid-cols-4">
             {articles.map((article) => {
               const imageSrc = resolveMediaUrl(article.imageUrl);
 
               return (
-                <div key={article.id} className="article-card-wrapper">
-                  <Link href={getArticleHref(article)} className="group block">
-                    <article className="article-card w-full p-4 transition-all duration-300 ease-in-out">
+                <div key={article.id} className="article-card-wrapper h-full">
+                  <Link href={getArticleHref(article)} className="group block h-full">
+                    <article className="article-card h-full w-full p-4 transition-all duration-300 ease-in-out">
                       <div className="relative aspect-[16/9] overflow-hidden bg-[#edf2ee]">
                         <MediaImage
                           src={imageSrc}
@@ -81,10 +81,10 @@ export default async function ArticlesPage({ params }: { params: Promise<{ local
                         <h2 className="article-card-title text-[1.20rem] font-semibold text-[#10283d] transition group-hover:text-[#0b5a45]">
                           {article.title}
                         </h2>
-                        <p className="mt-3 text-base text-[#9a958f]">
+                        <p className="mt-4 text-base text-[#9a958f]">
                           {formatArticleDate(article.publishedAt, locale)}
                         </p>
-                        <p className="article-card-excerpt mt-5 text-[0.875rem] leading-6 text-[#53646b] line-clamp-3 transition-all duration-300">
+                        <p className="article-card-excerpt mt-4 text-[0.875rem] leading-6 text-[#53646b] line-clamp-4 transition-all duration-300">
                           {article.excerpt}
                         </p>
                       </div>
