@@ -155,7 +155,7 @@ export default async function CategoryProductsPage({
               {copy.emptyProducts}
             </div>
           ) : (
-            <div className="grid grid-cols-3 min-[1400px]:grid-cols-4">
+            <div className="grid grid-cols-2 min-[551px]:grid-cols-3 min-[1400px]:grid-cols-4">
               {products.map((product) => {
                 const productImage = resolveMediaUrl(product.imageUrl);
 
