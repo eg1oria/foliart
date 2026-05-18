@@ -61,37 +61,36 @@ export default async function ArticlesPage({ params }: { params: Promise<{ local
               const imageSrc = resolveMediaUrl(article.imageUrl);
 
               return (
-                <Link
-                  key={article.id}
-                  href={getArticleHref(article)}
-                  className="group flex h-full p-4 transition-transform transition-shadow duration-300 ease-in-out group-hover:scale-102 group-hover:shadow-lg">
-                  <article className="article-card w-full ">
-                    <div className="relative aspect-[16/9] overflow-hidden bg-[#edf2ee]">
-                      <MediaImage
-                        src={imageSrc}
-                        alt={article.title}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 25vw"
-                        className="object-cover"
-                        emptyState={
-                          <div className="h-full w-full bg-[linear-gradient(135deg,#dfe9df,#b1c9b3,#6d8f70)]" />
-                        }
-                      />
-                    </div>
+                <div key={article.id} className="article-card-wrapper">
+                  <Link href={getArticleHref(article)} className="group block">
+                    <article className="article-card w-full p-4 transition-all duration-300 ease-in-out">
+                      <div className="relative aspect-[16/9] overflow-hidden bg-[#edf2ee]">
+                        <MediaImage
+                          src={imageSrc}
+                          alt={article.title}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 25vw"
+                          className="object-cover"
+                          emptyState={
+                            <div className="h-full w-full bg-[linear-gradient(135deg,#dfe9df,#b1c9b3,#6d8f70)]" />
+                          }
+                        />
+                      </div>
 
-                    <div className="article-card-content pt-8">
-                      <h2 className="article-card-title text-[1.20rem] font-semibold text-[#10283d] transition group-hover:text-[#0b5a45]">
-                        {article.title}
-                      </h2>
-                      <p className="mt-3 text-base text-[#9a958f]">
-                        {formatArticleDate(article.publishedAt, locale)}
-                      </p>
-                      <p className="article-card-excerpt mt-5 text-[0.875rem] leading-6 text-[#53646b]">
-                        {article.excerpt}
-                      </p>
-                    </div>
-                  </article>
-                </Link>
+                      <div className="article-card-content pt-8">
+                        <h2 className="article-card-title text-[1.20rem] font-semibold text-[#10283d] transition group-hover:text-[#0b5a45]">
+                          {article.title}
+                        </h2>
+                        <p className="mt-3 text-base text-[#9a958f]">
+                          {formatArticleDate(article.publishedAt, locale)}
+                        </p>
+                        <p className="article-card-excerpt mt-5 text-[0.875rem] leading-6 text-[#53646b] line-clamp-3 transition-all duration-300">
+                          {article.excerpt}
+                        </p>
+                      </div>
+                    </article>
+                  </Link>
+                </div>
               );
             })}
           </div>

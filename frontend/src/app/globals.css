@@ -104,7 +104,6 @@ header,
   flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
-  min-height: 18rem;
 }
 
 .article-card-title {
@@ -119,27 +118,17 @@ header,
 }
 
 .article-card-excerpt {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
   position: relative;
   min-height: 4rem;
-  max-height: 4rem;
-}
-
-.article-card-excerpt::after {
-  content: '';
-  position: absolute;
-  inset: auto 0 0 0;
-  height: 3rem;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0),
-    rgba(255, 255, 255, 0.96) 72%,
-    #fff 100%
-  );
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  max-height: 5rem;
+  transition:
+    max-height 0.3s ease,
+    -webkit-line-clamp 0.3s ease;
 }
 
 .article-card-excerpt-2 {
@@ -245,4 +234,20 @@ header,
   color: #0b5a45;
   text-decoration: underline;
   text-underline-offset: 0.2em;
+}
+
+.article-card-wrapper {
+  position: relative;
+}
+
+/* Правильный hover без дергания */
+.article-card-wrapper:hover .article-card {
+  position: relative;
+  z-index: 20;
+  background: white;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.13);
+  transform: translateY(-4px);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }

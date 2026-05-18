@@ -140,7 +140,7 @@ export default async function CategoryProductsPage({
       </div>
 
       <section className="category-header mx-auto w-full py-10">
-        <div className="grid gap-5 min-[1000px]:grid-cols-[260px_minmax(0,1fr)] min-[1000px]:gap-16">
+        <div className="grid gap-6 min-[1000px]:grid-cols-[260px_minmax(0,1fr)] min-[1000px]:gap-14">
           <aside className="hidden min-[1000px]:sticky min-[1000px]:top-28 min-[1000px]:block min-[1000px]:self-start">
             <CategoryDropdown
               label={pageCopy.otherCategories}
@@ -155,7 +155,7 @@ export default async function CategoryProductsPage({
               {copy.emptyProducts}
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-1 md:grid-cols-3">
+            <div className="grid grid-cols-3 min-[1400px]:grid-cols-4">
               {products.map((product) => {
                 const productImage = resolveMediaUrl(product.imageUrl);
 
@@ -163,14 +163,14 @@ export default async function CategoryProductsPage({
                   <Link
                     key={product.id}
                     href={getProductHref(category, product)}
-                    className="group flex h-full w-[90%] md:w-[70%] justify-self-center flex-col bg-white transition duration-300 hover:shadow-[0_0px_20px_0px_rgba(11,62,49,0.2)]">
+                    className="group relative flex h-full w-full justify-self-center flex-col bg-white transition duration-300 hover:shadow-[0_0px_20px_0px_rgba(11,62,49,0.2)] hover:z-10">
                     <div className="relative aspect-[4/5] bg-white">
                       <MediaImage
                         src={productImage}
                         alt={product.name}
                         fill
                         sizes="(max-width: 767px) 50vw, 33vw"
-                        className="object-contain max-[767px]:p-[50px] max-[500px]:p-[20px] md:p-[30px]"
+                        className="object-contain pt-[20px] px-[20px] min-[500px]:pt-[40px] min-[500px]:px-[40px] md:pt-[30px] md:px-[30px]"
                         emptyState={
                           <div className="flex h-full w-full items-center justify-center px-12 text-center text-sm leading-6 text-[#6d6d63]">
                             {copy.productPlaceholder}
@@ -180,16 +180,16 @@ export default async function CategoryProductsPage({
                     </div>
 
                     <div className="relative flex flex-1 flex-col overflow-hidden">
-                      <div className="px-6 pb-6 pt-0 text-center min-[900px]:pb-30">
-                        <h2 className="text-[1rem] md:text-[1.15rem] font-[300] tracking-[0.01em] text-black">
+                      <div className="px-2 pb-3 pt-0 text-center min-[900px]:pb-30">
+                        <h2 className="text-[0.85rem] md:text-[1.15rem] font-[300] tracking-[0.01em] text-black">
                           {product.name}
                         </h2>
                       </div>
 
-                      <div className="md:border-t flex flex-col items-center border-[#ece7da] md:bg-[#f8f5eb] px-6 py-5 min-[900px]:pointer-events-none min-[900px]:absolute min-[900px]:inset-x-0 min-[900px]:bottom-0 min-[900px]:translate-y-full min-[900px]:opacity-0 min-[900px]:transition min-[900px]:duration-300 min-[900px]:group-hover:translate-y-0 min-[900px]:group-hover:opacity-100">
+                      <div className="md:border-t mt-auto flex flex-col items-center border-transparent  min-[900px]:border-[#ece7da] min-[900px]:bg-[#f8f5eb] px-2 py-5 min-[900px]:pointer-events-none min-[900px]:absolute min-[900px]:inset-x-0 min-[900px]:bottom-0 min-[900px]:translate-y-full min-[900px]:opacity-0 min-[900px]:transition min-[900px]:duration-300 min-[900px]:group-hover:translate-y-0 min-[900px]:group-hover:opacity-100">
                         <span className="inline-flex items-center gap-2 text-base text-[#337ab7]">
                           <FiInfo size={14} className="shrink-0 text-[#0b3e31]" />
-                          <span>{copy.learnMore}</span>
+                          <span className="text-sm md:text-lg">{copy.learnMore}</span>
                         </span>
                       </div>
                     </div>
