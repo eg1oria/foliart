@@ -107,8 +107,12 @@
   "ContactForm": {
     "namePlaceholder": "Name",
     "phonePlaceholder": "Phone",
+    "phoneInvalid": "Enter a valid phone number using digits, +, spaces, brackets or hyphens.",
     "commentPlaceholder": "Comment",
     "submit": "Send",
+    "sending": "Sending...",
+    "success": "Thank you! Your request has been sent.",
+    "error": "Could not send the request. Please try again later.",
     "consent": "I give my consent to the lawful processing of personal data.",
     "consentLink": "compiled in accordance with the requirements of Federal Law No. 152-FZ of 27.07.2006 \"On Personal Data\""
   },

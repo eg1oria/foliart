@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { ArticlesModule } from './articles/articles.module';
 import { CalendarsModule } from './calendars/calendars.module';
 import { CategoriesModule } from './categories/categories.module';
+import { ContactModule } from './contact/contact.module';
 import { ProductsModule } from './products/products.module';
 import { PrismaModule } from './prisma/prisma.module';
 
@@ -13,6 +14,7 @@ import { PrismaModule } from './prisma/prisma.module';
     ProductsModule,
     ArticlesModule,
     CalendarsModule,
+    ContactModule,
     PrismaModule,
   ],
   controllers: [AppController],

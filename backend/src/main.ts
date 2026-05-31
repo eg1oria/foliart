@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { join } from 'node:path';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';

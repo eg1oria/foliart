@@ -7,6 +7,14 @@ import { RxCross1 } from 'react-icons/rx';
 import { Link } from '@/i18n/routing';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
+import {
+  type ContactFormType,
+  getContactFormValue,
+  phoneInputMaxLength,
+  phoneInputPattern,
+  sanitizePhoneInput,
+  sendContactRequest,
+} from '@/lib/contact';
 
 type ContactModalTriggerProps = {
   children: ReactNode;
@@ -23,11 +31,19 @@ export default function ContactModalTrigger({
 }: ContactModalTriggerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [agreed, setAgreed] = useState(true);
+  const [submitStatus, setSubmitStatus] = useState<
+    'idle' | 'sending' | 'success' | 'error'
+  >('idle');
   const formT = useTranslations('ContactForm');
   const callbackT = useTranslations('CallbackModal');
   const questionT = useTranslations('QuestionModal');
   const isQuestionModal = modalType === 'question';
   const closeLabel = isQuestionModal ? questionT('close') : callbackT('close');
+  const isSending = submitStatus === 'sending';
+
+  const handlePhoneInput = (event: FormEvent<HTMLInputElement>) => {
+    event.currentTarget.value = sanitizePhoneInput(event.currentTarget.value);
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -51,12 +67,39 @@ export default function ContactModalTrigger({
 
   const openModal = () => {
     setIsOpen(true);
+    setSubmitStatus('idle');
     onOpen?.();
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-  };
+  const handleSubmit =
+    (formType: ContactFormType) => async (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+
+      if (!agreed || isSending) {
+        return;
+      }
+
+      const form = event.currentTarget;
+      const formData = new FormData(form);
+
+      setSubmitStatus('sending');
+
+      try {
+        await sendContactRequest({
+          formType,
+          name: getContactFormValue(formData, 'name'),
+          phone: getContactFormValue(formData, 'phone'),
+          comment: getContactFormValue(formData, 'comment'),
+          pageUrl: window.location.href,
+          consent: agreed,
+        });
+        form.reset();
+        setAgreed(true);
+        setSubmitStatus('success');
+      } catch {
+        setSubmitStatus('error');
+      }
+    };
 
   const renderRequiredMarker = () => (
     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-lg text-[#e24a3b]">*</span>
@@ -82,6 +125,26 @@ export default function ContactModalTrigger({
     </label>
   );
 
+  const renderSubmitStatus = () => {
+    if (submitStatus === 'success') {
+      return (
+        <p role="status" className="text-center text-sm font-medium text-[#166534]">
+          {formT('success')}
+        </p>
+      );
+    }
+
+    if (submitStatus === 'error') {
+      return (
+        <p role="alert" className="text-center text-sm font-medium text-[#b42318]">
+          {formT('error')}
+        </p>
+      );
+    }
+
+    return null;
+  };
+
   const renderQuestionArtwork = () => {
     return (
       <div className="relative hidden min-h-[622px] overflow-hidden bg-white min-[760px]:block">
@@ -99,13 +162,14 @@ export default function ContactModalTrigger({
       </h2>
       <p className="mt-5 text-center text-sm leading-5 text-[#858585]">{callbackT('subtitle')}</p>
 
-      <form className="mt-7 flex flex-col gap-4" onSubmit={handleSubmit}>
+      <form className="mt-7 flex flex-col gap-4" onSubmit={handleSubmit('callback')}>
         <label className="relative block">
           <span className="sr-only">{formT('namePlaceholder')}</span>
           <input
             type="text"
             name="name"
             required
+            disabled={isSending}
             placeholder={formT('namePlaceholder')}
             className="h-[54px] w-full border-2 border-[#d5d5d5] bg-white px-4 pr-9 text-base text-[#243238] outline-none transition placeholder:text-[#737373] focus:border-[#aeb5b2]"
           />
@@ -118,6 +182,13 @@ export default function ContactModalTrigger({
             type="tel"
             name="phone"
             required
+            disabled={isSending}
+            inputMode="tel"
+            autoComplete="tel"
+            pattern={phoneInputPattern}
+            maxLength={phoneInputMaxLength}
+            title={formT('phoneInvalid')}
+            onInput={handlePhoneInput}
             placeholder={formT('phonePlaceholder')}
             className="h-[54px] w-full border-2 border-[#d5d5d5] bg-white px-4 pr-9 text-base text-[#243238] outline-none transition placeholder:text-[#737373] focus:border-[#aeb5b2]"
           />
@@ -126,10 +197,12 @@ export default function ContactModalTrigger({
 
         <button
           type="submit"
-          disabled={!agreed}
+          disabled={!agreed || isSending}
           className="mt-3 flex min-h-[57px] w-full cursor-pointer items-center justify-center rounded-full bg-[#064834] px-6 py-3 text-base font-bold text-white transition hover:bg-[#053b2b] disabled:cursor-not-allowed disabled:bg-[#8ca399]">
-          {formT('submit')}
+          {isSending ? formT('sending') : formT('submit')}
         </button>
+
+        {renderSubmitStatus()}
 
         {renderConsent()}
       </form>
@@ -148,13 +221,14 @@ export default function ContactModalTrigger({
         </h2>
         <p className="mt-5 text-center text-sm leading-5 text-[#858585]">{questionT('subtitle')}</p>
 
-        <form className="mt-7 flex flex-col gap-4" onSubmit={handleSubmit}>
+        <form className="mt-7 flex flex-col gap-4" onSubmit={handleSubmit('question')}>
           <label className="relative block">
             <span className="sr-only">{formT('namePlaceholder')}</span>
             <input
               type="text"
               name="name"
               required
+              disabled={isSending}
               placeholder={formT('namePlaceholder')}
               className="h-[54px] w-full border-2 border-[#d5d5d5] bg-white px-4 pr-9 text-base text-[#243238] outline-none transition placeholder:text-[#737373] focus:border-[#aeb5b2]"
             />
@@ -167,6 +241,13 @@ export default function ContactModalTrigger({
               type="tel"
               name="phone"
               required
+              disabled={isSending}
+              inputMode="tel"
+              autoComplete="tel"
+              pattern={phoneInputPattern}
+              maxLength={phoneInputMaxLength}
+              title={formT('phoneInvalid')}
+              onInput={handlePhoneInput}
               placeholder={formT('phonePlaceholder')}
               className="h-[54px] w-full border-2 border-[#d5d5d5] bg-white px-4 pr-9 text-base text-[#243238] outline-none transition placeholder:text-[#737373] focus:border-[#aeb5b2]"
             />
@@ -177,6 +258,7 @@ export default function ContactModalTrigger({
             <span className="sr-only">{formT('commentPlaceholder')}</span>
             <textarea
               name="comment"
+              disabled={isSending}
               placeholder={formT('commentPlaceholder')}
               rows={4}
               className="min-h-[109px] w-full resize-none border-2 border-[#d5d5d5] bg-white px-4 py-3 text-base text-[#243238] outline-none transition placeholder:text-[#737373] focus:border-[#aeb5b2]"
@@ -185,10 +267,12 @@ export default function ContactModalTrigger({
 
           <button
             type="submit"
-            disabled={!agreed}
+            disabled={!agreed || isSending}
             className="mt-3 flex min-h-[59px] w-full cursor-pointer items-center justify-center rounded-full bg-[#064834] px-6 py-3 text-base font-bold text-white transition hover:bg-[#053b2b] disabled:cursor-not-allowed disabled:bg-[#8ca399]">
-            {questionT('submit')}
+            {isSending ? formT('sending') : questionT('submit')}
           </button>
+
+          {renderSubmitStatus()}
 
           {renderConsent()}
         </form>
