@@ -36,9 +36,9 @@ type MailConfig = {
 };
 
 const formLabels: Record<ContactFormType, string> = {
-  contact: 'Contact page form',
-  callback: 'Callback request',
-  question: 'Question form',
+  contact: 'Форма обратной связи',
+  callback: 'Заявка на обратный звонок',
+  question: 'Форма вопроса',
 };
 const phoneAllowedPattern = /^[+0-9().\s-]+$/;
 
