@@ -7,7 +7,7 @@ import { requireAdminSession } from '@/lib/adminAuthServer';
 import { normalizeContentLocale } from '@/lib/contentLocales';
 
 const backendUrl = process.env.BACKEND_URL ?? 'http://localhost:3001';
-const calendarLocales = ['ru', 'en'] as const;
+const calendarLocales = ['ru', 'en', 'fr'] as const;
 const imageFieldNames = ['image1', 'image2', 'image3', 'image4'] as const;
 const requiredImageFieldNames = ['image1', 'image2'] as const;
 
@@ -63,9 +63,9 @@ function hasFile(value: FormDataEntryValue | null): value is File {
 }
 
 async function getRequestErrorMessage(response: Response) {
-  const errorPayload = (await response.json().catch(() => null)) as
-    | { message?: string | string[] }
-    | null;
+  const errorPayload = (await response.json().catch(() => null)) as {
+    message?: string | string[];
+  } | null;
 
   return Array.isArray(errorPayload?.message)
     ? errorPayload.message.join(', ')
@@ -88,13 +88,17 @@ export async function createCalendarAction(formData: FormData) {
 
   if (!values.title || !values.description || requiredImages.some((image) => !hasFile(image))) {
     redirect(
-      buildAdminRedirectPath(locale, {
-        contentLocale,
-        error:
-          locale === 'en'
-            ? 'Fill in the title, description, and upload the first 2 photos.'
-            : 'Заполните название, описание и загрузите первые 2 фото.',
-      }, 'create-calendar'),
+      buildAdminRedirectPath(
+        locale,
+        {
+          contentLocale,
+          error:
+            locale === 'en'
+              ? 'Fill in the title, description, and upload the first 2 photos.'
+              : 'Заполните название, описание и загрузите первые 2 фото.',
+        },
+        'create-calendar',
+      ),
     );
   }
 
@@ -120,24 +124,32 @@ export async function createCalendarAction(formData: FormData) {
     const rawMessage = await getRequestErrorMessage(response);
 
     redirect(
-      buildAdminRedirectPath(locale, {
-        contentLocale,
-        error:
-          rawMessage ||
-          (locale === 'en'
-            ? 'Failed to create calendar item.'
-            : 'Не удалось создать запись календаря.'),
-      }, 'create-calendar'),
+      buildAdminRedirectPath(
+        locale,
+        {
+          contentLocale,
+          error:
+            rawMessage ||
+            (locale === 'en'
+              ? 'Failed to create calendar item.'
+              : 'Не удалось создать запись календаря.'),
+        },
+        'create-calendar',
+      ),
     );
   }
 
   await revalidateCalendarAdminPages();
 
   redirect(
-    buildAdminRedirectPath(locale, {
-      contentLocale,
-      status: 'created',
-    }, 'create-calendar'),
+    buildAdminRedirectPath(
+      locale,
+      {
+        contentLocale,
+        status: 'created',
+      },
+      'create-calendar',
+    ),
   );
 }
 
@@ -151,14 +163,18 @@ export async function updateCalendarAction(formData: FormData) {
 
   if (!calendarId || !values.title || !values.description) {
     redirect(
-      buildAdminRedirectPath(locale, {
-        contentLocale,
-        edit: calendarId,
-        error:
-          locale === 'en'
-            ? 'Fill in the title and description.'
-            : 'Заполните название и описание.',
-      }, calendarId ? `calendar-${calendarId}` : 'manage-calendars'),
+      buildAdminRedirectPath(
+        locale,
+        {
+          contentLocale,
+          edit: calendarId,
+          error:
+            locale === 'en'
+              ? 'Fill in the title and description.'
+              : 'Заполните название и описание.',
+        },
+        calendarId ? `calendar-${calendarId}` : 'manage-calendars',
+      ),
     );
   }
 
@@ -184,26 +200,34 @@ export async function updateCalendarAction(formData: FormData) {
     const rawMessage = await getRequestErrorMessage(response);
 
     redirect(
-      buildAdminRedirectPath(locale, {
-        contentLocale,
-        edit: calendarId,
-        error:
-          rawMessage ||
-          (locale === 'en'
-            ? 'Failed to update calendar item.'
-            : 'Не удалось обновить запись календаря.'),
-      }, calendarId ? `calendar-${calendarId}` : 'manage-calendars'),
+      buildAdminRedirectPath(
+        locale,
+        {
+          contentLocale,
+          edit: calendarId,
+          error:
+            rawMessage ||
+            (locale === 'en'
+              ? 'Failed to update calendar item.'
+              : 'Не удалось обновить запись календаря.'),
+        },
+        calendarId ? `calendar-${calendarId}` : 'manage-calendars',
+      ),
     );
   }
 
   await revalidateCalendarAdminPages();
 
   redirect(
-    buildAdminRedirectPath(locale, {
-      contentLocale,
-      status: 'updated',
-      calendar: calendarId,
-      edit: calendarId,
-    }, `calendar-${calendarId}`),
+    buildAdminRedirectPath(
+      locale,
+      {
+        contentLocale,
+        status: 'updated',
+        calendar: calendarId,
+        edit: calendarId,
+      },
+      `calendar-${calendarId}`,
+    ),
   );
 }

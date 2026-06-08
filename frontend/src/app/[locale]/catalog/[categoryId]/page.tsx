@@ -53,7 +53,7 @@ export async function generateMetadata({
     return buildPageMetadata({
       locale,
       path: '/catalog',
-      title: locale === 'en' ? 'Fertilizer catalog' : 'Каталог удобрений',
+      title: locale === 'ru' ? 'Каталог удобрений' : 'Fertilizer catalog',
       description: copy.subtitle,
       image: '/catalog-head.webp',
     });
@@ -68,15 +68,20 @@ export default async function CategoryProductsPage({
   const { locale, categoryId: rawCategoryId } = await params;
   const copy = getCatalogCopy(locale);
   const pageCopy =
-    locale === 'en'
+    locale === 'ru'
       ? {
-          backLevel: 'Up one level',
-          otherCategories: 'Other categories',
-        }
-      : {
           backLevel: 'На уровень выше',
           otherCategories: 'Другие категории',
-        };
+        }
+      : locale === 'fr'
+        ? {
+            backLevel: 'Niveau supérieur',
+            otherCategories: 'Autres catégories',
+          }
+        : {
+            backLevel: 'Up one level',
+            otherCategories: 'Other categories',
+          };
   const { allProducts, categories, category, products } = await getCategoryPageData(
     rawCategoryId,
     locale,
@@ -102,8 +107,14 @@ export default async function CategoryProductsPage({
     }),
   );
   const breadcrumbSchema = buildBreadcrumbSchema(locale, [
-    { name: locale === 'en' ? 'Home' : 'Главная', path: '/' },
-    { name: locale === 'en' ? 'Catalog' : 'Каталог', path: '/catalog' },
+    {
+      name: locale === 'ru' ? 'Главная' : locale === 'fr' ? 'Accueil' : 'Home',
+      path: '/',
+    },
+    {
+      name: locale === 'ru' ? 'Каталог' : locale === 'fr' ? 'Catalogue' : 'Catalog',
+      path: '/catalog',
+    },
     { name: category.name, path: getCategoryHref(category) },
   ]);
 

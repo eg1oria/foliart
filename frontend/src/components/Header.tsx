@@ -17,7 +17,7 @@ const FullscreenMenu = dynamic(() => import('./FullScreenMenu'), {
   ssr: false,
 });
 
-type LocaleOption = 'ru' | 'en';
+type LocaleOption = 'ru' | 'en' | 'fr';
 
 type HeaderChildItem = {
   name: string;
@@ -50,7 +50,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
 
-  const localeOptions: LocaleOption[] = ['ru', 'en'];
+  const localeOptions: LocaleOption[] = ['ru', 'en', 'fr'];
 
   const openMenu = () => {
     setHasOpenedMenu(true);

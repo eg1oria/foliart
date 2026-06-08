@@ -18,7 +18,7 @@ export async function generateMetadata({
   return buildPageMetadata({
     locale,
     path: '/about',
-    title: locale === 'en' ? 'About the company' : 'О компании',
+    title: locale === 'ru' ? 'О компании' : locale === 'fr' ? 'À propos' : 'About the company',
     description: t('subtitle'),
     image: '/about-head1.webp',
   });
@@ -27,7 +27,7 @@ export async function generateMetadata({
 export default function About() {
   const t = useTranslations('About');
   const locale = useLocale();
-  const logoSrc = locale === 'en' ? '/logo_eng.png' : '/logo5.PNG';
+  const logoSrc = locale === 'ru' ? '/logo5.PNG' : '/logo_eng.png';
 
   return (
     <main>
@@ -43,13 +43,7 @@ export default function About() {
         <div className="absolute inset-0 bg-black/50 -z-10" />
         <h1 className="mb-4 text-3xl font-bold text-white md:text-5xl">{t('title')}</h1>
         <p className="mb-2 text-base text-lg text-white/70 md:text-xl">{t('subtitle')}</p>
-        <Image
-          src={logoSrc}
-          alt="Foliart logo"
-          width={130}
-          height={40}
-          className="h-auto w-auto"
-        />
+        <Image src={logoSrc} alt="Foliart logo" width={130} height={40} className="h-auto w-auto" />
       </div>
 
       <div className="catalog-header flex gap-30 py-10">

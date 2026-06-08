@@ -51,7 +51,7 @@ export async function generateMetadata({
   return buildPageMetadata({
     locale,
     path: '/privacy',
-    title: locale === 'en' ? 'Privacy policy' : 'Политика обработки персональных данных',
+    title: t('title'),
     description: t('subtitle'),
     image: '/about-head1.webp',
   });

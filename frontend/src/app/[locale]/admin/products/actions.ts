@@ -9,7 +9,7 @@ import { normalizeContentLocale } from '@/lib/contentLocales';
 import { getCategoryHref, getProductHref } from '@/lib/catalog';
 
 const backendUrl = process.env.BACKEND_URL ?? 'http://localhost:3001';
-const catalogLocales = ['ru', 'en'] as const;
+const catalogLocales = ['ru', 'en', 'fr'] as const;
 
 type ProductFormPayload = {
   categoryId: string;
@@ -71,9 +71,9 @@ function appendProductPayload(
 }
 
 async function getRequestErrorMessage(response: Response) {
-  const errorPayload = (await response.json().catch(() => null)) as
-    | { message?: string | string[] }
-    | null;
+  const errorPayload = (await response.json().catch(() => null)) as {
+    message?: string | string[];
+  } | null;
 
   return Array.isArray(errorPayload?.message)
     ? errorPayload.message.join(', ')
@@ -93,9 +93,7 @@ async function revalidateCatalogPages(args: {
     revalidatePath(`/${locale}/catalog`);
     revalidatePath(`/${locale}/admin/products`);
 
-    const nextCategory = categories.find(
-      (item) => item.id === Number.parseInt(categoryId, 10),
-    );
+    const nextCategory = categories.find((item) => item.id === Number.parseInt(categoryId, 10));
     const prevCategory = previousCategoryId
       ? categories.find((item) => item.id === Number.parseInt(previousCategoryId, 10))
       : null;
@@ -148,13 +146,17 @@ export async function createProductAction(formData: FormData) {
 
   if (!values.categoryId || !values.name || !(image instanceof File) || image.size === 0) {
     redirect(
-      buildAdminRedirectPath(locale, {
-        contentLocale,
-        error:
-          locale === 'en'
-            ? 'Fill in category, product name, and image.'
-            : 'Заполните категорию, название товара и фото.',
-      }, 'create-product'),
+      buildAdminRedirectPath(
+        locale,
+        {
+          contentLocale,
+          error:
+            locale === 'en'
+              ? 'Fill in category, product name, and image.'
+              : 'Заполните категорию, название товара и фото.',
+        },
+        'create-product',
+      ),
     );
   }
 
@@ -173,12 +175,16 @@ export async function createProductAction(formData: FormData) {
     const rawMessage = await getRequestErrorMessage(response);
 
     redirect(
-      buildAdminRedirectPath(locale, {
-        contentLocale,
-        error:
-          rawMessage ||
-          (locale === 'en' ? 'Failed to create product.' : 'Не удалось создать товар.'),
-      }, 'create-product'),
+      buildAdminRedirectPath(
+        locale,
+        {
+          contentLocale,
+          error:
+            rawMessage ||
+            (locale === 'en' ? 'Failed to create product.' : 'Не удалось создать товар.'),
+        },
+        'create-product',
+      ),
     );
   }
 
@@ -188,10 +194,14 @@ export async function createProductAction(formData: FormData) {
   });
 
   redirect(
-    buildAdminRedirectPath(locale, {
-      contentLocale,
-      status: 'created',
-    }, 'create-product'),
+    buildAdminRedirectPath(
+      locale,
+      {
+        contentLocale,
+        status: 'created',
+      },
+      'create-product',
+    ),
   );
 }
 
@@ -208,14 +218,18 @@ export async function updateProductAction(formData: FormData) {
 
   if (!productId || !values.categoryId || !values.name) {
     redirect(
-      buildAdminRedirectPath(locale, {
-        contentLocale,
-        edit: productId,
-        error:
-          locale === 'en'
-            ? 'Fill in category and product name.'
-            : 'Заполните категорию и название товара.',
-      }, productId ? `product-${productId}` : 'manage-products'),
+      buildAdminRedirectPath(
+        locale,
+        {
+          contentLocale,
+          edit: productId,
+          error:
+            locale === 'en'
+              ? 'Fill in category and product name.'
+              : 'Заполните категорию и название товара.',
+        },
+        productId ? `product-${productId}` : 'manage-products',
+      ),
     );
   }
 
@@ -237,13 +251,17 @@ export async function updateProductAction(formData: FormData) {
     const rawMessage = await getRequestErrorMessage(response);
 
     redirect(
-      buildAdminRedirectPath(locale, {
-        contentLocale,
-        edit: productId,
-        error:
-          rawMessage ||
-          (locale === 'en' ? 'Failed to update product.' : 'Не удалось обновить товар.'),
-      }, productId ? `product-${productId}` : 'manage-products'),
+      buildAdminRedirectPath(
+        locale,
+        {
+          contentLocale,
+          edit: productId,
+          error:
+            rawMessage ||
+            (locale === 'en' ? 'Failed to update product.' : 'Не удалось обновить товар.'),
+        },
+        productId ? `product-${productId}` : 'manage-products',
+      ),
     );
   }
 
@@ -255,12 +273,16 @@ export async function updateProductAction(formData: FormData) {
   });
 
   redirect(
-    buildAdminRedirectPath(locale, {
-      contentLocale,
-      status: 'updated',
-      product: productId,
-      edit: productId,
-    }, `product-${productId}`),
+    buildAdminRedirectPath(
+      locale,
+      {
+        contentLocale,
+        status: 'updated',
+        product: productId,
+        edit: productId,
+      },
+      `product-${productId}`,
+    ),
   );
 }
 
@@ -275,11 +297,15 @@ export async function updateCategoryTranslationAction(formData: FormData) {
 
   if (!categoryId) {
     redirect(
-      buildAdminRedirectPath(locale, {
-        contentLocale,
-        categoryError:
-          locale === 'en' ? 'Select a category.' : 'Выберите категорию для перевода.',
-      }, 'manage-products'),
+      buildAdminRedirectPath(
+        locale,
+        {
+          contentLocale,
+          categoryError:
+            locale === 'en' ? 'Select a category.' : 'Выберите категорию для перевода.',
+        },
+        'manage-products',
+      ),
     );
   }
 
@@ -301,25 +327,33 @@ export async function updateCategoryTranslationAction(formData: FormData) {
     const rawMessage = await getRequestErrorMessage(response);
 
     redirect(
-      buildAdminRedirectPath(locale, {
-        contentLocale,
-        category: categoryId,
-        categoryError:
-          rawMessage ||
-          (locale === 'en'
-            ? 'Failed to update category translation.'
-            : 'Не удалось обновить перевод категории.'),
-      }, `category-${categoryId}`),
+      buildAdminRedirectPath(
+        locale,
+        {
+          contentLocale,
+          category: categoryId,
+          categoryError:
+            rawMessage ||
+            (locale === 'en'
+              ? 'Failed to update category translation.'
+              : 'Не удалось обновить перевод категории.'),
+        },
+        `category-${categoryId}`,
+      ),
     );
   }
 
   await revalidateCategoryPages(categoryId);
 
   redirect(
-    buildAdminRedirectPath(locale, {
-      contentLocale,
-      category: categoryId,
-      categoryStatus: 'updated',
-    }, `category-${categoryId}`),
+    buildAdminRedirectPath(
+      locale,
+      {
+        contentLocale,
+        category: categoryId,
+        categoryStatus: 'updated',
+      },
+      `category-${categoryId}`,
+    ),
   );
 }

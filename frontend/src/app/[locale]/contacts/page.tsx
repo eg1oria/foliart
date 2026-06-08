@@ -20,7 +20,7 @@ export async function generateMetadata({
   return buildPageMetadata({
     locale,
     path: '/contacts',
-    title: locale === 'en' ? 'Contacts' : 'Контакты',
+    title: locale === 'ru' ? 'Контакты' : 'Contacts',
     description: t('subtitle'),
     image: '/contacts.webp',
   });

@@ -60,5 +60,5 @@ export async function proxy(request: NextRequest) {
 export default proxy;
 
 export const config = {
-  matcher: ['/', '/(ru|en)/:path*'],
+  matcher: ['/', '/(ru|en|fr)/:path*'],
 };

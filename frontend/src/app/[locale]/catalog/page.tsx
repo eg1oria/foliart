@@ -23,7 +23,7 @@ export async function generateMetadata({
   return buildPageMetadata({
     locale,
     path: '/catalog',
-    title: locale === 'en' ? 'Fertilizer catalog' : 'Каталог удобрений',
+    title: locale === 'ru' ? 'Каталог удобрений' : 'Fertilizer catalog',
     description: copy.subtitle,
     image: '/catalog-head.webp',
   });
@@ -32,7 +32,8 @@ export async function generateMetadata({
 export default async function CatalogPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const copy = getCatalogCopy(locale);
-  const categoryCta = locale === 'en' ? 'View catalog' : 'Посмотреть каталог';
+  const categoryCta =
+    locale === 'ru' ? 'Посмотреть каталог' : locale === 'fr' ? 'Voir le catalogue' : 'View catalog';
   const [categories, products] = await Promise.all([
     getCategories(locale),
     getProducts(undefined, locale),

@@ -28,7 +28,13 @@ export function findArticleByParam(articles: Article[], value: string) {
 }
 
 export function formatArticleDate(value: string, locale: string) {
-  const formatter = new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : 'ru-RU', {
+  const localeMap: Record<string, string> = {
+    en: 'en-US',
+    fr: 'fr-FR',
+    ru: 'ru-RU',
+  };
+
+  const formatter = new Intl.DateTimeFormat(localeMap[locale] ?? 'ru-RU', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -97,6 +103,56 @@ export function getArticlesCopy(locale: string) {
       translationHint:
         'Leave the English fields empty if the English site should reuse the Russian version.',
       backToSite: 'Open articles page',
+    };
+  }
+
+  if (locale === 'fr') {
+    return {
+      title: 'Articles utiles pour les plantes',
+      emptyState:
+        "Les articles apparaîtront ici après leur ajout dans le panneau d'administration.",
+      readMore: "Lire l'article",
+      backToArticles: 'Retour à la liste des articles',
+      relatedTitle: 'Autres articles',
+      relatedEmpty: 'De nouveaux articles seront publiés prochainement.',
+      metadataViewsLabel: 'vues',
+      detailsEmpty: "Le contenu de l'article sera ajouté prochainement.",
+      adminSectionLabel: 'Articles',
+      adminTitle: "Éditeur d'articles",
+      adminSubtitle:
+        "Créez et mettez à jour les cartes d'articles, les images de couverture, les dates de publication et le contenu formaté.",
+      adminFormTitle: 'Ajouter un article',
+      adminFormDescription:
+        "Le corps de l'article prend en charge le texte formaté : titres, listes, citations, liens et mises en valeur.",
+      adminExistingTitle: 'Articles publiés',
+      adminEmptyState: "Aucun article pour l'instant.",
+      statusCreated: 'Article ajouté avec succès.',
+      statusUpdated: 'Article mis à jour avec succès.',
+      titleLabel: "Titre de l'article",
+      titleEnLabel: "Titre de l'article en anglais",
+      excerptLabel: 'Extrait court',
+      excerptEnLabel: 'Extrait en anglais',
+      imageLabel: 'Image de couverture',
+      contentLabel: "Corps de l'article",
+      contentEnLabel: "Corps de l'article en anglais",
+      publishedAtLabel: 'Date de publication',
+      optionalLabel: 'Facultatif',
+      submitLabel: "Ajouter l'article",
+      updateLabel: 'Enregistrer les modifications',
+      editLabel: "Modifier l'article",
+      openArticle: "Ouvrir l'article",
+      imageHint: "Formats acceptés : JPG, PNG et WEBP jusqu'à 5 Mo.",
+      replaceImageHint: 'Laissez le champ vide pour conserver la couverture actuelle.',
+      imagePathLabel: "Chemin de l'image",
+      adminPathHint:
+        'Utilisez cette section pour maintenir la page des articles à jour rapidement.',
+      contentHint:
+        "Utilisez la barre d'outils pour mettre en forme le texte. Les liens vers des sites externes s'ouvriront dans un nouvel onglet.",
+      excerptHint:
+        "Si le champ est vide, l'extrait sera généré automatiquement à partir du corps de l'article.",
+      translationHint:
+        'Laissez les champs anglais vides si la version anglaise du site doit utiliser la version russe.',
+      backToSite: 'Ouvrir la section des articles',
     };
   }
 

@@ -8,7 +8,7 @@ import { getArticleHref } from '@/lib/articles';
 import { normalizeContentLocale } from '@/lib/contentLocales';
 
 const backendUrl = process.env.BACKEND_URL ?? 'http://localhost:3001';
-const articleLocales = ['ru', 'en'] as const;
+const articleLocales = ['ru', 'en', 'fr'] as const;
 
 type ArticleFormPayload = {
   title: string;
@@ -64,19 +64,16 @@ function appendArticlePayload(
 }
 
 async function getRequestErrorMessage(response: Response) {
-  const errorPayload = (await response.json().catch(() => null)) as
-    | { message?: string | string[] }
-    | null;
+  const errorPayload = (await response.json().catch(() => null)) as {
+    message?: string | string[];
+  } | null;
 
   return Array.isArray(errorPayload?.message)
     ? errorPayload.message.join(', ')
     : errorPayload?.message;
 }
 
-async function revalidateArticlePages(args: {
-  articleTitle: string;
-  previousTitle?: string;
-}) {
+async function revalidateArticlePages(args: { articleTitle: string; previousTitle?: string }) {
   const { articleTitle, previousTitle } = args;
 
   for (const locale of articleLocales) {
@@ -100,13 +97,19 @@ export async function createArticleAction(formData: FormData) {
 
   if (!values.title || !values.content || !(image instanceof File) || image.size === 0) {
     redirect(
-      buildAdminRedirectPath(locale, {
-        contentLocale,
-        error:
-          locale === 'en'
-            ? 'Fill in the article title, content, and cover image.'
-            : 'Заполните заголовок, текст статьи и загрузите обложку.',
-      }, 'create-article'),
+      buildAdminRedirectPath(
+        locale,
+        {
+          contentLocale,
+          error:
+            locale === 'en'
+              ? 'Fill in the article title, content, and cover image.'
+              : locale === 'fr'
+                ? "Veuillez renseigner le titre, le contenu de l'article et l'image de couverture."
+                : 'Заполните заголовок, текст статьи и загрузите обложку.',
+        },
+        'create-article',
+      ),
     );
   }
 
@@ -125,12 +128,20 @@ export async function createArticleAction(formData: FormData) {
     const rawMessage = await getRequestErrorMessage(response);
 
     redirect(
-      buildAdminRedirectPath(locale, {
-        contentLocale,
-        error:
-          rawMessage ||
-          (locale === 'en' ? 'Failed to create article.' : 'Не удалось создать статью.'),
-      }, 'create-article'),
+      buildAdminRedirectPath(
+        locale,
+        {
+          contentLocale,
+          error:
+            rawMessage ||
+            (locale === 'en'
+              ? 'Failed to create article.'
+              : locale === 'fr'
+                ? "Impossible de créer l'article."
+                : 'Не удалось создать статью.'),
+        },
+        'create-article',
+      ),
     );
   }
 
@@ -139,10 +150,14 @@ export async function createArticleAction(formData: FormData) {
   });
 
   redirect(
-    buildAdminRedirectPath(locale, {
-      contentLocale,
-      status: 'created',
-    }, 'create-article'),
+    buildAdminRedirectPath(
+      locale,
+      {
+        contentLocale,
+        status: 'created',
+      },
+      'create-article',
+    ),
   );
 }
 
@@ -158,14 +173,20 @@ export async function updateArticleAction(formData: FormData) {
 
   if (!articleId || !values.title || !values.content) {
     redirect(
-      buildAdminRedirectPath(locale, {
-        contentLocale,
-        edit: articleId,
-        error:
-          locale === 'en'
-            ? 'Fill in the article title and content.'
-            : 'Заполните заголовок и текст статьи.',
-      }, articleId ? `article-${articleId}` : 'manage-articles'),
+      buildAdminRedirectPath(
+        locale,
+        {
+          contentLocale,
+          edit: articleId,
+          error:
+            locale === 'en'
+              ? 'Fill in the article title and content.'
+              : locale === 'fr'
+                ? "Veuillez renseigner le titre et le contenu de l'article."
+                : 'Заполните заголовок и текст статьи.',
+        },
+        articleId ? `article-${articleId}` : 'manage-articles',
+      ),
     );
   }
 
@@ -187,27 +208,42 @@ export async function updateArticleAction(formData: FormData) {
     const rawMessage = await getRequestErrorMessage(response);
 
     redirect(
-      buildAdminRedirectPath(locale, {
-        contentLocale,
-        edit: articleId,
-        error:
-          rawMessage ||
-          (locale === 'en' ? 'Failed to update article.' : 'Не удалось обновить статью.'),
-      }, articleId ? `article-${articleId}` : 'manage-articles'),
+      buildAdminRedirectPath(
+        locale,
+        {
+          contentLocale,
+          edit: articleId,
+          error:
+            rawMessage ||
+            (locale === 'en'
+              ? 'Failed to update article.'
+              : locale === 'fr'
+                ? "Impossible de mettre à jour l'article."
+                : 'Не удалось обновить статью.'),
+        },
+        articleId ? `article-${articleId}` : 'manage-articles',
+      ),
     );
   }
 
   await revalidateArticlePages({
-    articleTitle: contentLocale === 'ru' ? values.title : previousTitle || values.title,
+    articleTitle:
+      contentLocale === 'ru' || contentLocale === 'fr'
+        ? previousTitle || values.title
+        : values.title,
     previousTitle,
   });
 
   redirect(
-    buildAdminRedirectPath(locale, {
-      contentLocale,
-      status: 'updated',
-      article: articleId,
-      edit: articleId,
-    }, `article-${articleId}`),
+    buildAdminRedirectPath(
+      locale,
+      {
+        contentLocale,
+        status: 'updated',
+        article: articleId,
+        edit: articleId,
+      },
+      `article-${articleId}`,
+    ),
   );
 }

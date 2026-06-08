@@ -10,7 +10,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import ContactModalTrigger from './ContactModalTrigger';
 import SocialLinks from './SocialLinks';
 
-type LocaleOption = 'ru' | 'en';
+type LocaleOption = 'ru' | 'en' | 'fr';
 
 type CatalogChild = {
   name: string;
@@ -38,7 +38,7 @@ export default function FullscreenMenu({
   const router = useRouter();
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
-  const localeOptions: LocaleOption[] = ['ru', 'en'];
+  const localeOptions: LocaleOption[] = ['ru', 'en', 'fr'];
   const fullLogoSrc = locale === 'en' ? '/logo_eng.png' : '/logo5.PNG';
 
   const changeLocale = (nextLocale: LocaleOption) => {

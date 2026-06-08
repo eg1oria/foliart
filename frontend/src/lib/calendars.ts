@@ -18,10 +18,7 @@ export function getCalendarHref(entry: Pick<CalendarEntry, 'title' | 'slugSource
 }
 
 export function getCalendarImages(
-  entry: Pick<
-    CalendarEntry,
-    'imageUrl1' | 'imageUrl2' | 'imageUrl3' | 'imageUrl4' | 'imageUrls'
-  >,
+  entry: Pick<CalendarEntry, 'imageUrl1' | 'imageUrl2' | 'imageUrl3' | 'imageUrl4' | 'imageUrls'>,
 ) {
   const candidates =
     entry.imageUrls?.length > 0
@@ -32,10 +29,7 @@ export function getCalendarImages(
 }
 
 export function getCalendarImageSlots(
-  entry: Pick<
-    CalendarEntry,
-    'imageUrl1' | 'imageUrl2' | 'imageUrl3' | 'imageUrl4' | 'imageUrls'
-  >,
+  entry: Pick<CalendarEntry, 'imageUrl1' | 'imageUrl2' | 'imageUrl3' | 'imageUrl4' | 'imageUrls'>,
 ) {
   const images = getCalendarImages(entry);
 
@@ -76,10 +70,27 @@ export function getCalendarsCopy(locale: string) {
     };
   }
 
+  if (locale === 'fr') {
+    return {
+      title: 'Calendrier agricole',
+      subtitle:
+        'Pages des cultures avec descriptions et quatre photos pour chaque entrée du calendrier.',
+      emptyState:
+        "Les entrées du calendrier apparaîtront ici après leur ajout dans le panneau d'administration.",
+      openEntry: 'Ouvrir la page',
+      detailsEmpty: 'La description de cette culture sera ajoutée prochainement.',
+      backToCalendar: 'Retour au calendrier',
+      galleryTitle: 'Galerie de la culture',
+      relatedTitle: 'Autres cultures',
+      relatedEmpty: 'De nouvelles entrées du calendrier apparaîtront bientôt.',
+      heroEyebrow: 'Calendrier Foliart',
+      listEyebrow: 'Répertoire des cultures',
+    };
+  }
+
   return {
     title: 'Сельскохозяйственный календарь',
-    subtitle:
-      'Страницы культур с описанием и четырьмя фотографиями для каждой записи календаря.',
+    subtitle: 'Страницы культур с описанием и четырьмя фотографиями для каждой записи календаря.',
     emptyState: 'Записи календаря появятся здесь после добавления в админке.',
     openEntry: 'Открыть страницу',
     detailsEmpty: 'Описание для этой культуры будет добавлено позже.',
@@ -121,6 +132,37 @@ export function getCalendarsAdminCopy(locale: string) {
       editLabel: 'Edit item',
       backToSite: 'Open site',
       imagePathLabel: 'Image path',
+    };
+  }
+
+  if (locale === 'fr') {
+    return {
+      adminTitle: 'Éditeur de calendrier',
+      adminSubtitle:
+        'Ajoutez des cultures au calendrier avec un titre, une description et quatre photos pour chaque page.',
+      adminFormTitle: 'Ajouter une entrée au calendrier',
+      adminFormDescription:
+        "Utilisez une entrée par culture. Les 4 photos sont obligatoires lors de la création d'une nouvelle entrée.",
+      existingTitle: 'Entrées actuelles du calendrier',
+      emptyState: 'Aucune entrée dans le calendrier pour l/instant.',
+      statusCreated: 'Entrée du calendrier ajoutée avec succès.',
+      statusUpdated: 'Entrée du calendrier mise à jour avec succès.',
+      titleLabel: 'Titre',
+      titleEnLabel: 'Titre en anglais',
+      descriptionLabel: 'Description',
+      descriptionEnLabel: 'Description en anglais',
+      imageLabelPrefix: 'Photo',
+      imageHint: "Formats acceptés : JPG, PNG et WEBP jusqu'à 5 Mo chacun.",
+      replaceImageHint: 'Laissez un champ image vide pour conserver la photo actuelle.',
+      translationSectionTitle: 'Version anglaise',
+      translationHint:
+        'Laissez les champs anglais vides si la version anglaise du site doit utiliser le texte russe.',
+      optionalLabel: 'Facultatif',
+      submitLabel: 'Ajouter une entrée',
+      updateLabel: 'Enregistrer les modifications',
+      editLabel: "Modifier l'entrée",
+      backToSite: 'Vers le site',
+      imagePathLabel: "Chemin de l'image",
     };
   }
 

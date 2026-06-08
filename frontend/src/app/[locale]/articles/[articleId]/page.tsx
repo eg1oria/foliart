@@ -35,11 +35,18 @@ export async function generateMetadata({
     return buildPageMetadata({
       locale,
       path: '/articles',
-      title: locale === 'en' ? 'Useful articles' : 'Полезные статьи',
+      title:
+        locale === 'ru'
+          ? 'Полезные статьи'
+          : locale === 'fr'
+            ? 'Articles utiles'
+            : 'Useful articles',
       description:
-        locale === 'en'
-          ? 'Useful articles about plant nutrition, stress recovery, and fertilizer systems from Foliart specialists.'
-          : 'Полезные статьи о питании растений, восстановлении после стресса и системах удобрения от специалистов Фолиарт.',
+        locale === 'ru'
+          ? 'Полезные статьи о питании растений, восстановлении после стресса и системах удобрения от специалистов Фолиарт.'
+          : locale === 'fr'
+            ? 'Articles utiles sur la nutrition des plantes, la récupération après le stress et les systèmes de fertilisation par les spécialistes de Foliart.'
+            : 'Useful articles about plant nutrition, stress recovery, and fertilizer systems from Foliart specialists.',
       image: '/articles-head.webp',
     });
   }
@@ -75,8 +82,8 @@ export default async function ArticleDetailsPage({
   const relatedArticles = articles.filter((item) => item.id !== article.id).slice(0, 2);
   const imageSrc = resolveMediaUrl(article.imageUrl);
   const breadcrumbSchema = buildBreadcrumbSchema(locale, [
-    { name: locale === 'en' ? 'Home' : 'Главная', path: '/' },
-    { name: locale === 'en' ? 'Articles' : 'Статьи', path: '/articles' },
+    { name: locale === 'ru' ? 'Главная' : locale === 'fr' ? 'Accueil' : 'Home', path: '/' },
+    { name: locale === 'ru' ? 'Статьи' : 'Articles', path: '/articles' },
     { name: article.title, path: getArticleHref(article) },
   ]);
   const articleSchema = buildArticleSchema({

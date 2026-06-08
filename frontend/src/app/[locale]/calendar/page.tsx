@@ -18,7 +18,12 @@ export async function generateMetadata({
   return buildPageMetadata({
     locale,
     path: '/calendar',
-    title: locale === 'en' ? 'Agricultural calendar' : 'Сельскохозяйственный календарь',
+    title:
+      locale === 'ru'
+        ? 'Сельскохозяйственный календарь'
+        : locale === 'fr'
+          ? 'Calendrier agricole'
+          : 'Agricultural calendar',
     description: copy.subtitle,
     image: '/articles-head.webp',
   });

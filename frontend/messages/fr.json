@@ -1,0 +1,223 @@
+{
+  "Header": {
+    "home": "Accueil",
+    "catalog": "Catalogue d'engrais",
+    "about": "À propos de nous",
+    "articles": "Articles utiles",
+    "calendar": "Calendrier",
+    "contacts": "Contacts",
+    "partners": "Partenaires",
+    "wheat": "Blé d'hiver",
+    "corn": "Maïs",
+    "beet": "Betterave sucrière",
+    "soybeans": "Soja",
+    "sunflower": "Tournesol"
+  },
+  "Articles": {
+    "title": "Articles utiles pour les plantes"
+  },
+  "Contacts": {
+    "title": "Informations de contact",
+    "subtitle": "Nous travaillons constamment à l'amélioration de nos produits, c'est pourquoi vos retours sont très importants pour nous",
+    "officeTitle": "Bureau central à Krasnodar",
+    "officeHours": "Ouvert du lun. au ven. de 8h00 à 17h00",
+    "nav": {
+      "office": "Bureau à Krasnodar",
+      "feedback": "Retour d'information",
+      "back": "Retour"
+    },
+    "formTitle": "Nous sommes toujours heureux de recevoir vos questions et suggestions !",
+    "formSubtitle": "Utilisez le formulaire à gauche pour poser votre question, laisser un avis ou une suggestion.",
+    "officeLabel": "Bureau principal",
+    "officePhone": "+7(918)434-18-91",
+    "officeEmail": "mail@foliart.me",
+    "officeAddress": "350072, Territoire de Krasnodar, Krasnodar, rue Solnetchnaïa, 10/3, local n° 31, 2e étage",
+    "showMap": "Afficher la carte"
+  },
+  "Specialist": {
+    "eyebrow": "SPÉCIALISTE EN NUTRITION DES PLANTES",
+    "name": "Arseni",
+    "caption": "Aide d'un spécialiste dans le choix des engrais",
+    "description": "Notre spécialiste hautement qualifié analyse le sol et détermine sa composition chimique. Sur la base des résultats d'analyse, Arseni peut recommander l'engrais optimal pour un sol et des types de plantes spécifiques. Sa connaissance de la chimie des sols et des éléments nutritifs lui permet de développer des compositions d'engrais individualisées afin d'augmenter le rendement et la santé des plantes, tout en réduisant l'impact négatif sur l'environnement. Il sera ravi de répondre à vos questions.",
+    "action": "Poser une question",
+    "imageAlt": "Arseni, spécialiste en nutrition des plantes"
+  },
+  "Home": {
+    "catalogButton": "Catalogue d'engrais"
+  },
+  "Hero": {
+    "title": "Il n'existe dans le monde aucun système plus parfait que celui que la nature a créé.",
+    "items": {
+      "item1": "Aucun composant d'origine animale",
+      "item2": "Sans formation de produits de dégradation phytotoxiques",
+      "item3": "Des systèmes de travail permettant d'atteindre des résultats",
+      "item4": "Accompagnement en laboratoire"
+    }
+  },
+  "Complexs": {
+    "title": "Complexes organo-minéraux «Foliart»",
+    "desc1": "L'absorption des composants nutritifs est une chaîne complexe de processus séquentiels. Si un seul maillon est endommagé, toute la chaîne s'effondre.",
+    "desc2": "Une cellule saine est un exemple d'équilibre parfait entre tous les processus et constituants. Les substances qu'elle contient sont en harmonie idéale. C'est pourquoi l'objectif principal lors du développement des technologies d'engrais et de fertilisation est de ne pas perturber l'ordre naturel. Aucun élément nutritif, aucune hormone ou acide aminé n'est absorbé par les plantes simplement parce qu'il est disponible."
+  },
+  "Advantages": {
+    "title": "Avantages de «Foliart»",
+    "subtitle": "des complexes organo-minéraux",
+    "items": {
+      "item1": {
+        "title": "Aucun composant d'origine animale"
+      },
+      "item2": {
+        "title": "Haute efficacité",
+        "desc": "assurée par une action directe simultanée sur tous les organes et systèmes des plantes : végétatif, racinaire, vasculaire, reproducteur, enzymatique, hormonal, immunitaire. Tandis que les autres produits présents sur le marché n'agissent que sur des « maillons » individuels des chaînes d'absorption et de transformation, sans pouvoir contrôler le processus dans son ensemble."
+      },
+      "item3": {
+        "title": "Aucune formation de produits de dégradation phytotoxiques à l'intérieur des cellules végétales",
+        "desc": "contrairement à l'utilisation de formes salines d'engrais."
+      },
+      "item4": {
+        "title": "Accompagnement en laboratoire de l'exploitation",
+        "desc": "Présence de spécialistes hautement qualifiés dans l'équipe : phytopathologiste, physiologiste végétal, agrochimiste, entomologiste."
+      },
+      "item5": {
+        "title": "Aucun produit ne possède de propriétés magiques. C'est pourquoi nous ne vendons pas des engrais, nous vendons des systèmes de travail permettant d'atteindre des résultats"
+      }
+    }
+  },
+  "About": {
+    "title": "Notre société SARL «Astoria»",
+    "subtitle": "Nous sommes un fabricant russe de complexes organo-minéraux complexes pour les besoins de l'agriculture",
+    "nav": {
+      "description": "Description",
+      "feedback": "Retour d'information",
+      "back": "Retour"
+    },
+    "p1": "Nous sommes un fabricant russe de complexes organo-minéraux complexes pour les besoins de l'agriculture. Notre approche envers chaque exploitation est fondée sur une longue pratique scientifique et de production, et intègre une base de connaissances des recherches mondiales en constante évolution. Aucun produit ne sera appliqué dans vos champs sans une analyse préalable en laboratoire et des objectifs clairement définis à atteindre.",
+    "p2": "La pertinence de notre activité est motivée par le rythme de développement constamment croissant de la production végétale, dans un contexte où l'importance des facteurs défavorables liés à l'utilisation généralisée des pesticides, aux changements climatiques et à l'intensification des variétés et hybrides augmente fortement, ce qui nuit à la rentabilité de la production. Notre mission est de calculer judicieusement les ressources de production pour atteindre des objectifs précis : augmenter les récoltes globales, obtenir des indicateurs de qualité définis pour le produit final, réduire la part des dépenses de protection phytosanitaire dans la structure des coûts, stabiliser l'état physiologique des plantes, améliorer la fertilité des sols, sélectionner des méthodes efficaces de contrôle de la productivité des champs, et bien plus encore.",
+    "p3": "Nous ne vendons pas des engrais. En collaboration avec les principaux laboratoires et experts du pays et du monde, nous vous proposons un système de travail adapté à une culture spécifique, en fonction de vos objectifs particuliers, de votre budget et de vos conditions de culture.",
+    "p4": "Nous ne promettons pas de « solutions définitives » uniquement avec nos produits, car nous comprenons qu'il est impossible de tout maîtriser, mais nous nous efforçons d'explorer et de découvrir constamment quelque chose de nouveau et de meilleur, en perfectionnant nos offres. Nous avons d'excellentes solutions dès aujourd'hui, et nous visons de meilleurs résultats pour l'avenir.",
+    "p5": "L'équipe «Foliart», composée de spécialistes hautement qualifiés titulaires de diplômes scientifiques, ne cherche pas à surmonter les facteurs naturels, mais à perfectionner l'art d'interagir avec eux. Nos programmes nutritionnels aident à réaliser le potentiel des plantes et à minimiser l'impact des facteurs limitant le rendement : surmonter la dépression post-pesticide, préparer correctement aux facteurs de stress (y compris la protection contre les températures basses et élevées au niveau cellulaire), ralentir les processus de vieillissement et d'usure, corriger les carences et équilibrer les éléments nutritifs absorbés, éliminer l'indisponibilité physiologique et chimique des éléments nutritifs, améliorer le statut immunitaire, contrôler les systèmes hormonaux et enzymatiques.",
+    "p6": "Nous assurons un accompagnement en laboratoire de l'exploitation à toutes les étapes : de la préparation pré-semis ou de la culture des plants jusqu'aux opérations post-récolte.",
+    "p7": "Nous croyons que notre succès sera le succès de nos partenaires commerciaux dans l'agriculture.",
+    "formTitle": "Nos responsables régionaux seront heureux de vous conseiller et de vous présenter en détail nos activités.",
+    "formSubtitle": "Utilisez le formulaire à gauche pour poser votre question, laisser un avis ou une suggestion. Vos retours sont très importants pour nous !"
+  },
+  "Partners": {
+    "title": "Nos partenaires"
+  },
+  "ContactForm": {
+    "namePlaceholder": "Prénom",
+    "phonePlaceholder": "Téléphone",
+    "phoneInvalid": "Veuillez entrer un numéro valide : chiffres, +, espaces, parenthèses ou tirets.",
+    "commentPlaceholder": "Commentaire",
+    "submit": "Envoyer",
+    "sending": "Envoi en cours...",
+    "success": "Merci ! Votre demande a été envoyée.",
+    "error": "Impossible d'envoyer la demande. Veuillez réessayer plus tard.",
+    "consent": "Je donne mon consentement au traitement légal de mes données personnelles.",
+    "consentLink": "établie conformément aux exigences de la loi fédérale du 27.07.2006 n° 152-FZ « Sur les données personnelles »"
+  },
+  "CallbackModal": {
+    "title": "LAISSEZ VOTRE NUMÉRO DE TÉLÉPHONE",
+    "subtitle": "Votre appel est très important pour nous",
+    "close": "Fermer le formulaire"
+  },
+  "QuestionModal": {
+    "title": "POSEZ VOTRE QUESTION",
+    "subtitle": "Indiquez votre question et vos coordonnées pour la réponse. Merci !",
+    "submit": "Envoyer la question",
+    "close": "Fermer le formulaire"
+  },
+  "Privacy": {
+    "title": "Politique de traitement des données personnelles",
+    "subtitle": "Document de la SARL «Astoria» régissant les modalités de traitement et de protection des données personnelles des visiteurs du site.",
+    "back": "Retour",
+    "sections": {
+      "general": {
+        "title": "1. Dispositions générales",
+        "paragraphs": [
+          "La présente politique de traitement des données personnelles est établie conformément aux exigences de la loi fédérale du 27.07.2006 n° 152-FZ « Sur les données personnelles » et définit les modalités de traitement des données personnelles ainsi que les mesures de sécurité applicables aux données personnelles de la SARL \"Astoria\" (ci-après dénommée l'Opérateur)."
+        ],
+        "items": [
+          "L'Opérateur considère comme son objectif primordial et comme condition de l'exercice de ses activités le respect des droits et libertés de l'homme et du citoyen lors du traitement de ses données personnelles, notamment la protection du droit à la vie privée, au secret personnel et familial.",
+          "La présente politique de l'Opérateur en matière de traitement des données personnelles (ci-après dénommée la Politique) s'applique à toutes les informations que l'Opérateur peut obtenir sur les visiteurs du site web <site>https://foliart.me</site>."
+        ]
+      },
+      "terms": {
+        "title": "2. Définitions principales utilisées dans la Politique",
+        "items": [
+          "Traitement automatisé des données personnelles – traitement des données personnelles à l'aide de moyens informatiques.",
+          "Blocage des données personnelles – suspension temporaire du traitement des données personnelles (sauf dans les cas où le traitement est nécessaire pour mettre à jour les données personnelles).",
+          "Site web – ensemble de matériaux graphiques et informatifs, ainsi que de programmes informatiques et de bases de données assurant leur accessibilité sur Internet à l'adresse <site>https://foliart.me</site>.",
+          "Système d'information des données personnelles — ensemble des données personnelles contenues dans des bases de données, ainsi que des technologies de l'information et des moyens techniques assurant leur traitement.",
+          "Anonymisation des données personnelles — actions à l'issue desquelles il est impossible de déterminer, sans informations supplémentaires, l'appartenance des données personnelles à un Utilisateur spécifique ou à un autre sujet de données personnelles.",
+          "Traitement des données personnelles – toute action (opération) ou ensemble d'actions (opérations) effectuées avec ou sans moyens d'automatisation sur des données personnelles, incluant la collecte, l'enregistrement, la systématisation, l'accumulation, le stockage, la clarification (mise à jour, modification), l'extraction, l'utilisation, la transmission (diffusion, fourniture, accès), l'anonymisation, le blocage, la suppression et la destruction des données personnelles.",
+          "Opérateur – autorité publique, autorité municipale, personne morale ou physique qui, seule ou conjointement avec d'autres personnes, organise et/ou effectue le traitement des données personnelles, et détermine également les finalités du traitement, la composition des données personnelles à traiter et les actions (opérations) effectuées sur les données personnelles.",
+          "Données personnelles – toute information se rapportant directement ou indirectement à un Utilisateur identifié ou identifiable du site web <site>https://foliart.me</site>.",
+          "Utilisateur – tout visiteur du site web <site>https://foliart.me</site>.",
+          "Fourniture de données personnelles – actions visant à divulguer des données personnelles à une personne déterminée ou à un cercle déterminé de personnes.",
+          "Diffusion des données personnelles – toutes actions visant à divulguer des données personnelles à un cercle indéterminé de personnes (transfert de données personnelles) ou à faire prendre connaissance des données personnelles à un nombre illimité de personnes, notamment par la publication de données personnelles dans les médias, leur mise en ligne sur des réseaux d'information et de télécommunication, ou la fourniture d'un accès aux données personnelles par tout autre moyen.",
+          "Transfert transfrontalier de données personnelles – transfert de données personnelles vers le territoire d'un État étranger à une autorité étrangère, à une personne physique étrangère ou à une personne morale étrangère.",
+          "Destruction des données personnelles – toutes actions à l'issue desquelles les données personnelles sont détruites de manière irréversible, sans possibilité de restauration ultérieure du contenu des données personnelles dans le système d'information, et/ou à l'issue desquelles les supports matériels des données personnelles sont détruits."
+        ]
+      },
+      "data": {
+        "title": "3. L'Opérateur peut traiter les données personnelles suivantes de l'Utilisateur",
+        "items": [
+          "Nom, prénom, patronyme.",
+          "Adresse électronique.",
+          "Le site procède également à la collecte et au traitement de données anonymisées sur les visiteurs (y compris les fichiers « cookies ») à l'aide de services de statistiques Internet (Yandex Metrica, Google Analytics et autres).",
+          "Les données énumérées ci-dessus sont regroupées dans la suite de la Politique sous le terme général de Données personnelles."
+        ]
+      },
+      "goals": {
+        "title": "4. Finalités du traitement des données personnelles",
+        "items": [
+          "La finalité du traitement des données personnelles de l'Utilisateur est d'informer l'Utilisateur par l'envoi de courriers électroniques ; de fournir à l'Utilisateur l'accès aux services, informations et/ou matériaux disponibles sur le site web.",
+          "L'Opérateur a également le droit d'envoyer à l'Utilisateur des notifications concernant de nouveaux produits et services, des offres spéciales et divers événements. L'Utilisateur peut à tout moment refuser de recevoir des messages d'information en adressant à l'Opérateur un courrier électronique à l'adresse <email>mail@foliart.me</email> avec la mention « Refus de notifications sur les nouveaux produits, services et offres spéciales ».",
+          "Les données anonymisées des Utilisateurs, collectées à l'aide de services de statistiques Internet, servent à recueillir des informations sur les actions des Utilisateurs sur le site, à améliorer la qualité du site et de son contenu."
+        ]
+      },
+      "grounds": {
+        "title": "5. Bases juridiques du traitement des données personnelles",
+        "items": [
+          "L'Opérateur traite les données anonymisées de l'Utilisateur si cela est autorisé dans les paramètres du navigateur de l'Utilisateur (enregistrement des fichiers « cookies » et utilisation de la technologie JavaScript activés).",
+          "L'Opérateur traite les données personnelles de l'Utilisateur uniquement si elles sont renseignées et/ou envoyées par l'Utilisateur lui-même via des formulaires spéciaux disponibles sur le site <site>https://foliart.me</site>. En renseignant les formulaires correspondants et/ou en transmettant ses données personnelles à l'Opérateur, l'Utilisateur exprime son accord avec la présente Politique."
+        ]
+      },
+      "process": {
+        "title": "6. Modalités de collecte, de stockage, de transfert et autres types de traitement des données personnelles",
+        "paragraphs": [
+          "La sécurité des données personnelles traitées par l'Opérateur est assurée par la mise en œuvre de mesures juridiques, organisationnelles et techniques nécessaires au respect intégral des exigences de la législation en vigueur en matière de protection des données personnelles."
+        ],
+        "items": [
+          "L'Opérateur assure la conservation des données personnelles et prend toutes les mesures possibles pour empêcher l'accès aux données personnelles par des personnes non autorisées.",
+          "Les données personnelles de l'Utilisateur ne seront jamais, en aucune circonstance, transmises à des tiers, sauf dans les cas liés à l'exécution de la législation en vigueur.",
+          "En cas d'inexactitudes dans les données personnelles, l'Utilisateur peut les mettre à jour lui-même en adressant à l'Opérateur une notification à l'adresse électronique de l'Opérateur <email>mail@foliart.me</email> avec la mention « Mise à jour des données personnelles ».",
+          "La durée du traitement des données personnelles est illimitée. L'Utilisateur peut à tout moment retirer son consentement au traitement des données personnelles en adressant à l'Opérateur une notification par courrier électronique à l'adresse de l'Opérateur <email>mail@foliart.me</email> avec la mention « Retrait du consentement au traitement des données personnelles »."
+        ]
+      },
+      "transfer": {
+        "title": "7. Transfert transfrontalier des données personnelles",
+        "items": [
+          "Avant de procéder à un transfert transfrontalier de données personnelles, l'Opérateur est tenu de s'assurer que l'État étranger vers lequel le transfert est envisagé garantit une protection adéquate des droits des sujets de données personnelles.",
+          "Le transfert transfrontalier de données personnelles vers des États étrangers ne répondant pas aux exigences susmentionnées ne peut être effectué qu'avec le consentement écrit du sujet des données personnelles pour le transfert transfrontalier de ses données et/ou dans le cadre de l'exécution d'un contrat dont le sujet des données est partie."
+        ]
+      },
+      "final": {
+        "title": "8. Dispositions finales",
+        "items": [
+          "L'Utilisateur peut obtenir toutes les clarifications sur les questions qui l'intéressent concernant le traitement de ses données personnelles en contactant l'Opérateur par courrier électronique à l'adresse <email>mail@foliart.me</email>.",
+          "La version actuelle de la Politique est librement accessible sur Internet à l'adresse <privacy>https://foliart.me/privacy</privacy>.",
+          "Toute modification de la politique de traitement des données personnelles de l'Opérateur sera reflétée dans ce document. La Politique est valable pour une durée indéterminée jusqu'à son remplacement par une nouvelle version."
+        ]
+      }
+    }
+  },
+  "Footer": {
+    "callOrder": "Commander un appel",
+    "slogan": "FOLIART — L'ART DE LA FERTILISATION",
+    "seoText": "Engrais organo-minéraux, systèmes de nutrition des plantes, fertilisation foliaire, micro-engrais et accompagnement agronomique pour l'agriculture.",
+    "privacy": "Traitement des données personnelles",
+    "copyright": "© SARL \"ASTORIA\", 2023"
+  }
+}
