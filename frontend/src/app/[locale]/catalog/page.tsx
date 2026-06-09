@@ -23,7 +23,12 @@ export async function generateMetadata({
   return buildPageMetadata({
     locale,
     path: '/catalog',
-    title: locale === 'ru' ? 'Каталог удобрений' : 'Fertilizer catalog',
+    title:
+      locale === 'ru'
+        ? 'Каталог удобрений'
+        : locale === 'fr'
+          ? 'Catalogue des engrais'
+          : 'Fertilizer catalog',
     description: copy.subtitle,
     image: '/catalog-head.webp',
   });

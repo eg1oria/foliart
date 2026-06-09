@@ -148,7 +148,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
   const mobileActionButtonClassName =
     'flex h-10 w-10 items-center justify-center rounded-full bg-[#074031] text-white transition-colors hover:bg-[#074031]/80 sm:h-11 sm:w-11';
   const hasCatalogMegaMenu = catalogChildren.length > 0;
-  const fullLogoSrc = locale === 'en' ? '/logo_eng-w.webp' : '/logo5.PNG';
+  const fullLogoSrc = locale === 'ru' ? '/logo5.PNG' : '/logo_eng-w.webp';
 
   const renderDesktopLocaleSwitcher = () => (
     <div className="relative group z-[100] cursor-pointer">

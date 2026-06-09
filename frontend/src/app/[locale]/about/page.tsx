@@ -27,7 +27,7 @@ export async function generateMetadata({
 export default function About() {
   const t = useTranslations('About');
   const locale = useLocale();
-  const logoSrc = locale === 'ru' ? '/logo5.PNG' : '/logo_eng.png';
+  const logoSrc = locale === 'ru' ? '/logo5.PNG' : '/logo_eng-w.webp';
 
   return (
     <main>

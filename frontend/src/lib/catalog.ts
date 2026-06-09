@@ -113,9 +113,7 @@ export function findCategoryByParam(categories: Category[], value: string): Cate
   }
 
   const slug = slugify(value);
-  return (
-    categories.find((category) => getSlugCandidates(category).includes(slug)) ?? null
-  );
+  return categories.find((category) => getSlugCandidates(category).includes(slug)) ?? null;
 }
 
 export function findProductByParam(products: Product[], value: string): Product | null {
@@ -285,6 +283,10 @@ export function getCategoryProductCount(category: Category, products: Product[])
 export function formatProductCount(count: number, locale: string): string {
   if (locale === 'en') {
     return count === 1 ? '1 product' : `${count} products`;
+  }
+
+  if (locale === 'fr') {
+    return count === 1 ? '1 produit' : `${count} produits`;
   }
 
   const mod10 = count % 10;

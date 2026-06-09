@@ -4,9 +4,9 @@ import { useLocale, useTranslations } from 'next-intl';
 export default function Hero() {
   const t = useTranslations('Hero');
   const locale = useLocale();
-  const isEn = locale === 'en';
-  const logoSrc = isEn ? '/logo_eng-w.webp' : '/logo5.PNG';
-  const logoWidth = isEn ? 500 : 440;
+  const isRu = locale === 'ru';
+  const logoSrc = isRu ? '/logo5.PNG' : '/logo_eng-w.webp';
+  const logoWidth = isRu ? 440 : 500;
 
   const items = [
     {
