@@ -324,6 +324,26 @@ export function getCatalogCopy(locale: string) {
     };
   }
 
+  if (locale === 'fr') {
+    return {
+      title: 'Catalogue des engrais',
+      subtitle: 'Nous savons comment prendre soin de vos plantes',
+      categoryBadge: 'Catégorie',
+      openCategory: 'Ouvrir la catégorie',
+      allCategories: 'Toutes les catégories',
+      learnMore: 'En savoir plus',
+      emptyCategories: 'Les catégories apparaîtront ici après leur ajout.',
+      emptyProducts: 'Cette catégorie ne contient pas encore de produits.',
+      productPlaceholder: 'La photo du produit sera ajoutée prochainement.',
+      backToCategory: 'Retour aux produits',
+      descriptionTitle: 'Description',
+      advantagesTitle: 'Avantages',
+      advantagesEmpty: 'Les avantages seront ajoutés ultérieurement.',
+      detailsFallback: 'Les informations détaillées sur le produit seront ajoutées ultérieurement.',
+      routeMismatch: 'Ce produit appartient à une autre catégorie.',
+    };
+  }
+
   return {
     title: 'Каталог удобрений',
     subtitle: 'Мы знаем как позаботиться о ваших растениях',
@@ -386,6 +406,50 @@ export function getCatalogAdminCopy(locale: string) {
       imagePathLabel: 'Image path',
       productCountLabel: 'products',
       openProduct: 'Open product',
+    };
+  }
+
+  if (locale === 'fr') {
+    return {
+      title: 'Mini-admin du catalogue',
+      subtitle:
+        "Ajoutez des produits aux catégories avec un titre et une image. L'image sera enregistrée dans backend/images/products.",
+      formTitle: 'Ajouter un produit',
+      formDescription: "Page d'administration interne de base sans authentification.",
+      statusCreated: 'Produit créé avec succès.',
+      statusUpdated: 'Produit mis à jour avec succès.',
+      categoryLabel: 'Catégorie',
+      nameLabel: 'Nom du produit',
+      imageLabel: 'Image',
+      descriptionLabel: 'Description courte',
+      translationSectionTitle: 'Traduction française',
+      translationSectionHint: 'Laissez les champs vides pour utiliser la version russe par défaut.',
+      categoryNameEnLabel: 'Nom de la catégorie en français',
+      categoryDescriptionEnLabel: 'Description de la catégorie en français',
+      categoryTranslationsTitle: 'Traductions des catégories',
+      categoryTranslationsHint:
+        'Ces traductions sont utilisées sur les pages du catalogue. Les URLs restent stables.',
+      categoryUpdateLabel: 'Enregistrer la traduction',
+      categoryStatusUpdated: 'Traduction de la catégorie mise à jour avec succès.',
+      compositionLabel: 'Composition',
+      applicationLabel: "Guide d'application",
+      advantagesLabel: 'Avantages',
+      optionalLabel: 'Optionnel',
+      submitLabel: 'Ajouter le produit',
+      updateLabel: 'Enregistrer les modifications',
+      editLabel: 'Modifier le produit',
+      imageHint: "Formats acceptés : JPG, PNG, WEBP jusqu'à 5 Mo.",
+      replaceImageHint: "Laissez vide pour conserver l'image actuelle.",
+      compositionHint: 'Un élément par ligne : Azote | 20 g/l',
+      applicationHint:
+        'Séparez les blocs par une ligne vide. La première ligne est le titre, les suivantes sont la recommandation.',
+      existingTitle: 'Produits actuels',
+      emptyState: 'Cette catégorie ne contient pas encore de produits.',
+      backToCatalog: 'Ouvrir le catalogue',
+      adminPathHint: 'Utilisez cette page pour mettre à jour le catalogue rapidement.',
+      imagePathLabel: "Chemin de l'image",
+      productCountLabel: 'produits',
+      openProduct: 'Ouvrir le produit',
     };
   }
 
