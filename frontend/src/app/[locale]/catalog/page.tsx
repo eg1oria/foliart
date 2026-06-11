@@ -28,7 +28,9 @@ export async function generateMetadata({
         ? 'Каталог удобрений'
         : locale === 'fr'
           ? 'Catalogue des engrais'
-          : 'Fertilizer catalog',
+          : locale === 'es'
+            ? 'Catálogo de fertilizantes'
+            : 'Fertilizer catalog',
     description: copy.subtitle,
     image: '/catalog-head.webp',
   });
@@ -38,7 +40,13 @@ export default async function CatalogPage({ params }: { params: Promise<{ locale
   const { locale } = await params;
   const copy = getCatalogCopy(locale);
   const categoryCta =
-    locale === 'ru' ? 'Посмотреть каталог' : locale === 'fr' ? 'Voir le catalogue' : 'View catalog';
+    locale === 'ru'
+      ? 'Посмотреть каталог'
+      : locale === 'fr'
+        ? 'Voir le catalogue'
+        : locale === 'es'
+          ? 'Ver catálogo'
+          : 'View catalog';
   const [categories, products] = await Promise.all([
     getCategories(locale),
     getProducts(undefined, locale),

@@ -23,7 +23,9 @@ export async function generateMetadata({
         ? 'Сельскохозяйственный календарь'
         : locale === 'fr'
           ? 'Calendrier agricole'
-          : 'Agricultural calendar',
+          : locale === 'es'
+            ? 'Calendario agrícola'
+            : 'Agricultural calendar',
     description: copy.subtitle,
     image: '/articles-head.webp',
   });

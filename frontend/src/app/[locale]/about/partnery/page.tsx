@@ -16,11 +16,13 @@ export async function generateMetadata({
   return buildPageMetadata({
     locale,
     path: '/about/partnery',
-    title: locale === 'en' ? 'Partners' : 'Партнеры',
+    title: locale === 'ru' ? 'Партнеры' : locale === 'es' ? 'Socios' : 'Partners',
     description:
-      locale === 'en'
-        ? 'Regional partners and distributors of Foliart products in Krasnodar and Crimea.'
-        : 'Региональные партнеры и дистрибьюторы продукции Фолиарт в Краснодаре и Крыму.',
+      locale === 'ru'
+        ? 'Региональные партнеры и дистрибьюторы продукции Фолиарт в Краснодаре и Крыму.'
+        : locale === 'es'
+          ? 'Socios regionales y distribuidores de los productos Foliart en Krasnodar y Crimea.'
+          : 'Regional partners and distributors of Foliart products in Krasnodar and Crimea.',
     image: '/partners-head.webp',
   });
 }

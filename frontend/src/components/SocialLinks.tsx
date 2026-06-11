@@ -1,5 +1,5 @@
 import type { IconType } from 'react-icons';
-import { SiOdnoklassniki, SiVk } from 'react-icons/si';
+import { SiOdnoklassniki, SiVk, SiFacebook } from 'react-icons/si';
 
 type SocialLink = {
   id: string;
@@ -9,7 +9,7 @@ type SocialLink = {
   text?: string;
 };
 
-const socialLinks: SocialLink[] = [
+const ruSocialLinks: SocialLink[] = [
   {
     id: 'dzen',
     label: 'Dzen',
@@ -36,7 +36,43 @@ const socialLinks: SocialLink[] = [
   },
 ];
 
+const facebookLinkByLocale: Record<string, SocialLink> = {
+  es: {
+    id: 'facebook',
+    label: 'Facebook',
+    href: 'https://www.facebook.com/groups/foliart.espania',
+    icon: SiFacebook,
+  },
+  en: {
+    id: 'facebook',
+    label: 'Facebook',
+    href: 'https://www.facebook.com/groups/foliart.england/',
+    icon: SiFacebook,
+  },
+  fr: {
+    id: 'facebook',
+    label: 'Facebook',
+    href: 'https://www.facebook.com/groups/foliart.france/',
+    icon: SiFacebook,
+  },
+};
+
+function getSocialLinks(locale: string): SocialLink[] {
+  if (locale === 'ru') {
+    return ruSocialLinks;
+  }
+
+  const facebookLink = facebookLinkByLocale[locale];
+  if (facebookLink) {
+    return [facebookLink];
+  }
+
+  // Fallback for unknown non-Russian locales: no links
+  return [];
+}
+
 type SocialLinksProps = {
+  locale?: string;
   ariaLabel?: string;
   className?: string;
   linkClassName?: string;
@@ -48,14 +84,21 @@ const defaultLinkClassName =
   'flex h-12 w-12 items-center justify-center rounded-full border border-white/25 text-white transition-colors hover:border-transparent hover:bg-[#074031] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white';
 
 export default function SocialLinks({
+  locale = 'ru',
   ariaLabel = 'Foliart social links',
   className = defaultNavClassName,
   linkClassName = defaultLinkClassName,
   onLinkClick,
 }: SocialLinksProps) {
+  const links = getSocialLinks(locale);
+
+  if (links.length === 0) {
+    return null;
+  }
+
   return (
     <nav aria-label={ariaLabel} className={className}>
-      {socialLinks.map(({ id, label, href, icon: Icon, text }) => (
+      {links.map(({ id, label, href, icon: Icon, text }) => (
         <a
           key={id}
           href={href}

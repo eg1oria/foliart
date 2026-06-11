@@ -4,7 +4,7 @@ export const ADMIN_SESSION_MAX_AGE_SECONDS = 60 * 60 * 12;
 const DEFAULT_ADMIN_USERNAME = 'admin';
 const DEFAULT_ADMIN_PASSWORD = 'Foliart2026!';
 const DEFAULT_ADMIN_SESSION_SECRET = 'foliart-admin-session-secret-2026';
-const SUPPORTED_ADMIN_LOCALES = ['ru', 'en'] as const;
+const SUPPORTED_ADMIN_LOCALES = ['ru'] as const;
 
 type AdminLocale = (typeof SUPPORTED_ADMIN_LOCALES)[number];
 
@@ -26,9 +26,7 @@ function getAdminPassword() {
 
 function getAdminSessionSecret() {
   return (
-    process.env.ADMIN_SESSION_SECRET ??
-    process.env.ADMIN_PASSWORD ??
-    DEFAULT_ADMIN_SESSION_SECRET
+    process.env.ADMIN_SESSION_SECRET ?? process.env.ADMIN_PASSWORD ?? DEFAULT_ADMIN_SESSION_SECRET
   );
 }
 

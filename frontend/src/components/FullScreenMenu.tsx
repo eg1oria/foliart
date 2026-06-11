@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { FiChevronDown } from 'react-icons/fi';
 import { RxCross1 } from 'react-icons/rx';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
@@ -10,7 +10,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import ContactModalTrigger from './ContactModalTrigger';
 import SocialLinks from './SocialLinks';
 
-type LocaleOption = 'ru' | 'en' | 'fr';
+type LocaleOption = 'ru' | 'en' | 'fr' | 'es';
 
 type CatalogChild = {
   name: string;
@@ -38,8 +38,9 @@ export default function FullscreenMenu({
   const router = useRouter();
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
-  const localeOptions: LocaleOption[] = ['ru', 'en', 'fr'];
+  const localeOptions: LocaleOption[] = ['ru', 'en', 'fr', 'es'];
   const fullLogoSrc = locale === 'en' ? '/logo_eng.png' : '/logo5.PNG';
+  const [isLocaleSwitcherOpen, setIsLocaleSwitcherOpen] = useState(false);
 
   const changeLocale = (nextLocale: LocaleOption) => {
     if (nextLocale === locale) return;
@@ -74,50 +75,39 @@ export default function FullscreenMenu({
   );
 
   const renderDesktopLocaleSwitcher = () => (
-    <div className="relative group z-[100] cursor-pointer">
-      <div className="flex flex-row items-center gap-1 p-2 text-[15px] text-white/85 uppercase transition-colors hover:text-white">
+    <div className="relative z-[100] cursor-pointer">
+      <button
+        type="button"
+        onClick={() => setIsLocaleSwitcherOpen((prev) => !prev)}
+        className="flex flex-row items-center gap-1 p-2 text-[15px] text-white/85 uppercase transition-colors hover:text-white">
         {locale}
         <FiChevronDown size={14} className="mt-0.5" />
-      </div>
-      <ul className="absolute left-1/2 top-full z-[100] mt-0 min-w-[70px] -translate-x-1/2 rounded-sm border border-gray-100 bg-white opacity-0 shadow-xl invisible transition-all duration-200 group-hover:visible group-hover:opacity-100">
-        {localeOptions.map((localeOption, index) => (
-          <li
-            key={localeOption}
-            className={`${index === 0 ? 'border-b border-gray-200' : ''} transition-colors hover:bg-gray-100`}>
-            <button
-              type="button"
-              onClick={() => changeLocale(localeOption)}
-              disabled={isPending}
-              className={`block w-full cursor-pointer px-4 py-2 text-center text-sm ${
-                locale === localeOption ? 'font-bold text-[#074031]' : 'text-gray-700'
-              }`}>
-              {localeOption.toUpperCase()}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-
-  const renderCompactLocaleSwitcher = () => (
-    <div className="flex items-center rounded-sm border border-white/20 p-1">
-      {localeOptions.map((localeOption) => {
-        const isActive = locale === localeOption;
-
-        return (
-          <button
-            key={localeOption}
-            type="button"
-            onClick={() => changeLocale(localeOption)}
-            disabled={isPending}
-            aria-pressed={isActive}
-            className={`rounded-sm px-2 py-1 text-[10px] font-semibold uppercase transition-colors sm:px-3 sm:text-xs ${
-              isActive ? 'bg-white text-[#074031]' : 'text-white/75 hover:text-white'
-            }`}>
-            {localeOption.toUpperCase()}
-          </button>
-        );
-      })}
+      </button>
+      {isLocaleSwitcherOpen && (
+        <>
+          <div className="fixed inset-0 z-[99]" onClick={() => setIsLocaleSwitcherOpen(false)} />
+          <ul className="absolute left-1/2 top-full z-[100] mt-0 min-w-[70px] -translate-x-1/2 rounded-sm border border-gray-100 bg-white shadow-xl">
+            {localeOptions.map((localeOption, index) => (
+              <li
+                key={localeOption}
+                className={`${index === 0 ? 'border-b border-gray-200' : ''} transition-colors hover:bg-gray-100`}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    changeLocale(localeOption);
+                    setIsLocaleSwitcherOpen(false);
+                  }}
+                  disabled={isPending}
+                  className={`block w-full cursor-pointer px-4 py-2 text-center text-sm ${
+                    locale === localeOption ? 'font-bold text-[#074031]' : 'text-gray-700'
+                  }`}>
+                  {localeOption.toUpperCase()}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </div>
   );
 
@@ -138,7 +128,7 @@ export default function FullscreenMenu({
             {renderFullLogo('hidden h-auto lg:block lg:w-[135px]')}
           </div>
 
-          <div className="lg:hidden">{renderCompactLocaleSwitcher()}</div>
+          <div className="lg:hidden">{renderDesktopLocaleSwitcher()}</div>
           <div className="hidden lg:block">{renderDesktopLocaleSwitcher()}</div>
         </div>
         <button
@@ -270,6 +260,7 @@ export default function FullscreenMenu({
             </ContactModalTrigger>
             <SocialLinks
               onLinkClick={onClose}
+              locale={locale}
               linkClassName="flex h-11 w-11 items-center justify-center rounded-full border border-white/25 text-white transition-colors hover:border-transparent hover:bg-[#074031] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             />
           </div>

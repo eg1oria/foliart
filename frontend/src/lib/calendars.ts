@@ -88,6 +88,24 @@ export function getCalendarsCopy(locale: string) {
     };
   }
 
+  if (locale === 'es') {
+    return {
+      title: 'Calendario agrícola',
+      subtitle:
+        'Páginas de cultivos con descripción y cuatro fotos para cada entrada del calendario.',
+      emptyState:
+        'Las entradas del calendario aparecerán aquí una vez añadidas en el panel de administración.',
+      openEntry: 'Abrir página',
+      detailsEmpty: 'La descripción de este cultivo se añadirá próximamente.',
+      backToCalendar: 'Volver al calendario',
+      galleryTitle: 'Galería del cultivo',
+      relatedTitle: 'Otros cultivos',
+      relatedEmpty: 'Próximamente aparecerán nuevas entradas en el calendario.',
+      heroEyebrow: 'Calendario Foliart',
+      listEyebrow: 'Directorio de cultivos',
+    };
+  }
+
   return {
     title: 'Сельскохозяйственный календарь',
     subtitle: 'Страницы культур с описанием и четырьмя фотографиями для каждой записи календаря.',
@@ -163,6 +181,37 @@ export function getCalendarsAdminCopy(locale: string) {
       editLabel: "Modifier l'entrée",
       backToSite: 'Vers le site',
       imagePathLabel: "Chemin de l'image",
+    };
+  }
+
+  if (locale === 'es') {
+    return {
+      adminTitle: 'Editor de calendario',
+      adminSubtitle:
+        'Añada cultivos al calendario con un título, descripción y cuatro fotos para cada página.',
+      adminFormTitle: 'Añadir entrada al calendario',
+      adminFormDescription:
+        'Use una entrada por cultivo. Las 4 fotos son obligatorias al crear una nueva entrada.',
+      existingTitle: 'Entradas actuales del calendario',
+      emptyState: 'Aún no hay entradas en el calendario.',
+      statusCreated: 'Entrada del calendario creada correctamente.',
+      statusUpdated: 'Entrada del calendario actualizada correctamente.',
+      titleLabel: 'Título',
+      titleEnLabel: 'Título en español',
+      descriptionLabel: 'Descripción',
+      descriptionEnLabel: 'Descripción en español',
+      imageLabelPrefix: 'Foto',
+      imageHint: 'Formatos admitidos: JPG, PNG y WEBP hasta 5 MB cada uno.',
+      replaceImageHint: 'Deje cualquier campo de imagen vacío para conservar la foto actual.',
+      translationSectionTitle: 'Versión en español',
+      translationHint:
+        'Deje los campos en español vacíos si la versión española del sitio debe usar el texto ruso.',
+      optionalLabel: 'Opcional',
+      submitLabel: 'Añadir entrada',
+      updateLabel: 'Guardar cambios',
+      editLabel: 'Editar entrada',
+      backToSite: 'Ir al sitio',
+      imagePathLabel: 'Ruta de la imagen',
     };
   }
 

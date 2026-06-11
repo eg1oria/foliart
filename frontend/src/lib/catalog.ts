@@ -289,6 +289,10 @@ export function formatProductCount(count: number, locale: string): string {
     return count === 1 ? '1 produit' : `${count} produits`;
   }
 
+  if (locale === 'es') {
+    return count === 1 ? '1 producto' : `${count} productos`;
+  }
+
   const mod10 = count % 10;
   const mod100 = count % 100;
 
@@ -341,6 +345,26 @@ export function getCatalogCopy(locale: string) {
       advantagesEmpty: 'Les avantages seront ajoutés ultérieurement.',
       detailsFallback: 'Les informations détaillées sur le produit seront ajoutées ultérieurement.',
       routeMismatch: 'Ce produit appartient à une autre catégorie.',
+    };
+  }
+
+  if (locale === 'es') {
+    return {
+      title: 'Catálogo de fertilizantes',
+      subtitle: 'Sabemos cómo cuidar sus plantas',
+      categoryBadge: 'Categoría',
+      openCategory: 'Abrir categoría',
+      allCategories: 'Todas las categorías',
+      learnMore: 'Saber más',
+      emptyCategories: 'Las categorías aparecerán aquí una vez añadidas.',
+      emptyProducts: 'Esta categoría aún no tiene productos.',
+      productPlaceholder: 'La foto del producto se añadirá próximamente.',
+      backToCategory: 'Volver a los productos',
+      descriptionTitle: 'Descripción',
+      advantagesTitle: 'Ventajas',
+      advantagesEmpty: 'Las ventajas se añadirán más adelante.',
+      detailsFallback: 'La información detallada del producto se añadirá más adelante.',
+      routeMismatch: 'Este producto pertenece a otra categoría.',
     };
   }
 
@@ -450,6 +474,51 @@ export function getCatalogAdminCopy(locale: string) {
       imagePathLabel: "Chemin de l'image",
       productCountLabel: 'produits',
       openProduct: 'Ouvrir le produit',
+    };
+  }
+
+  if (locale === 'es') {
+    return {
+      title: 'Mini-admin del catálogo',
+      subtitle:
+        'Añada productos a las categorías con un título e imagen. La imagen se guardará en backend/images/products.',
+      formTitle: 'Añadir producto',
+      formDescription: 'Página de administración interna básica sin autenticación.',
+      statusCreated: 'Producto creado correctamente.',
+      statusUpdated: 'Producto actualizado correctamente.',
+      categoryLabel: 'Categoría',
+      nameLabel: 'Nombre del producto',
+      imageLabel: 'Imagen',
+      descriptionLabel: 'Descripción breve',
+      translationSectionTitle: 'Traducción al español',
+      translationSectionHint:
+        'Deje los campos vacíos si desea que el catálogo en español use la versión rusa como respaldo.',
+      categoryNameEnLabel: 'Nombre de la categoría en español',
+      categoryDescriptionEnLabel: 'Descripción de la categoría en español',
+      categoryTranslationsTitle: 'Traducciones de categorías',
+      categoryTranslationsHint:
+        'Estas traducciones se usan en las páginas del catálogo. Las URLs permanecen estables.',
+      categoryUpdateLabel: 'Guardar traducción de categoría',
+      categoryStatusUpdated: 'Traducción de categoría actualizada correctamente.',
+      compositionLabel: 'Composición',
+      applicationLabel: 'Guía de aplicación',
+      advantagesLabel: 'Ventajas',
+      optionalLabel: 'Opcional',
+      submitLabel: 'Añadir producto',
+      updateLabel: 'Guardar cambios',
+      editLabel: 'Editar producto',
+      imageHint: 'Formatos admitidos: JPG, PNG, WEBP hasta 5 MB.',
+      replaceImageHint: 'Deje el campo vacío para conservar la imagen actual.',
+      compositionHint: 'Un elemento por línea: Nitrógeno | 20 g/l',
+      applicationHint:
+        'Separe los bloques con una línea en blanco. La primera línea es el título, las siguientes son la recomendación.',
+      existingTitle: 'Productos actuales',
+      emptyState: 'Esta categoría aún no tiene productos.',
+      backToCatalog: 'Abrir catálogo',
+      adminPathHint: 'Use esta página para mantener el catálogo actualizado rápidamente.',
+      imagePathLabel: 'Ruta de la imagen',
+      productCountLabel: 'productos',
+      openProduct: 'Abrir producto',
     };
   }
 

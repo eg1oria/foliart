@@ -18,7 +18,14 @@ export async function generateMetadata({
   return buildPageMetadata({
     locale,
     path: '/about',
-    title: locale === 'ru' ? 'О компании' : locale === 'fr' ? 'À propos' : 'About the company',
+    title:
+      locale === 'ru'
+        ? 'О компании'
+        : locale === 'fr'
+          ? 'À propos'
+          : locale === 'es'
+            ? 'Sobre nosotros'
+            : 'About the company',
     description: t('subtitle'),
     image: '/about-head1.webp',
   });

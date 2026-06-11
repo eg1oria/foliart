@@ -1,4 +1,4 @@
-export const contentLocales = ['ru', 'en', 'fr'] as const;
+export const contentLocales = ['ru', 'en', 'fr', 'es'] as const;
 export const defaultContentLocale = 'ru';
 
 export type ContentLocale = (typeof contentLocales)[number];

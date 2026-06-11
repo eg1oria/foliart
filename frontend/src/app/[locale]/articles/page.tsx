@@ -18,13 +18,21 @@ export async function generateMetadata({
     locale,
     path: '/articles',
     title:
-      locale === 'ru' ? 'Полезные статьи' : locale === 'fr' ? 'Articles utiles' : 'Useful articles',
+      locale === 'ru'
+        ? 'Полезные статьи'
+        : locale === 'fr'
+          ? 'Articles utiles'
+          : locale === 'es'
+            ? 'Artículos útiles'
+            : 'Useful articles',
     description:
       locale === 'ru'
         ? 'Полезные статьи о питании растений, восстановлении после стресса и системах удобрения от специалистов Фолиарт.'
         : locale === 'fr'
           ? 'Articles utiles sur la nutrition des plantes, la récupération après le stress et les systèmes de fertilisation par les spécialistes de Foliart.'
-          : 'Useful articles about plant nutrition, stress recovery, and fertilizer systems from Foliart specialists.',
+          : locale === 'es'
+            ? 'Artículos útiles sobre nutrición vegetal, recuperación tras el estrés y sistemas de fertilización de los especialistas de Foliart.'
+            : 'Useful articles about plant nutrition, stress recovery, and fertilizer systems from Foliart specialists.',
     image: '/articles-head.webp',
   });
 }

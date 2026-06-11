@@ -17,7 +17,7 @@ const FullscreenMenu = dynamic(() => import('./FullScreenMenu'), {
   ssr: false,
 });
 
-type LocaleOption = 'ru' | 'en' | 'fr';
+type LocaleOption = 'ru' | 'en' | 'fr' | 'es';
 
 type HeaderChildItem = {
   name: string;
@@ -49,8 +49,9 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
   const router = useRouter();
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
+  const [isLocaleSwitcherOpen, setIsLocaleSwitcherOpen] = useState(false);
 
-  const localeOptions: LocaleOption[] = ['ru', 'en', 'fr'];
+  const localeOptions: LocaleOption[] = ['ru', 'en', 'fr', 'es'];
 
   const openMenu = () => {
     setHasOpenedMenu(true);
@@ -151,50 +152,39 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
   const fullLogoSrc = locale === 'ru' ? '/logo5.PNG' : '/logo_eng-w.webp';
 
   const renderDesktopLocaleSwitcher = () => (
-    <div className="relative group z-[100] cursor-pointer">
-      <div className="flex flex-row items-center gap-1 p-2 text-[15px] text-white/85 uppercase transition-colors hover:text-white">
+    <div className="relative z-[100] cursor-pointer">
+      <button
+        type="button"
+        onClick={() => setIsLocaleSwitcherOpen((prev) => !prev)}
+        className="flex flex-row items-center gap-1 p-2 text-[15px] text-white/85 uppercase transition-colors hover:text-white cursor-pointer">
         {locale}
         <FiChevronDown size={14} className="mt-0.5" />
-      </div>
-      <ul className="absolute left-1/2 top-full z-[100] mt-0 min-w-[70px] -translate-x-1/2 rounded-sm border border-gray-100 bg-white opacity-0 shadow-xl invisible transition-all duration-200 group-hover:visible group-hover:opacity-100">
-        {localeOptions.map((localeOption, index) => (
-          <li
-            key={localeOption}
-            className={`${index === 0 ? 'border-b border-gray-200' : ''} transition-colors hover:bg-gray-100`}>
-            <button
-              type="button"
-              onClick={() => changeLocale(localeOption)}
-              disabled={isPending}
-              className={`block w-full cursor-pointer px-4 py-2 text-center text-sm ${
-                locale === localeOption ? 'font-bold text-[#074031]' : 'text-gray-700'
-              }`}>
-              {localeOption.toUpperCase()}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-
-  const renderMobileLocaleSwitcher = () => (
-    <div className="flex items-center rounded-sm border border-white/20 p-1">
-      {localeOptions.map((localeOption) => {
-        const isActive = locale === localeOption;
-
-        return (
-          <button
-            key={localeOption}
-            type="button"
-            onClick={() => changeLocale(localeOption)}
-            disabled={isPending}
-            aria-pressed={isActive}
-            className={`rounded-sm px-2 py-1 text-[10px] font-semibold uppercase transition-colors sm:px-3 sm:text-xs ${
-              isActive ? 'bg-white text-[#074031]' : 'text-white/75 hover:text-white'
-            }`}>
-            {localeOption.toUpperCase()}
-          </button>
-        );
-      })}
+      </button>
+      {isLocaleSwitcherOpen && (
+        <>
+          <div className="fixed inset-0 z-[99]" onClick={() => setIsLocaleSwitcherOpen(false)} />
+          <ul className="absolute left-1/2 top-full z-[100] mt-0 min-w-[70px] -translate-x-1/2 rounded-sm border border-gray-100 bg-white shadow-xl">
+            {localeOptions.map((localeOption, index) => (
+              <li
+                key={localeOption}
+                className={`${index === 0 ? 'border-b border-gray-200' : ''} transition-colors hover:bg-gray-100`}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    changeLocale(localeOption);
+                    setIsLocaleSwitcherOpen(false);
+                  }}
+                  disabled={isPending}
+                  className={`block w-full cursor-pointer px-4 py-2 text-center text-sm ${
+                    locale === localeOption ? 'font-bold text-[#074031]' : 'text-gray-700'
+                  }`}>
+                  {localeOption.toUpperCase()}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </div>
   );
 
@@ -245,7 +235,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
 
           {renderCompactLogo('h-auto w-11 justify-self-center sm:w-12')}
 
-          <div className="flex items-center justify-end">{renderMobileLocaleSwitcher()}</div>
+          <div className="flex items-center justify-end">{renderDesktopLocaleSwitcher()}</div>
         </div>
 
         <div className="hidden items-center justify-between md:flex">
@@ -255,7 +245,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
             {renderDesktopLocaleSwitcher()}
 
             <div className="flex items-center gap-3">
-              <SocialLinks />
+              <SocialLinks locale={locale} />
               {renderPhoneModalTrigger()}
             </div>
           </div>
@@ -401,7 +391,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
             <RxHamburgerMenu size={20} />
           </button>
           {renderCompactLogo('h-auto w-11 justify-self-center sm:w-12')}
-          <div className="flex items-center justify-end">{renderMobileLocaleSwitcher()}</div>
+          <div className="flex items-center justify-end">{renderDesktopLocaleSwitcher()}</div>
         </div>
 
         <div className="hidden items-center justify-between md:flex">
@@ -422,7 +412,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
           <div className="flex items-center gap-6 lg:gap-9">
             {renderDesktopLocaleSwitcher()}
             <div className="flex items-center gap-3">
-              <SocialLinks />
+              <SocialLinks locale={locale} />
               {renderPhoneModalTrigger()}
             </div>
           </div>

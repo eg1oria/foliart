@@ -32,6 +32,7 @@ export function formatArticleDate(value: string, locale: string) {
     en: 'en-US',
     fr: 'fr-FR',
     ru: 'ru-RU',
+    es: 'es-ES',
   };
 
   const formatter = new Intl.DateTimeFormat(localeMap[locale] ?? 'ru-RU', {
@@ -153,6 +154,55 @@ export function getArticlesCopy(locale: string) {
       translationHint:
         'Laissez les champs anglais vides si la version anglaise du site doit utiliser la version russe.',
       backToSite: 'Ouvrir la section des articles',
+    };
+  }
+
+  if (locale === 'es') {
+    return {
+      title: 'Artículos útiles para las plantas',
+      emptyState: 'Los artículos aparecerán aquí una vez añadidos en el panel de administración.',
+      readMore: 'Leer artículo',
+      backToArticles: 'Volver a la lista de artículos',
+      relatedTitle: 'Más artículos',
+      relatedEmpty: 'Próximamente se publicarán nuevos artículos.',
+      metadataViewsLabel: 'vistas',
+      detailsEmpty: 'El contenido del artículo se añadirá próximamente.',
+      adminSectionLabel: 'Artículos',
+      adminTitle: 'Editor de artículos',
+      adminSubtitle:
+        'Cree y actualice tarjetas de artículos, imágenes de portada, fechas de publicación y contenido con formato.',
+      adminFormTitle: 'Añadir artículo',
+      adminFormDescription:
+        'El cuerpo del artículo admite texto con formato: encabezados, listas, citas, enlaces y énfasis.',
+      adminExistingTitle: 'Artículos publicados',
+      adminEmptyState: 'Aún no hay artículos.',
+      statusCreated: 'Artículo creado correctamente.',
+      statusUpdated: 'Artículo actualizado correctamente.',
+      titleLabel: 'Título del artículo',
+      titleEnLabel: 'Título del artículo en español',
+      excerptLabel: 'Extracto breve',
+      excerptEnLabel: 'Extracto en español',
+      imageLabel: 'Imagen de portada',
+      contentLabel: 'Cuerpo del artículo',
+      contentEnLabel: 'Cuerpo del artículo en español',
+      publishedAtLabel: 'Fecha de publicación',
+      optionalLabel: 'Opcional',
+      submitLabel: 'Añadir artículo',
+      updateLabel: 'Guardar cambios',
+      editLabel: 'Editar artículo',
+      openArticle: 'Abrir artículo',
+      imageHint: 'Formatos admitidos: JPG, PNG y WEBP hasta 5 MB.',
+      replaceImageHint: 'Deje el campo vacío para conservar la portada actual.',
+      imagePathLabel: 'Ruta de la imagen',
+      adminPathHint:
+        'Use esta sección para mantener la página de artículos actualizada rápidamente.',
+      contentHint:
+        'Use la barra de herramientas para dar formato al texto. Los enlaces externos se abrirán en una nueva pestaña.',
+      excerptHint:
+        'Si el campo está vacío, el extracto se generará automáticamente a partir del cuerpo del artículo.',
+      translationHint:
+        'Deje los campos en español vacíos si la versión española del sitio debe usar la versión rusa.',
+      backToSite: 'Abrir la sección de artículos',
     };
   }
 

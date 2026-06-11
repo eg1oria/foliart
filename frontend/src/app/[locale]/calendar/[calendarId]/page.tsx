@@ -31,7 +31,9 @@ export async function generateMetadata({
           ? 'Сельскохозяйственный календарь'
           : locale === 'fr'
             ? 'Calendrier agricole'
-            : 'Agricultural calendar',
+            : locale === 'es'
+              ? 'Calendario agrícola'
+              : 'Agricultural calendar',
       description: copy.subtitle,
       image: '/articles-head.webp',
     });
@@ -79,11 +81,33 @@ export default async function CalendarDetailsPage({
       ? 'Смотреть календарь'
       : locale === 'fr'
         ? 'Voir le calendrier'
-        : 'View calendar';
+        : locale === 'es'
+          ? 'Ver calendario'
+          : 'View calendar';
   const calendarPath = getCalendarHref(calendar);
   const breadcrumbSchema = buildBreadcrumbSchema(locale, [
-    { name: locale === 'en' ? 'Home' : 'Главная', path: '/' },
-    { name: locale === 'en' ? 'Calendar' : 'Календарь', path: '/calendar' },
+    {
+      name:
+        locale === 'ru'
+          ? 'Главная'
+          : locale === 'fr'
+            ? 'Accueil'
+            : locale === 'es'
+              ? 'Inicio'
+              : 'Home',
+      path: '/',
+    },
+    {
+      name:
+        locale === 'ru'
+          ? 'Календарь'
+          : locale === 'fr'
+            ? 'Calendrier'
+            : locale === 'es'
+              ? 'Calendario'
+              : 'Calendar',
+      path: '/calendar',
+    },
     { name: calendar.title, path: calendarPath },
   ]);
 

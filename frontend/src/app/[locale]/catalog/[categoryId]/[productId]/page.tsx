@@ -76,7 +76,12 @@ export async function generateMetadata({
     return buildPageMetadata({
       locale,
       path: '/catalog',
-      title: locale === 'ru' ? 'Каталог удобрений' : 'Fertilizer catalog',
+      title:
+        locale === 'ru'
+          ? 'Каталог удобрений'
+          : locale === 'es'
+            ? 'Catálogo de fertilizantes'
+            : 'Fertilizer catalog',
       description: copy.subtitle,
       image: '/catalog-head.webp',
     });
@@ -104,7 +109,9 @@ export default async function ProductDetailsPage({
       ? 'Сертификат соответствия'
       : locale === 'fr'
         ? 'Certificat de conformité'
-        : 'Certificate of conformity';
+        : locale === 'es'
+          ? 'Certificado de conformidad'
+          : 'Certificate of conformity';
   const compositionItems = parseComposition(product.composition);
   const advantages = parseAdvantages(product.advantages);
   const applicationItems = parseApplication(product.application);
@@ -137,17 +144,29 @@ export default async function ProductDetailsPage({
             specialistTitle: "Aide d'un spécialiste",
             advantagesLabel: `Avantages de ${product.name}`,
           }
-        : {
-            sectionsLabel: 'Product sections',
-            compositionTitle: 'Composition',
-            compositionEmpty:
-              'Detailed composition information will be added to this product card later.',
-            applicationTitle: 'Application guide',
-            applicationEmpty:
-              'Recommendations on timing, dosage, and growth stage will be added later.',
-            specialistTitle: 'Specialist help',
-            advantagesLabel: `Advantages of ${product.name}`,
-          };
+        : locale === 'es'
+          ? {
+              sectionsLabel: 'Secciones del producto',
+              compositionTitle: 'Composición',
+              compositionEmpty:
+                'La información detallada sobre la composición se añadirá a esta ficha de producto más adelante.',
+              applicationTitle: 'Guía de aplicación',
+              applicationEmpty:
+                'Las recomendaciones sobre plazos, dosis y fases de crecimiento se añadirán más adelante.',
+              specialistTitle: 'Ayuda de un especialista',
+              advantagesLabel: `Ventajas de ${product.name}`,
+            }
+          : {
+              sectionsLabel: 'Product sections',
+              compositionTitle: 'Composition',
+              compositionEmpty:
+                'Detailed composition information will be added to this product card later.',
+              applicationTitle: 'Application guide',
+              applicationEmpty:
+                'Recommendations on timing, dosage, and growth stage will be added later.',
+              specialistTitle: 'Specialist help',
+              advantagesLabel: `Advantages of ${product.name}`,
+            };
   const sectionLinks = [
     { id: 'description', label: copy.descriptionTitle },
     { id: 'composition', label: pageCopy.compositionTitle },
@@ -156,13 +175,21 @@ export default async function ProductDetailsPage({
     { id: 'specialist', label: pageCopy.specialistTitle },
   ];
   const askQuestionLabel =
-    locale === 'ru' ? 'Задать вопрос' : locale === 'fr' ? 'Poser une question' : 'Ask a question';
+    locale === 'ru'
+      ? 'Задать вопрос'
+      : locale === 'fr'
+        ? 'Poser une question'
+        : locale === 'es'
+          ? 'Hacer una pregunta'
+          : 'Ask a question';
   const compatibilityNote =
     locale === 'ru'
       ? 'Препарат совместим с большинством удобрений и средств защиты. Недопустимо совместное использование в баковой смеси с препаратами меди и серы. Перед применением тест на совместимость обязателен.'
       : locale === 'fr'
         ? 'Le produit est compatible avec la plupart des engrais et produits phytosanitaires. Le mélange en cuve avec des produits à base de cuivre ou de soufre est interdit. Un test de compatibilité est requis avant utilisation.'
-        : 'The product is compatible with most fertilizers and crop protection products. Mixing with copper- and sulfur-based products in the same tank is not allowed. A compatibility test is required before use.';
+        : locale === 'es'
+          ? 'El producto es compatible con la mayoría de fertilizantes y productos fitosanitarios. No está permitida la mezcla en cuba con productos a base de cobre o azufre. Es obligatorio realizar un test de compatibilidad antes del uso.'
+          : 'The product is compatible with most fertilizers and crop protection products. Mixing with copper- and sulfur-based products in the same tank is not allowed. A compatibility test is required before use.';
   const certificateLink = certificateImage ? (
     <a
       href={certificateImage}
@@ -179,9 +206,26 @@ export default async function ProductDetailsPage({
   ) : null;
   const productPath = getProductHref(category, product);
   const breadcrumbSchema = buildBreadcrumbSchema(locale, [
-    { name: locale === 'ru' ? 'Главная' : locale === 'fr' ? 'Accueil' : 'Home', path: '/' },
     {
-      name: locale === 'ru' ? 'Каталог' : locale === 'fr' ? 'Catalogue' : 'Catalog',
+      name:
+        locale === 'ru'
+          ? 'Главная'
+          : locale === 'fr'
+            ? 'Accueil'
+            : locale === 'es'
+              ? 'Inicio'
+              : 'Home',
+      path: '/',
+    },
+    {
+      name:
+        locale === 'ru'
+          ? 'Каталог'
+          : locale === 'fr'
+            ? 'Catalogue'
+            : locale === 'es'
+              ? 'Catálogo'
+              : 'Catalog',
       path: '/catalog',
     },
     { name: category.name, path: getCategoryHref(category) },
