@@ -3,9 +3,7 @@ import { routing } from '@/i18n/routing';
 
 export const SITE_NAME = 'Foliart';
 export const SITE_URL = new URL(
-  process.env.SITE_URL?.trim() ||
-    process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
-    'https://foliart.me',
+  process.env.SITE_URL?.trim() || process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://foliart.me',
 );
 export const DEFAULT_OG_IMAGE = '/hero.webp';
 export const GOOGLE_SITE_VERIFICATION = process.env.GOOGLE_SITE_VERIFICATION?.trim() || undefined;
@@ -29,11 +27,10 @@ type BreadcrumbItem = {
   path: string;
 };
 
-function normalizePath(path: string) {
-  if (!path || path === '/') {
-    return '/';
-  }
+// ─── Locale helpers ───────────────────────────────────────────────────────────
 
+function normalizePath(path: string) {
+  if (!path || path === '/') return '/';
   const normalized = path.startsWith('/') ? path : `/${path}`;
   const withoutTrailingSlash = normalized.replace(/\/+$/, '');
   return withoutTrailingSlash || '/';
@@ -44,12 +41,26 @@ function isAbsoluteUrl(value: string) {
 }
 
 function getLocaleBrand(locale: string) {
-  return locale === 'en' ? SITE_NAME : 'Фолиарт';
+  return locale === 'ru' ? 'Фолиарт' : SITE_NAME;
 }
 
 function getLocaleLegalName(locale: string) {
-  return locale === 'en' ? 'Astoria LLC' : 'ООО «Астория»';
+  return locale === 'ru' ? 'ООО «Астория»' : 'Astoria LLC';
 }
+
+// ─── OG locale mapping ────────────────────────────────────────────────────────
+
+export function getOpenGraphLocale(locale: string) {
+  const map: Record<string, string> = {
+    ru: 'ru_RU',
+    en: 'en_US',
+    fr: 'fr_FR',
+    es: 'es_ES',
+  };
+  return map[locale] ?? 'en_US';
+}
+
+// ─── Site URL helpers ─────────────────────────────────────────────────────────
 
 export function getSiteUrl() {
   return new URL(SITE_URL.toString());
@@ -59,17 +70,34 @@ export function getSiteOrigin() {
   return getSiteUrl().origin;
 }
 
-export function getDefaultSiteDescription(locale: string) {
-  if (locale === 'en') {
-    return 'Foliart develops organo-mineral fertilizer systems for farms with crop nutrition expertise and laboratory-backed agronomy support.';
-  }
+// ─── Description ──────────────────────────────────────────────────────────────
 
-  return 'Фолиарт разрабатывает органо-минеральные комплексы и системы питания растений для хозяйств с лабораторным сопровождением.';
+export function getDefaultSiteDescription(locale: string) {
+  const descriptions: Record<string, string> = {
+    ru: 'Фолиарт разрабатывает органо-минеральные комплексы и системы питания растений для хозяйств с лабораторным сопровождением.',
+    en: 'Foliart develops organo-mineral fertilizer systems for farms with crop nutrition expertise and laboratory-backed agronomy support.',
+    fr: 'Foliart développe des systèmes de fertilisation organo-minérale pour les exploitations agricoles, avec suivi de laboratoire et expertise agronomique.',
+    es: 'Foliart desarrolla sistemas de fertilización organo-mineral para explotaciones agrícolas con soporte de laboratorio y asesoramiento agronómico.',
+  };
+  return descriptions[locale] ?? descriptions.en;
 }
 
+// ─── Keywords ────────────────────────────────────────────────────────────────
+
 export function getDefaultSiteKeywords(locale: string) {
-  if (locale === 'en') {
-    return [
+  const keywords: Record<string, string[]> = {
+    ru: [
+      'Фолиарт',
+      'органо-минеральные удобрения',
+      'системы питания растений',
+      'листовые подкормки',
+      'микроудобрения',
+      'удобрения для сельского хозяйства',
+      'удобрения для растений',
+      'каталог удобрений',
+      'агрономическое сопровождение',
+    ],
+    en: [
       'Foliart',
       'organo-mineral fertilizers',
       'plant nutrition systems',
@@ -79,21 +107,34 @@ export function getDefaultSiteKeywords(locale: string) {
       'agronomy support',
       'fertilizer catalog',
       'fertilizers for farms',
-    ];
-  }
-
-  return [
-    'Фолиарт',
-    'органо-минеральные удобрения',
-    'системы питания растений',
-    'листовые подкормки',
-    'микроудобрения',
-    'удобрения для сельского хозяйства',
-    'удобрения для растений',
-    'каталог удобрений',
-    'агрономическое сопровождение',
-  ];
+    ],
+    fr: [
+      'Foliart',
+      'engrais organo-minéraux',
+      'systèmes de nutrition des plantes',
+      'fertilisation foliaire',
+      'micronutriments',
+      'nutrition des cultures',
+      'suivi agronomique',
+      'catalogue engrais',
+      'engrais pour exploitations agricoles',
+    ],
+    es: [
+      'Foliart',
+      'fertilizantes organo-minerales',
+      'sistemas de nutrición vegetal',
+      'fertilización foliar',
+      'micronutrientes',
+      'nutrición de cultivos',
+      'asesoramiento agronómico',
+      'catálogo de fertilizantes',
+      'fertilizantes para explotaciones',
+    ],
+  };
+  return keywords[locale] ?? keywords.en;
 }
+
+// ─── Path & URL helpers ───────────────────────────────────────────────────────
 
 export function buildDocumentTitle(title: string) {
   return `${title} | ${SITE_NAME}`;
@@ -108,13 +149,10 @@ export function getLocalizedPath(locale: string, path = '/') {
   ) {
     return normalizedPath;
   }
-
   return normalizedPath === '/' ? `/${locale}` : `/${locale}${normalizedPath}`;
 }
 
-export function getOpenGraphLocale(locale: string) {
-  return locale === 'en' ? 'en_US' : 'ru_RU';
-}
+// ─── Text helpers ─────────────────────────────────────────────────────────────
 
 export function stripHtml(value: string) {
   return value
@@ -129,15 +167,8 @@ export function stripHtml(value: string) {
 
 export function trimDescription(value: string, maxLength = 160) {
   const normalized = stripHtml(value).replace(/\s+/g, ' ').trim();
-
-  if (!normalized) {
-    return normalized;
-  }
-
-  if (normalized.length <= maxLength) {
-    return normalized;
-  }
-
+  if (!normalized) return normalized;
+  if (normalized.length <= maxLength) return normalized;
   const sliced = normalized.slice(0, maxLength - 1).trim();
   const lastSpaceIndex = sliced.lastIndexOf(' ');
   const safeSlice = lastSpaceIndex > 60 ? sliced.slice(0, lastSpaceIndex).trim() : sliced;
@@ -145,31 +176,18 @@ export function trimDescription(value: string, maxLength = 160) {
 }
 
 export function resolveAbsoluteUrl(pathOrUrl?: string | null) {
-  if (!pathOrUrl) {
-    return null;
-  }
-
-  if (isAbsoluteUrl(pathOrUrl)) {
-    return pathOrUrl;
-  }
-
+  if (!pathOrUrl) return null;
+  if (isAbsoluteUrl(pathOrUrl)) return pathOrUrl;
   return new URL(pathOrUrl, getSiteUrl()).toString();
 }
 
 export function getOpenGraphImages(image?: string | null) {
   const resolvedImage = resolveAbsoluteUrl(image ?? DEFAULT_OG_IMAGE);
-
-  if (!resolvedImage) {
-    return [];
-  }
-
-  return [
-    {
-      url: resolvedImage,
-      alt: `${SITE_NAME} social preview image`,
-    },
-  ];
+  if (!resolvedImage) return [];
+  return [{ url: resolvedImage, alt: `${SITE_NAME} social preview image` }];
 }
+
+// ─── Alternates (hreflang) ────────────────────────────────────────────────────
 
 export function buildLocalizedAlternates(
   locale: string,
@@ -187,6 +205,8 @@ export function buildLocalizedAlternates(
     },
   };
 }
+
+// ─── Page metadata builder ────────────────────────────────────────────────────
 
 export function buildPageMetadata({
   locale,
@@ -233,6 +253,8 @@ export function buildPageMetadata({
   };
 }
 
+// ─── JSON-LD schemas ──────────────────────────────────────────────────────────
+
 export function buildOrganizationSchema(locale: string) {
   return {
     '@context': 'https://schema.org',
@@ -247,12 +269,12 @@ export function buildOrganizationSchema(locale: string) {
     address: {
       '@type': 'PostalAddress',
       addressCountry: 'RU',
-      addressLocality: locale === 'en' ? 'Krasnodar' : 'Краснодар',
+      addressLocality: locale === 'ru' ? 'Краснодар' : 'Krasnodar',
       postalCode: '350072',
       streetAddress:
-        locale === 'en'
-          ? 'Solnechnaya St., 10/3, office 31, floor 2'
-          : 'ул. Солнечная, 10/3, помещ. № 31, этаж 2',
+        locale === 'ru'
+          ? 'ул. Солнечная, 10/3, помещ. № 31, этаж 2'
+          : 'Solnechnaya St., 10/3, office 31, floor 2',
     },
   };
 }
@@ -301,12 +323,8 @@ export function buildArticleSchema(args: {
     datePublished: args.publishedAt,
     inLanguage: args.locale,
     mainEntityOfPage: resolveAbsoluteUrl(getLocalizedPath(args.locale, args.path)),
-    author: {
-      '@id': resolveAbsoluteUrl('/#organization'),
-    },
-    publisher: {
-      '@id': resolveAbsoluteUrl('/#organization'),
-    },
+    author: { '@id': resolveAbsoluteUrl('/#organization') },
+    publisher: { '@id': resolveAbsoluteUrl('/#organization') },
   };
 }
 
@@ -328,10 +346,7 @@ export function buildProductSchema(args: {
     image: resolveAbsoluteUrl(args.image ?? DEFAULT_OG_IMAGE),
     url: resolveAbsoluteUrl(getLocalizedPath(args.locale, args.path)),
     category: args.categoryName,
-    brand: {
-      '@type': 'Brand',
-      name: SITE_NAME,
-    },
+    brand: { '@type': 'Brand', name: SITE_NAME },
   };
 }
 
