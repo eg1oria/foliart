@@ -6,7 +6,7 @@ export default function Hero() {
   const locale = useLocale();
   const isRu = locale === 'ru';
   const logoSrc = isRu ? '/logo5.PNG' : '/logo_eng-w.webp';
-  const logoWidth = isRu ? 440 : 500;
+  const logoWidth = isRu ? 440 : 440;
 
   const items = [
     {
@@ -37,7 +37,7 @@ export default function Hero() {
         width={logoWidth}
         height={70}
         sizes="(max-width: 767px) calc(100vw - 32px), 520px"
-        className="mt-0 h-auto md:mt-20"
+        className={`mt-0 h-auto ${isRu ? 'md:mt-20' : 'md:mt-13'}`}
         style={{
           width: `min(${logoWidth}px, calc(100vw - 32px))`,
           maxWidth: '100%',

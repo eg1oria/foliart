@@ -149,7 +149,6 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
   const mobileActionButtonClassName =
     'flex h-10 w-10 items-center justify-center rounded-full bg-[#074031] text-white transition-colors hover:bg-[#074031]/80 sm:h-11 sm:w-11';
   const hasCatalogMegaMenu = catalogChildren.length > 0;
-  const fullLogoSrc = locale === 'ru' ? '/logo5.PNG' : '/logo_eng-w.webp';
 
   const renderDesktopLocaleSwitcher = () => (
     <div className="relative z-[100] cursor-pointer">
@@ -200,17 +199,50 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
     </Link>
   );
 
-  const renderFullLogo = (width: number, className: string) => (
-    <Link href="/" aria-label={t('home')} className={className}>
-      <Image
-        src={fullLogoSrc}
-        alt="Foliart logo"
-        width={width}
-        height={30}
-        className="h-auto w-full"
-      />
-    </Link>
-  );
+  // Renders both logo variants stacked in a fixed-size container.
+  // Only the active locale's logo is visible (opacity-based swap),
+  // so the container dimensions never change and the header doesn't jank.
+  // Height is sized to fit the taller RU logo; EN logo uses object-contain to fit within.
+  const renderFullLogo = (width: number, className: string) => {
+    // RU logo (logo5.PNG) is roughly square-ish, EN logo is wide/horizontal.
+    // We use the RU logo's natural height as the container height.
+    // Adjust RU_LOGO_ASPECT to match the actual aspect ratio of logo5.PNG.
+    const RU_LOGO_ASPECT = 0.56; // height / width  →  ~54px at width=135
+    const containerHeight = Math.round(width * RU_LOGO_ASPECT);
+
+    return (
+      <Link
+        href="/"
+        aria-label={t('home')}
+        className={`relative block flex-shrink-0 ${className}`}
+        style={{ width, height: containerHeight }}>
+        {/* RU logo */}
+        <Image
+          src="/logo5.PNG"
+          alt="Foliart logo"
+          fill
+          sizes={`${width}px`}
+          className="object-contain object-left transition-opacity duration-150"
+          style={{
+            opacity: locale === 'ru' ? 1 : 0,
+            pointerEvents: locale === 'ru' ? 'auto' : 'none',
+          }}
+        />
+        {/* EN / FR / ES logo */}
+        <Image
+          src="/logo_eng-w.webp"
+          alt="Foliart logo"
+          fill
+          sizes={`${width}px`}
+          className="object-contain object-left transition-opacity duration-150"
+          style={{
+            opacity: locale !== 'ru' ? 1 : 0,
+            pointerEvents: locale !== 'ru' ? 'auto' : 'none',
+          }}
+        />
+      </Link>
+    );
+  };
 
   const renderPhoneModalTrigger = () => (
     <ContactModalTrigger className={`${phoneBadgeClassName} bg-[#074031] p-3`}>
@@ -240,7 +272,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
 
         <div className="hidden items-center justify-between md:flex">
           {renderCompactLogo('h-auto w-14 lg:hidden')}
-          {renderFullLogo(135, 'hidden h-auto lg:block lg:w-[135px]')}
+          {renderFullLogo(135, 'hidden lg:block')}
           <div className="flex items-center gap-6 lg:gap-9">
             {renderDesktopLocaleSwitcher()}
 
@@ -406,7 +438,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
             </button>
 
             {renderCompactLogo('h-auto w-12 lg:hidden')}
-            {renderFullLogo(110, 'hidden h-auto lg:block lg:w-[110px]')}
+            {renderFullLogo(110, 'hidden lg:block')}
           </div>
 
           <div className="flex items-center gap-6 lg:gap-9">
