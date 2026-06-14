@@ -13,7 +13,6 @@ function getDays(dateVal: string) {
 }
 
 export default function HabitsPage() {
-  const [mounted, setMounted] = useState(false);
   const [habits, setHabits] = useState<Habit[]>([]);
   const [nameInput, setNameInput] = useState('');
   const [dateInput, setDateInput] = useState('');
@@ -24,13 +23,11 @@ export default function HabitsPage() {
       const saved = localStorage.getItem('habits');
       if (saved) setHabits(JSON.parse(saved));
     } catch {}
-    setMounted(true);
   }, []);
 
   useEffect(() => {
-    if (!mounted) return;
     localStorage.setItem('habits', JSON.stringify(habits));
-  }, [habits, mounted]);
+  }, [habits]);
 
   const add = () => {
     if (!nameInput || !dateInput) return;
@@ -48,8 +45,6 @@ export default function HabitsPage() {
 
   const h = selected;
   const days = h ? getDays(h.dateVal) : 0;
-
-  if (!mounted) return null;
 
   return (
     <div className="flex flex-col items-center min-h-dvh px-5 pt-14 pb-10">
