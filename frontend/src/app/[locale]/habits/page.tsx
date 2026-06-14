@@ -47,7 +47,7 @@ export default function HabitsPage() {
   const days = h ? getDays(h.dateVal) : 0;
 
   return (
-    <div className="flex flex-col items-center min-h-dvh px-5 pt-14 pb-10">
+    <div className="flex flex-col items-center min-h-dvh px-5 md:pt-60 pt-40 pb-1">
       <div className="flex flex-col gap-4 w-full max-w-sm mb-14">
         <input
           className="bg-transparent border-b border-gray-300 py-3 text-base outline-none"
