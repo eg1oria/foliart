@@ -25,6 +25,7 @@ import {
   type StoredImageUploadFile,
 } from '../images/image-upload.util';
 import { ProductsService } from './products.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 const productsImagesDirectory = join(process.cwd(), 'images', 'products');
 
@@ -63,7 +64,17 @@ function getStoredProductImagePath(imageUrl?: string) {
     return undefined;
   }
 
-  return join(productsImagesDirectory, fileName);
+  const resolvedPath = join(productsImagesDirectory, fileName);
+
+  if (
+    !resolvedPath.startsWith(productsImagesDirectory + '/') &&
+    resolvedPath !== productsImagesDirectory
+  ) {
+    console.warn('Potential path traversal attempt blocked', { imageUrl });
+    return undefined;
+  }
+
+  return resolvedPath;
 }
 
 function normalizeFileNameSegment(value: string) {
@@ -84,6 +95,18 @@ function getRequestTextField(req: Request, fieldName: string) {
 
   const value = (body as Record<string, unknown>)[fieldName];
   return typeof value === 'string' ? value : undefined;
+}
+
+function parseProductBody(body: Record<string, string | undefined>) {
+  return {
+    contentLocale: normalizeContentLocale(body.contentLocale),
+    categoryId: Number.parseInt(body.categoryId ?? '', 10),
+    name: body.name?.trim() ?? '',
+    description: body.description?.trim() ?? '',
+    advantages: body.advantages?.trim() ?? '',
+    composition: body.composition?.trim() ?? '',
+    application: body.application?.trim() ?? '',
+  };
 }
 
 function createImageInterceptor() {
@@ -133,7 +156,10 @@ function createImageInterceptor() {
 
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(
+    private readonly productsService: ProductsService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   @Get()
   findAll(
@@ -141,13 +167,20 @@ export class ProductsController {
     @Query('locale') locale?: string,
     @Query('contentLocale') contentLocale?: string,
   ) {
-    if (categoryId) {
+    if (categoryId !== undefined) {
+      const parsedCategoryId = Number.parseInt(categoryId, 10);
+
+      if (!Number.isInteger(parsedCategoryId) || parsedCategoryId < 1) {
+        throw new BadRequestException('Invalid categoryId');
+      }
+
       return this.productsService.findByCategory(
-        +categoryId,
+        parsedCategoryId,
         locale,
         contentLocale,
       );
     }
+
     return this.productsService.findAll(locale, contentLocale);
   }
 
@@ -156,16 +189,17 @@ export class ProductsController {
   @UseInterceptors(createImageInterceptor())
   async create(
     @Body() body: Record<string, string | undefined>,
-    @UploadedFile()
-    file?: StoredUploadFile,
+    @UploadedFile() file?: StoredUploadFile,
   ) {
-    const contentLocale = normalizeContentLocale(body.contentLocale);
-    const categoryId = Number.parseInt(body.categoryId ?? '', 10);
-    const name = body.name?.trim() ?? '';
-    const description = body.description?.trim() ?? '';
-    const advantages = body.advantages?.trim() ?? '';
-    const composition = body.composition?.trim() ?? '';
-    const application = body.application?.trim() ?? '';
+    const {
+      contentLocale,
+      categoryId,
+      name,
+      description,
+      advantages,
+      composition,
+      application,
+    } = parseProductBody(body);
 
     if (!Number.isInteger(categoryId) || categoryId < 1) {
       removeUploadedFile(file?.path);
@@ -206,16 +240,17 @@ export class ProductsController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: Record<string, string | undefined>,
-    @UploadedFile()
-    file?: StoredUploadFile,
+    @UploadedFile() file?: StoredUploadFile,
   ) {
-    const contentLocale = normalizeContentLocale(body.contentLocale);
-    const categoryId = Number.parseInt(body.categoryId ?? '', 10);
-    const name = body.name?.trim() ?? '';
-    const description = body.description?.trim() ?? '';
-    const advantages = body.advantages?.trim() ?? '';
-    const composition = body.composition?.trim() ?? '';
-    const application = body.application?.trim() ?? '';
+    const {
+      contentLocale,
+      categoryId,
+      name,
+      description,
+      advantages,
+      composition,
+      application,
+    } = parseProductBody(body);
 
     if (!Number.isInteger(categoryId) || categoryId < 1) {
       removeUploadedFile(file?.path);
@@ -227,11 +262,20 @@ export class ProductsController {
       throw new BadRequestException('Product name is required');
     }
 
+    let imageFile:
+      | Awaited<ReturnType<typeof optimizeUploadedImage>>
+      | undefined;
+
     try {
-      const imageFile = file?.filename
+      imageFile = file?.filename
         ? await optimizeUploadedImage(file)
         : undefined;
-      const currentProduct = await this.productsService.findOne(id);
+
+      const currentProduct = await this.prisma.product.findUnique({
+        where: { id },
+        select: { imageUrl: true },
+      });
+
       const updatedProduct = await this.productsService.update({
         id,
         categoryId,
@@ -246,13 +290,16 @@ export class ProductsController {
           : undefined,
       });
 
-      if (imageFile?.filename) {
+      if (imageFile?.filename && currentProduct?.imageUrl) {
         removeUploadedFile(getStoredProductImagePath(currentProduct.imageUrl));
       }
 
       return updatedProduct;
     } catch (error) {
       removeUploadedFile(file?.path);
+      if (imageFile?.path && imageFile.path !== file?.path) {
+        removeUploadedFile(imageFile.path);
+      }
       throw error;
     }
   }
