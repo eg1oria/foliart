@@ -13,6 +13,13 @@ type ArticleTranslationFields = {
   content: string;
 };
 
+type ArticleWithLegacyAndTranslations = ArticleTranslationFields & {
+  titleEn: string;
+  excerptEn: string;
+  contentEn: string;
+  translations?: Array<ArticleTranslationFields & { locale: string }>;
+};
+
 type CreateArticleInput = ArticleTranslationFields & {
   contentLocale: string;
   imageUrl: string;
@@ -30,28 +37,17 @@ type UpdateArticleInput = ArticleTranslationFields & {
 export class ArticlesService {
   constructor(private prisma: PrismaService) {}
 
-  private getTranslation<
-    T extends ArticleTranslationFields & {
-      titleEn: string;
-      excerptEn: string;
-      contentEn: string;
-      translations?: Array<
-        ArticleTranslationFields & {
-          locale: string;
-        }
-      >;
-    },
-  >(article: T, locale: string) {
+  private getTranslation(
+    article: ArticleWithLegacyAndTranslations,
+    locale: string,
+  ) {
     const normalizedLocale = normalizeContentLocale(locale);
     const translation = article.translations?.find(
       (item) => item.locale === normalizedLocale,
     );
 
     if (translation) {
-      return {
-        ...translation,
-        hasTranslation: true,
-      };
+      return { ...translation, hasTranslation: true };
     }
 
     if (isDefaultContentLocale(normalizedLocale)) {
@@ -80,45 +76,40 @@ export class ArticlesService {
     };
   }
 
-  private resolveLocale<
-    T extends ArticleTranslationFields & {
-      titleEn: string;
-      excerptEn: string;
-      contentEn: string;
-      translations?: Array<
-        ArticleTranslationFields & {
-          locale: string;
-        }
-      >;
-    },
-  >(article: T, locale?: string, contentLocale?: string) {
+  private resolveLocale<T extends ArticleWithLegacyAndTranslations>(
+    article: T,
+    locale?: string,
+    contentLocale?: string,
+  ) {
     const fallback = this.getTranslation(article, DEFAULT_CONTENT_LOCALE);
     const selected = locale ? this.getTranslation(article, locale) : fallback;
+
     const adminLocale = contentLocale
       ? normalizeContentLocale(contentLocale)
       : null;
     const adminTranslation = adminLocale
       ? this.getTranslation(article, adminLocale)
       : null;
+
     const { translations: _translations, ...articleFields } = article;
+
+    const resolve = (
+      selectedValue: string,
+      fallbackValue: string,
+      originalValue: string,
+    ): string => {
+      if (locale && selectedValue.trim()) return selectedValue;
+      if (locale) return fallbackValue;
+      return originalValue;
+    };
 
     return {
       ...articleFields,
-      title: locale && selected.title.trim() ? selected.title : article.title,
-      excerpt:
-        locale && selected.excerpt.trim()
-          ? selected.excerpt
-          : locale
-            ? fallback.excerpt
-            : article.excerpt,
-      content:
-        locale && selected.content.trim()
-          ? selected.content
-          : locale
-            ? fallback.content
-            : article.content,
+      title: resolve(selected.title, fallback.title, article.title),
+      excerpt: resolve(selected.excerpt, fallback.excerpt, article.excerpt),
+      content: resolve(selected.content, fallback.content, article.content),
       slugSourceTitle: article.title,
-      ...(adminTranslation
+      ...(adminTranslation && adminLocale
         ? {
             adminTranslation: {
               locale: adminLocale,
@@ -139,17 +130,16 @@ export class ArticlesService {
     contentLocale: string,
     input: ArticleTranslationFields,
   ) {
+    const isDefault = isDefaultContentLocale(contentLocale);
+    const isLegacyEn = isLegacyEnglishContentLocale(contentLocale);
+
     return {
-      title: input.title,
-      titleEn: isLegacyEnglishContentLocale(contentLocale) ? input.title : '',
-      excerpt: input.excerpt,
-      excerptEn: isLegacyEnglishContentLocale(contentLocale)
-        ? input.excerpt
-        : '',
-      content: input.content,
-      contentEn: isLegacyEnglishContentLocale(contentLocale)
-        ? input.content
-        : '',
+      title: isDefault ? input.title : '',
+      titleEn: isLegacyEn ? input.title : '',
+      excerpt: isDefault ? input.excerpt : '',
+      excerptEn: isLegacyEn ? input.excerpt : '',
+      content: isDefault ? input.content : '',
+      contentEn: isLegacyEn ? input.content : '',
     };
   }
 
@@ -172,7 +162,6 @@ export class ArticlesService {
         contentEn: input.content,
       };
     }
-
     return {};
   }
 
@@ -221,7 +210,15 @@ export class ArticlesService {
   }
 
   async update(input: UpdateArticleInput) {
-    await this.findOne(input.id);
+    const exists = await this.prisma.article.findUnique({
+      where: { id: input.id },
+      select: { id: true },
+    });
+
+    if (!exists) {
+      throw new NotFoundException(`Article #${input.id} not found`);
+    }
+
     const contentLocale = normalizeContentLocale(input.contentLocale);
 
     return this.prisma.article.update({
@@ -256,7 +253,14 @@ export class ArticlesService {
   }
 
   async incrementViewCount(id: number) {
-    await this.findOne(id);
+    const exists = await this.prisma.article.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+
+    if (!exists) {
+      throw new NotFoundException(`Article #${id} not found`);
+    }
 
     return this.prisma.article.update({
       where: { id },

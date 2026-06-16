@@ -7,7 +7,7 @@ import { requireAdminSession } from '@/lib/adminAuthServer';
 import { normalizeContentLocale } from '@/lib/contentLocales';
 
 const backendUrl = process.env.BACKEND_URL ?? 'http://localhost:3001';
-const calendarLocales = ['ru', 'en', 'fr'] as const;
+const calendarLocales = ['ru', 'en', 'fr', 'es'] as const;
 const imageFieldNames = ['image1', 'image2', 'image3', 'image4'] as const;
 const requiredImageFieldNames = ['image1', 'image2'] as const;
 

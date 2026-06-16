@@ -9,6 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 const catalogCategoryLegacyImagePattern =
   /^\/?catalog-categories\/(1|4|5|6)\.(?:jpe?g|png|webp)$/i;
+
 const catalogCategoryImageMap: Record<string, string> = {
   '1': 'category1',
   '5': 'category2',
@@ -16,11 +17,26 @@ const catalogCategoryImageMap: Record<string, string> = {
   '4': 'category4',
 };
 
+type CategoryWithLegacyAndTranslations = {
+  name: string;
+  nameEn: string;
+  description: string;
+  descriptionEn: string;
+  imageUrl: string;
+  translations?: Array<{
+    locale: string;
+    name: string;
+    description: string;
+  }>;
+};
+
 @Injectable()
 export class CategoriesService {
   constructor(private prisma: PrismaService) {}
 
-  private resolveImageUrl(imageUrl: string) {
+  private resolveImageUrl(imageUrl: string | null | undefined): string {
+    if (!imageUrl) return '';
+
     return imageUrl
       .trim()
       .replace(/\\/g, '/')
@@ -31,19 +47,10 @@ export class CategoriesService {
       );
   }
 
-  private getTranslation<
-    T extends {
-      name: string;
-      nameEn: string;
-      description: string;
-      descriptionEn: string;
-      translations?: Array<{
-        locale: string;
-        name: string;
-        description: string;
-      }>;
-    },
-  >(category: T, locale: string) {
+  private getTranslation(
+    category: CategoryWithLegacyAndTranslations,
+    locale: string,
+  ) {
     const normalizedLocale = normalizeContentLocale(locale);
     const translation = category.translations?.find(
       (item) => item.locale === normalizedLocale,
@@ -79,35 +86,26 @@ export class CategoriesService {
       description: '',
     };
   }
-
-  private resolveLocale<
-    T extends {
-      name: string;
-      nameEn: string;
-      description: string;
-      descriptionEn: string;
-      imageUrl: string;
-      translations?: Array<{
-        locale: string;
-        name: string;
-        description: string;
-      }>;
-    },
-  >(category: T, locale?: string, contentLocale?: string) {
+  private resolveLocale<T extends CategoryWithLegacyAndTranslations>(
+    category: T,
+    locale?: string,
+    contentLocale?: string,
+  ) {
     const fallback = this.getTranslation(category, DEFAULT_CONTENT_LOCALE);
-    const selected = locale
-      ? this.getTranslation(category, locale)
-      : fallback;
+    const selected = locale ? this.getTranslation(category, locale) : fallback;
+
     const localizedName = selected.name.trim() ? selected.name : fallback.name;
     const localizedDescription = selected.description.trim()
       ? selected.description
       : fallback.description;
+
     const adminLocale = contentLocale
       ? normalizeContentLocale(contentLocale)
       : null;
     const adminTranslation = adminLocale
       ? this.getTranslation(category, adminLocale)
       : null;
+
     const { translations: _translations, ...categoryFields } = category;
 
     return {
@@ -116,7 +114,7 @@ export class CategoriesService {
       description: locale ? localizedDescription : category.description,
       imageUrl: this.resolveImageUrl(category.imageUrl),
       slugSourceName: category.name,
-      ...(adminTranslation
+      ...(adminTranslation && adminLocale
         ? {
             adminTranslation: {
               locale: adminLocale,
@@ -148,6 +146,7 @@ export class CategoriesService {
       where: { id },
       include: { translations: true },
     });
+
     if (!category) {
       throw new NotFoundException(`Category #${id} not found`);
     }
@@ -159,7 +158,15 @@ export class CategoriesService {
     id: number,
     input: { locale: string; name: string; description: string },
   ) {
-    await this.findOne(id);
+    const exists = await this.prisma.category.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+
+    if (!exists) {
+      throw new NotFoundException(`Category #${id} not found`);
+    }
+
     const contentLocale = normalizeContentLocale(input.locale);
 
     return this.prisma.category.update({

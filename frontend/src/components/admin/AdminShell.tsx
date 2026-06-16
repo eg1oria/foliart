@@ -1,3 +1,6 @@
+'use client';
+
+import { useRouter } from '@/i18n/routing';
 import { Link } from '@/i18n/routing';
 import { logoutAdminAction } from '@/lib/adminSessionActions';
 import {
@@ -7,9 +10,11 @@ import {
   withContentLocale,
 } from '@/lib/contentLocales';
 import type { ReactNode } from 'react';
-import { FiArrowUpRight, FiChevronRight, FiLogOut } from 'react-icons/fi';
+import { useEffect, useRef } from 'react';
+import { FiArrowUpRight, FiLogOut } from 'react-icons/fi';
 import { LuPanelTop } from 'react-icons/lu';
 
+import { AdminLocaleSwitcherFloating } from './AdminLocaleSwitcherFloating';
 import AdminTabs from './AdminTabs';
 import {
   adminBadgeClassName,
@@ -29,6 +34,25 @@ type AdminShortcut = {
   label: string;
 };
 
+const i18n: Record<string, Record<string, string>> = {
+  en: {
+    quickActions: 'Quick actions',
+    signOut: 'Sign out',
+    inputLanguage: 'Input language',
+    inputLanguageHint: 'Forms save text for the selected language.',
+  },
+  ru: {
+    quickActions: 'Быстрые действия',
+    signOut: 'Выйти',
+    inputLanguage: 'Язык полей',
+    inputLanguageHint: 'Формы сохраняют текст для выбранного языка.',
+  },
+};
+
+function t(locale: string, key: string): string {
+  return i18n[locale]?.[key] ?? i18n['en'][key] ?? key;
+}
+
 export function AdminShell({
   activeTab,
   backHref,
@@ -37,7 +61,6 @@ export function AdminShell({
   contentLocale,
   description,
   locale,
-  shortcuts = [],
   title,
 }: {
   activeTab: 'products' | 'articles' | 'calendars';
@@ -52,24 +75,34 @@ export function AdminShell({
   title: string;
 }) {
   const safeContentLocale = normalizeContentLocale(contentLocale);
-  const shortcutsTitle =
-    locale === 'en'
-      ? 'Quick actions'
-      : '\u0411\u044b\u0441\u0442\u0440\u044b\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u044f';
-  const signOutLabel = locale === 'en' ? 'Sign out' : '\u0412\u044b\u0439\u0442\u0438';
-  const contentLanguageTitle =
-    locale === 'en' ? 'Input language' : '\u042f\u0437\u044b\u043a \u043f\u043e\u043b\u0435\u0439';
-  const contentLanguageHint =
-    locale === 'en'
-      ? 'Forms save text for the selected language.'
-      : '\u0424\u043e\u0440\u043c\u044b \u0441\u043e\u0445\u0440\u0430\u043d\u044f\u044e\u0442 \u0442\u0435\u043a\u0441\u0442 \u0434\u043b\u044f \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0433\u043e \u044f\u0437\u044b\u043a\u0430.';
   const currentAdminHref = `/admin/${activeTab}`;
+  const headerRef = useRef<HTMLElement>(null);
+  const router = useRouter();
+  const savedScrollY = useRef<number | null>(null);
+
+  // Восстанавливаем скролл после смены contentLocale в шапке
+  useEffect(() => {
+    if (savedScrollY.current !== null) {
+      window.scrollTo({ top: savedScrollY.current, behavior: 'instant' });
+      savedScrollY.current = null;
+    }
+  }, [contentLocale]);
+
+  const handleLocaleClick = (item: string) => {
+    if (item === safeContentLocale) return;
+    savedScrollY.current = window.scrollY;
+    router.replace(withContentLocale(currentAdminHref, item));
+  };
 
   return (
-    <main className="relative min-h-screen bg-[#f3f5f1] pt-24 text-[#0b3e31] sm:pt-28 md:pt-52">
+    <main
+      aria-label={title}
+      className="relative min-h-screen bg-[#f3f5f1] pt-24 text-[#0b3e31] sm:pt-28 md:pt-52">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[#0b5a45] sm:h-28 md:h-52" />
 
-      <section className="relative border-y border-[#0b5a45]/10 bg-white shadow-[0_14px_45px_-36px_rgba(11,62,49,0.75)]">
+      <section
+        ref={headerRef}
+        className="relative border-y border-[#0b5a45]/10 bg-white shadow-[0_14px_45px_-36px_rgba(11,62,49,0.75)]">
         <div className="mx-auto w-full max-w-[1500px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-7">
           <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
             <div className="min-w-0 max-w-4xl flex-1">
@@ -102,43 +135,25 @@ export function AdminShell({
                   <button
                     type="submit"
                     className={adminCx(adminGhostLinkClassName, 'w-full gap-2')}>
-                    <span>{signOutLabel}</span>
+                    <span>{t(locale, 'signOut')}</span>
                     <FiLogOut className="shrink-0" />
                   </button>
                 </form>
               </div>
 
-              {shortcuts.length > 0 ? (
-                <div className="w-full rounded-lg border border-[#0b5a45]/10 bg-[#f7f9f6] p-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6a7f76]">
-                    {shortcutsTitle}
-                  </p>
-                  <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-1">
-                    {shortcuts.map((shortcut) => (
-                      <Link
-                        key={shortcut.href}
-                        href={shortcut.href}
-                        className="inline-flex min-h-10 min-w-0 items-center justify-between gap-2 rounded-lg border border-[#0b5a45]/10 bg-white px-3 py-2 text-sm font-semibold text-[#0b3e31] transition hover:border-[#0b5a45]/25 hover:bg-[#eef4ef]">
-                        <span>{shortcut.label}</span>
-                        <FiChevronRight className="shrink-0" />
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
               <div className="w-full rounded-lg border border-[#0b5a45]/10 bg-[#f7f9f6] p-3">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6a7f76]">
-                  {contentLanguageTitle}
+                  {t(locale, 'inputLanguage')}
                 </p>
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   {contentLocales.map((item) => {
                     const isActive = item === safeContentLocale;
-
                     return (
-                      <Link
+                      <button
                         key={item}
-                        href={withContentLocale(currentAdminHref, item)}
+                        type="button"
+                        aria-current={isActive ? 'true' : undefined}
+                        onClick={() => handleLocaleClick(item)}
                         className={adminCx(
                           'inline-flex min-h-10 items-center justify-center rounded-lg border px-3 py-2 text-sm font-semibold transition',
                           isActive
@@ -146,11 +161,13 @@ export function AdminShell({
                             : 'border-[#0b5a45]/10 bg-white text-[#0b3e31] hover:border-[#0b5a45]/25 hover:bg-[#eef4ef]',
                         )}>
                         {getContentLocaleLabel(item)}
-                      </Link>
+                      </button>
                     );
                   })}
                 </div>
-                <p className="mt-2 text-xs leading-5 text-[#6a7f76]">{contentLanguageHint}</p>
+                <p className="mt-2 text-xs leading-5 text-[#6a7f76]">
+                  {t(locale, 'inputLanguageHint')}
+                </p>
               </div>
             </div>
           </div>
@@ -160,6 +177,16 @@ export function AdminShell({
       <div className="mx-auto w-full max-w-[1500px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         {children}
       </div>
+
+      <AdminLocaleSwitcherFloating
+        activeTab={activeTab}
+        contentLocale={safeContentLocale}
+        contentLocales={contentLocales}
+        getContentLocaleLabel={getContentLocaleLabel}
+        headerRef={headerRef}
+        hint={t(locale, 'inputLanguageHint')}
+        title={t(locale, 'inputLanguage')}
+      />
     </main>
   );
 }
@@ -237,6 +264,7 @@ export function AdminNotice({
 }) {
   return (
     <div
+      role="alert"
       className={adminCx(
         'rounded-lg border px-4 py-3 text-sm leading-6',
         tone === 'success'

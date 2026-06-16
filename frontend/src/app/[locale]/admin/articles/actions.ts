@@ -8,7 +8,7 @@ import { getArticleHref } from '@/lib/articles';
 import { normalizeContentLocale } from '@/lib/contentLocales';
 
 const backendUrl = process.env.BACKEND_URL ?? 'http://localhost:3001';
-const articleLocales = ['ru', 'en', 'fr'] as const;
+const articleLocales = ['ru', 'en', 'fr', 'es'] as const;
 
 type ArticleFormPayload = {
   title: string;

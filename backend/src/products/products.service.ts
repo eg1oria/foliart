@@ -15,6 +15,15 @@ type ProductTranslationFields = {
   application: string;
 };
 
+type ProductWithLegacyAndTranslations = ProductTranslationFields & {
+  nameEn: string;
+  descriptionEn: string;
+  advantagesEn: string;
+  compositionEn: string;
+  applicationEn: string;
+  translations?: Array<ProductTranslationFields & { locale: string }>;
+};
+
 type CreateProductInput = ProductTranslationFields & {
   categoryId: number;
   contentLocale: string;
@@ -32,30 +41,17 @@ type UpdateProductInput = ProductTranslationFields & {
 export class ProductsService {
   constructor(private prisma: PrismaService) {}
 
-  private getTranslation<
-    T extends ProductTranslationFields & {
-      nameEn: string;
-      descriptionEn: string;
-      advantagesEn: string;
-      compositionEn: string;
-      applicationEn: string;
-      translations?: Array<
-        ProductTranslationFields & {
-          locale: string;
-        }
-      >;
-    },
-  >(product: T, locale: string) {
+  private getTranslation(
+    product: ProductWithLegacyAndTranslations,
+    locale: string,
+  ) {
     const normalizedLocale = normalizeContentLocale(locale);
     const translation = product.translations?.find(
       (item) => item.locale === normalizedLocale,
     );
 
     if (translation) {
-      return {
-        ...translation,
-        hasTranslation: true,
-      };
+      return { ...translation, hasTranslation: true };
     }
 
     if (isDefaultContentLocale(normalizedLocale)) {
@@ -89,21 +85,11 @@ export class ProductsService {
       hasTranslation: false,
     };
   }
-
-  private resolveLocale<
-    T extends ProductTranslationFields & {
-      nameEn: string;
-      descriptionEn: string;
-      advantagesEn: string;
-      compositionEn: string;
-      applicationEn: string;
-      translations?: Array<
-        ProductTranslationFields & {
-          locale: string;
-        }
-      >;
-    },
-  >(product: T, locale?: string, contentLocale?: string) {
+  private resolveLocale<T extends ProductWithLegacyAndTranslations>(
+    product: T,
+    locale?: string,
+    contentLocale?: string,
+  ) {
     const fallback = this.getTranslation(product, DEFAULT_CONTENT_LOCALE);
     const selected = locale ? this.getTranslation(product, locale) : fallback;
     const adminLocale = contentLocale
@@ -112,37 +98,43 @@ export class ProductsService {
     const adminTranslation = adminLocale
       ? this.getTranslation(product, adminLocale)
       : null;
+
     const { translations: _translations, ...productFields } = product;
+    const resolve = (
+      selectedValue: string,
+      fallbackValue: string,
+      originalValue: string,
+    ): string => {
+      if (locale && selectedValue.trim()) return selectedValue;
+      if (locale) return fallbackValue;
+      return originalValue;
+    };
 
     return {
       ...productFields,
-      name: locale && selected.name.trim() ? selected.name : product.name,
-      description:
-        locale && selected.description.trim()
-          ? selected.description
-          : locale
-            ? fallback.description
-            : product.description,
-      advantages:
-        locale && selected.advantages.trim()
-          ? selected.advantages
-          : locale
-            ? fallback.advantages
-            : product.advantages,
-      composition:
-        locale && selected.composition.trim()
-          ? selected.composition
-          : locale
-            ? fallback.composition
-            : product.composition,
-      application:
-        locale && selected.application.trim()
-          ? selected.application
-          : locale
-            ? fallback.application
-            : product.application,
+      name: resolve(selected.name, fallback.name, product.name),
+      description: resolve(
+        selected.description,
+        fallback.description,
+        product.description,
+      ),
+      advantages: resolve(
+        selected.advantages,
+        fallback.advantages,
+        product.advantages,
+      ),
+      composition: resolve(
+        selected.composition,
+        fallback.composition,
+        product.composition,
+      ),
+      application: resolve(
+        selected.application,
+        fallback.application,
+        product.application,
+      ),
       slugSourceName: product.name,
-      ...(adminTranslation
+      ...(adminTranslation && adminLocale
         ? {
             adminTranslation: {
               locale: adminLocale,
@@ -163,25 +155,25 @@ export class ProductsService {
     contentLocale: string,
     input: ProductTranslationFields,
   ) {
+    const isLegacyEn = isLegacyEnglishContentLocale(contentLocale);
+
     return {
-      name: input.name,
-      nameEn: isLegacyEnglishContentLocale(contentLocale) ? input.name : '',
-      description: input.description,
-      descriptionEn: isLegacyEnglishContentLocale(contentLocale)
+      name: isDefaultContentLocale(contentLocale) ? input.name : '',
+      nameEn: isLegacyEn ? input.name : '',
+      description: isDefaultContentLocale(contentLocale)
         ? input.description
         : '',
-      advantages: input.advantages,
-      advantagesEn: isLegacyEnglishContentLocale(contentLocale)
-        ? input.advantages
-        : '',
-      composition: input.composition,
-      compositionEn: isLegacyEnglishContentLocale(contentLocale)
+      descriptionEn: isLegacyEn ? input.description : '',
+      advantages: isDefaultContentLocale(contentLocale) ? input.advantages : '',
+      advantagesEn: isLegacyEn ? input.advantages : '',
+      composition: isDefaultContentLocale(contentLocale)
         ? input.composition
         : '',
-      application: input.application,
-      applicationEn: isLegacyEnglishContentLocale(contentLocale)
+      compositionEn: isLegacyEn ? input.composition : '',
+      application: isDefaultContentLocale(contentLocale)
         ? input.application
         : '',
+      applicationEn: isLegacyEn ? input.application : '',
     };
   }
 
@@ -208,18 +200,19 @@ export class ProductsService {
         applicationEn: input.application,
       };
     }
-
     return {};
   }
 
   private async syncCategoryProductCount(categoryId: number) {
-    const productCount = await this.prisma.product.count({
-      where: { categoryId },
-    });
+    await this.prisma.$transaction(async (tx) => {
+      const productCount = await tx.product.count({
+        where: { categoryId },
+      });
 
-    await this.prisma.category.update({
-      where: { id: categoryId },
-      data: { productCount },
+      await tx.category.update({
+        where: { id: categoryId },
+        data: { productCount },
+      });
     });
   }
 
@@ -255,9 +248,11 @@ export class ProductsService {
       where: { id },
       include: { translations: true },
     });
+
     if (!product) {
       throw new NotFoundException(`Product #${id} not found`);
     }
+
     return this.resolveLocale(product, locale, contentLocale);
   }
 
@@ -296,7 +291,14 @@ export class ProductsService {
   }
 
   async update(input: UpdateProductInput) {
-    const existingProduct = await this.findOne(input.id);
+    const existingProduct = await this.prisma.product.findUnique({
+      where: { id: input.id },
+    });
+
+    if (!existingProduct) {
+      throw new NotFoundException(`Product #${input.id} not found`);
+    }
+
     const category = await this.prisma.category.findUnique({
       where: { id: input.categoryId },
     });
@@ -306,6 +308,7 @@ export class ProductsService {
     }
 
     const contentLocale = normalizeContentLocale(input.contentLocale);
+
     const product = await this.prisma.product.update({
       where: { id: input.id },
       data: {

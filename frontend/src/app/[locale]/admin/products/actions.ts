@@ -9,7 +9,7 @@ import { normalizeContentLocale } from '@/lib/contentLocales';
 import { getCategoryHref, getProductHref } from '@/lib/catalog';
 
 const backendUrl = process.env.BACKEND_URL ?? 'http://localhost:3001';
-const catalogLocales = ['ru', 'en', 'fr'] as const;
+const catalogLocales = ['ru', 'en', 'fr', 'es'] as const;
 
 type ProductFormPayload = {
   categoryId: string;

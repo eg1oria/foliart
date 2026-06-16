@@ -12,6 +12,16 @@ type CalendarTranslationFields = {
   description: string;
 };
 
+type CalendarEntryWithLegacyAndTranslations = CalendarTranslationFields & {
+  titleEn: string;
+  descriptionEn: string;
+  imageUrl1: string;
+  imageUrl2: string;
+  imageUrl3: string;
+  imageUrl4: string;
+  translations?: Array<CalendarTranslationFields & { locale: string }>;
+};
+
 type CreateCalendarEntryInput = CalendarTranslationFields & {
   contentLocale: string;
   imageUrl1: string;
@@ -33,27 +43,17 @@ type UpdateCalendarEntryInput = CalendarTranslationFields & {
 export class CalendarsService {
   constructor(private prisma: PrismaService) {}
 
-  private getTranslation<
-    T extends CalendarTranslationFields & {
-      titleEn: string;
-      descriptionEn: string;
-      translations?: Array<
-        CalendarTranslationFields & {
-          locale: string;
-        }
-      >;
-    },
-  >(entry: T, locale: string) {
+  private getTranslation(
+    entry: CalendarEntryWithLegacyAndTranslations,
+    locale: string,
+  ) {
     const normalizedLocale = normalizeContentLocale(locale);
     const translation = entry.translations?.find(
       (item) => item.locale === normalizedLocale,
     );
 
     if (translation) {
-      return {
-        ...translation,
-        hasTranslation: true,
-      };
+      return { ...translation, hasTranslation: true };
     }
 
     if (isDefaultContentLocale(normalizedLocale)) {
@@ -79,48 +79,49 @@ export class CalendarsService {
     };
   }
 
-  private resolveLocale<
-    T extends CalendarTranslationFields & {
-      titleEn: string;
-      descriptionEn: string;
-      imageUrl1: string;
-      imageUrl2: string;
-      imageUrl3: string;
-      imageUrl4: string;
-      translations?: Array<
-        CalendarTranslationFields & {
-          locale: string;
-        }
-      >;
-    },
-  >(entry: T, locale?: string, contentLocale?: string) {
+  private resolveLocale<T extends CalendarEntryWithLegacyAndTranslations>(
+    entry: T,
+    locale?: string,
+    contentLocale?: string,
+  ) {
     const fallback = this.getTranslation(entry, DEFAULT_CONTENT_LOCALE);
     const selected = locale ? this.getTranslation(entry, locale) : fallback;
+
     const adminLocale = contentLocale
       ? normalizeContentLocale(contentLocale)
       : null;
     const adminTranslation = adminLocale
       ? this.getTranslation(entry, adminLocale)
       : null;
+
     const { translations: _translations, ...entryFields } = entry;
+
+    const resolve = (
+      selectedValue: string,
+      fallbackValue: string,
+      originalValue: string,
+    ): string => {
+      if (locale && selectedValue.trim()) return selectedValue;
+      if (locale) return fallbackValue;
+      return originalValue;
+    };
 
     return {
       ...entryFields,
-      title: locale && selected.title.trim() ? selected.title : entry.title,
-      description:
-        locale && selected.description.trim()
-          ? selected.description
-          : locale
-            ? fallback.description
-            : entry.description,
+      title: resolve(selected.title, fallback.title, entry.title),
+      description: resolve(
+        selected.description,
+        fallback.description,
+        entry.description,
+      ),
       imageUrls: [
         entry.imageUrl1,
         entry.imageUrl2,
         entry.imageUrl3,
         entry.imageUrl4,
-      ],
+      ].filter((url): url is string => Boolean(url?.trim())),
       slugSourceTitle: entry.title,
-      ...(adminTranslation
+      ...(adminTranslation && adminLocale
         ? {
             adminTranslation: {
               locale: adminLocale,
@@ -140,13 +141,14 @@ export class CalendarsService {
     contentLocale: string,
     input: CalendarTranslationFields,
   ) {
+    const isDefault = isDefaultContentLocale(contentLocale);
+    const isLegacyEn = isLegacyEnglishContentLocale(contentLocale);
+
     return {
-      title: input.title,
-      titleEn: isLegacyEnglishContentLocale(contentLocale) ? input.title : '',
-      description: input.description,
-      descriptionEn: isLegacyEnglishContentLocale(contentLocale)
-        ? input.description
-        : '',
+      title: isDefault ? input.title : '',
+      titleEn: isLegacyEn ? input.title : '',
+      description: isDefault ? input.description : '',
+      descriptionEn: isLegacyEn ? input.description : '',
     };
   }
 
@@ -167,7 +169,6 @@ export class CalendarsService {
         descriptionEn: input.description,
       };
     }
-
     return {};
   }
 
@@ -217,7 +218,15 @@ export class CalendarsService {
   }
 
   async update(input: UpdateCalendarEntryInput) {
-    await this.findOne(input.id);
+    const exists = await this.prisma.calendarEntry.findUnique({
+      where: { id: input.id },
+      select: { id: true },
+    });
+
+    if (!exists) {
+      throw new NotFoundException(`Calendar entry #${input.id} not found`);
+    }
+
     const contentLocale = normalizeContentLocale(input.contentLocale);
 
     return this.prisma.calendarEntry.update({
