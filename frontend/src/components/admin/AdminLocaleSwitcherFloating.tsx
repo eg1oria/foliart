@@ -1,8 +1,8 @@
 'use client';
 
-import { useRouter } from '@/i18n/routing';
+import { Link } from '@/i18n/routing';
 import { withContentLocale } from '@/lib/contentLocales';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { adminCx } from './adminStyles';
 
@@ -24,11 +24,7 @@ export function AdminLocaleSwitcherFloating({
   title: string;
 }) {
   const [visible, setVisible] = useState(false);
-  const router = useRouter();
   const currentAdminHref = `/admin/${activeTab}`;
-
-  // Сохраняем позицию скролла до навигации
-  const savedScrollY = useRef<number | null>(null);
 
   useEffect(() => {
     const header = headerRef.current;
@@ -44,24 +40,6 @@ export function AdminLocaleSwitcherFloating({
     observer.observe(header);
     return () => observer.disconnect();
   }, [headerRef]);
-
-  // Восстанавливаем скролл после того как contentLocale изменился
-  // (т.е. навигация завершилась и компонент перерендерился с новым значением)
-  useEffect(() => {
-    if (savedScrollY.current !== null) {
-      window.scrollTo({ top: savedScrollY.current, behavior: 'instant' });
-      savedScrollY.current = null;
-    }
-  }, [contentLocale]);
-
-  const handleLocaleClick = (item: string) => {
-    if (item === contentLocale) return;
-
-    // Запоминаем скролл прямо перед навигацией
-    savedScrollY.current = window.scrollY;
-
-    router.replace(withContentLocale(currentAdminHref, item));
-  };
 
   return (
     <div
@@ -81,11 +59,11 @@ export function AdminLocaleSwitcherFloating({
         {contentLocales.map((item) => {
           const isActive = item === contentLocale;
           return (
-            <button
+            <Link
               key={item}
-              type="button"
+              href={withContentLocale(currentAdminHref, item)}
+              scroll={false}
               aria-current={isActive ? 'true' : undefined}
-              onClick={() => handleLocaleClick(item)}
               className={adminCx(
                 'inline-flex min-h-9 items-center justify-center rounded-lg border px-3 text-sm font-semibold transition',
                 isActive
@@ -93,7 +71,7 @@ export function AdminLocaleSwitcherFloating({
                   : 'border-[#0b5a45]/10 bg-[#f7f9f6] text-[#0b3e31] hover:border-[#0b5a45]/25 hover:bg-[#eef4ef]',
               )}>
               {getContentLocaleLabel(item)}
-            </button>
+            </Link>
           );
         })}
       </div>

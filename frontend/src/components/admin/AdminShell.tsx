@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from '@/i18n/routing';
 import { Link } from '@/i18n/routing';
 import { logoutAdminAction } from '@/lib/adminSessionActions';
 import {
@@ -10,7 +9,7 @@ import {
   withContentLocale,
 } from '@/lib/contentLocales';
 import type { ReactNode } from 'react';
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { FiArrowUpRight, FiLogOut } from 'react-icons/fi';
 import { LuPanelTop } from 'react-icons/lu';
 
@@ -77,22 +76,6 @@ export function AdminShell({
   const safeContentLocale = normalizeContentLocale(contentLocale);
   const currentAdminHref = `/admin/${activeTab}`;
   const headerRef = useRef<HTMLElement>(null);
-  const router = useRouter();
-  const savedScrollY = useRef<number | null>(null);
-
-  // Восстанавливаем скролл после смены contentLocale в шапке
-  useEffect(() => {
-    if (savedScrollY.current !== null) {
-      window.scrollTo({ top: savedScrollY.current, behavior: 'instant' });
-      savedScrollY.current = null;
-    }
-  }, [contentLocale]);
-
-  const handleLocaleClick = (item: string) => {
-    if (item === safeContentLocale) return;
-    savedScrollY.current = window.scrollY;
-    router.replace(withContentLocale(currentAdminHref, item));
-  };
 
   return (
     <main
@@ -149,11 +132,11 @@ export function AdminShell({
                   {contentLocales.map((item) => {
                     const isActive = item === safeContentLocale;
                     return (
-                      <button
+                      <Link
                         key={item}
-                        type="button"
+                        href={withContentLocale(currentAdminHref, item)}
+                        scroll={false}
                         aria-current={isActive ? 'true' : undefined}
-                        onClick={() => handleLocaleClick(item)}
                         className={adminCx(
                           'inline-flex min-h-10 items-center justify-center rounded-lg border px-3 py-2 text-sm font-semibold transition',
                           isActive
@@ -161,7 +144,7 @@ export function AdminShell({
                             : 'border-[#0b5a45]/10 bg-white text-[#0b3e31] hover:border-[#0b5a45]/25 hover:bg-[#eef4ef]',
                         )}>
                         {getContentLocaleLabel(item)}
-                      </button>
+                      </Link>
                     );
                   })}
                 </div>
