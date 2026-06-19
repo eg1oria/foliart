@@ -56,6 +56,7 @@ export type Product = {
   application: string;
   applicationEn: string;
   imageUrl: string;
+  imageUrlEn: string;
   slugSourceName?: string;
   adminTranslation?: ProductAdminTranslation;
 };

@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 describe('ProductsController', () => {
   let controller: ProductsController;
@@ -11,6 +12,11 @@ describe('ProductsController', () => {
     findOne: jest.fn(),
     update: jest.fn(),
   };
+  const prismaServiceMock = {
+    product: {
+      findUnique: jest.fn(),
+    },
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -19,6 +25,10 @@ describe('ProductsController', () => {
         {
           provide: ProductsService,
           useValue: productsServiceMock,
+        },
+        {
+          provide: PrismaService,
+          useValue: prismaServiceMock,
         },
       ],
     }).compile();

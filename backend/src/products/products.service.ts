@@ -21,6 +21,8 @@ type ProductWithLegacyAndTranslations = ProductTranslationFields & {
   advantagesEn: string;
   compositionEn: string;
   applicationEn: string;
+  imageUrl: string;
+  imageUrlEn: string;
   translations?: Array<ProductTranslationFields & { locale: string }>;
 };
 
@@ -28,6 +30,7 @@ type CreateProductInput = ProductTranslationFields & {
   categoryId: number;
   contentLocale: string;
   imageUrl: string;
+  imageUrlEn?: string;
 };
 
 type UpdateProductInput = ProductTranslationFields & {
@@ -35,6 +38,7 @@ type UpdateProductInput = ProductTranslationFields & {
   categoryId: number;
   contentLocale: string;
   imageUrl?: string;
+  imageUrlEn?: string;
 };
 
 @Injectable()
@@ -133,6 +137,10 @@ export class ProductsService {
         fallback.application,
         product.application,
       ),
+      imageUrl:
+        locale && !isDefaultContentLocale(locale) && product.imageUrlEn
+          ? product.imageUrlEn
+          : product.imageUrl,
       slugSourceName: product.name,
       ...(adminTranslation && adminLocale
         ? {
@@ -272,6 +280,7 @@ export class ProductsService {
         categoryId: input.categoryId,
         ...this.getCreateLegacyFields(contentLocale, input),
         imageUrl: input.imageUrl,
+        imageUrlEn: input.imageUrlEn ?? '',
         translations: {
           create: {
             locale: contentLocale,
@@ -315,6 +324,7 @@ export class ProductsService {
         categoryId: input.categoryId,
         ...this.getUpdateLegacyFields(contentLocale, input),
         ...(input.imageUrl ? { imageUrl: input.imageUrl } : {}),
+        ...(input.imageUrlEn ? { imageUrlEn: input.imageUrlEn } : {}),
         translations: {
           upsert: {
             where: {

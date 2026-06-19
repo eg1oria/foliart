@@ -143,6 +143,7 @@ export async function createProductAction(formData: FormData) {
 
   const values = getProductFormPayload(formData);
   const image = formData.get('image');
+  const imageEn = formData.get('imageEn');
 
   if (!values.categoryId || !values.name || !(image instanceof File) || image.size === 0) {
     redirect(
@@ -163,6 +164,9 @@ export async function createProductAction(formData: FormData) {
   const payload = new FormData();
   appendProductPayload(payload, values, contentLocale);
   payload.append('image', image);
+  if (imageEn instanceof File && imageEn.size > 0) {
+    payload.append('imageEn', imageEn);
+  }
 
   const response = await fetch(`${backendUrl}/api/products`, {
     method: 'POST',
@@ -215,6 +219,7 @@ export async function updateProductAction(formData: FormData) {
   const previousName = normalizeText(formData.get('previousName'));
   const values = getProductFormPayload(formData);
   const image = formData.get('image');
+  const imageEn = formData.get('imageEn');
 
   if (!productId || !values.categoryId || !values.name) {
     redirect(
@@ -238,6 +243,9 @@ export async function updateProductAction(formData: FormData) {
 
   if (image instanceof File && image.size > 0) {
     payload.append('image', image);
+  }
+  if (imageEn instanceof File && imageEn.size > 0) {
+    payload.append('imageEn', imageEn);
   }
 
   const response = await fetch(`${backendUrl}/api/products/${productId}`, {

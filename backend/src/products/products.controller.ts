@@ -8,14 +8,14 @@ import {
   Patch,
   Post,
   Query,
-  UploadedFile,
+  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { AdminApiGuard } from '../admin-api.guard';
 import { normalizeContentLocale } from '../content-locales';
@@ -29,7 +29,12 @@ import { PrismaService } from '../prisma/prisma.service';
 
 const productsImagesDirectory = join(process.cwd(), 'images', 'products');
 
-type StoredUploadFile = StoredImageUploadFile;
+const productImageFields = ['image', 'imageEn'] as const;
+type ProductImageField = (typeof productImageFields)[number];
+type StoredUploadFile = StoredImageUploadFile & { fieldname: string };
+type UploadedProductFiles = Partial<
+  Record<ProductImageField, StoredUploadFile[]>
+>;
 
 type DestinationCallback = (error: Error | null, destination: string) => void;
 type FilenameCallback = (error: Error | null, filename: string) => void;
@@ -51,6 +56,12 @@ function removeUploadedFile(filePath?: string) {
       message: error instanceof Error ? error.message : String(error),
       path: filePath,
     });
+  }
+}
+
+function removeUploadedFiles(filePaths: Array<string | undefined>) {
+  for (const filePath of filePaths) {
+    removeUploadedFile(filePath);
   }
 }
 
@@ -109,49 +120,61 @@ function parseProductBody(body: Record<string, string | undefined>) {
   };
 }
 
-function createImageInterceptor() {
-  return FileInterceptor('image', {
-    storage: diskStorage({
-      destination: (
-        _req: Request,
-        _file: StoredUploadFile,
-        callback: DestinationCallback,
-      ) => {
-        ensureProductsDirectory();
-        callback(null, productsImagesDirectory);
-      },
-      filename: (
-        req: Request,
-        file: StoredUploadFile,
-        callback: FilenameCallback,
-      ) => {
-        const name = getRequestTextField(req, 'name') ?? 'product';
-        const extension = extname(file.originalname).toLowerCase() || '.jpg';
-        const fileName = `${Date.now()}-${normalizeFileNameSegment(name)}${extension}`;
-        callback(null, fileName);
-      },
-    }),
-    fileFilter: (
-      _req: Request,
-      file: StoredUploadFile,
-      callback: FileFilterCallback,
-    ) => {
-      if (!allowedImageMimeTypes.has(file.mimetype)) {
-        callback(
-          new BadRequestException(
-            'Only JPG, PNG, and WEBP images are supported',
-          ),
-          false,
-        );
-        return;
-      }
+function getUploadedFile(
+  files: UploadedProductFiles | undefined,
+  fieldName: ProductImageField,
+) {
+  return files?.[fieldName]?.[0];
+}
 
-      callback(null, true);
+function createImagesInterceptor() {
+  return FileFieldsInterceptor(
+    productImageFields.map((name) => ({ name, maxCount: 1 })),
+    {
+      storage: diskStorage({
+        destination: (
+          _req: Request,
+          _file: StoredUploadFile,
+          callback: DestinationCallback,
+        ) => {
+          ensureProductsDirectory();
+          callback(null, productsImagesDirectory);
+        },
+        filename: (
+          req: Request,
+          file: StoredUploadFile,
+          callback: FilenameCallback,
+        ) => {
+          const name = getRequestTextField(req, 'name') ?? 'product';
+          const extension = extname(file.originalname).toLowerCase() || '.jpg';
+          const localeSuffix =
+            file.fieldname === 'imageEn' ? '-international' : '-ru';
+          const fileName = `${Date.now()}-${normalizeFileNameSegment(name)}${localeSuffix}${extension}`;
+          callback(null, fileName);
+        },
+      }),
+      fileFilter: (
+        _req: Request,
+        file: StoredUploadFile,
+        callback: FileFilterCallback,
+      ) => {
+        if (!allowedImageMimeTypes.has(file.mimetype)) {
+          callback(
+            new BadRequestException(
+              'Only JPG, PNG, and WEBP images are supported',
+            ),
+            false,
+          );
+          return;
+        }
+
+        callback(null, true);
+      },
+      limits: {
+        fileSize: 5 * 1024 * 1024,
+      },
     },
-    limits: {
-      fileSize: 5 * 1024 * 1024,
-    },
-  });
+  );
 }
 
 @Controller('products')
@@ -186,11 +209,14 @@ export class ProductsController {
 
   @Post()
   @UseGuards(AdminApiGuard)
-  @UseInterceptors(createImageInterceptor())
+  @UseInterceptors(createImagesInterceptor())
   async create(
     @Body() body: Record<string, string | undefined>,
-    @UploadedFile() file?: StoredUploadFile,
+    @UploadedFiles() files?: UploadedProductFiles,
   ) {
+    const image = getUploadedFile(files, 'image');
+    const imageEn = getUploadedFile(files, 'imageEn');
+    const uploadedFiles = [image, imageEn];
     const {
       contentLocale,
       categoryId,
@@ -202,22 +228,26 @@ export class ProductsController {
     } = parseProductBody(body);
 
     if (!Number.isInteger(categoryId) || categoryId < 1) {
-      removeUploadedFile(file?.path);
+      removeUploadedFiles(uploadedFiles.map((file) => file?.path));
       throw new BadRequestException('Category is required');
     }
 
     if (!name) {
-      removeUploadedFile(file?.path);
+      removeUploadedFiles(uploadedFiles.map((file) => file?.path));
       throw new BadRequestException('Product name is required');
     }
 
-    if (!file?.filename) {
+    if (!image?.filename) {
+      removeUploadedFile(imageEn?.path);
       throw new BadRequestException('Product image is required');
     }
 
-    const imageFile = await optimizeUploadedImage(file);
-
     try {
+      const [imageFile, imageFileEn] = await Promise.all([
+        optimizeUploadedImage(image),
+        imageEn ? optimizeUploadedImage(imageEn) : Promise.resolve(undefined),
+      ]);
+
       return await this.productsService.create({
         categoryId,
         contentLocale,
@@ -227,21 +257,27 @@ export class ProductsController {
         composition,
         application,
         imageUrl: `products/${imageFile.filename}`,
+        imageUrlEn: imageFileEn?.filename
+          ? `products/${imageFileEn.filename}`
+          : undefined,
       });
     } catch (error) {
-      removeUploadedFile(imageFile.path);
+      removeUploadedFiles(uploadedFiles.map((file) => file?.path));
       throw error;
     }
   }
 
   @Patch(':id')
   @UseGuards(AdminApiGuard)
-  @UseInterceptors(createImageInterceptor())
+  @UseInterceptors(createImagesInterceptor())
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: Record<string, string | undefined>,
-    @UploadedFile() file?: StoredUploadFile,
+    @UploadedFiles() files?: UploadedProductFiles,
   ) {
+    const image = getUploadedFile(files, 'image');
+    const imageEn = getUploadedFile(files, 'imageEn');
+    const uploadedFiles = [image, imageEn];
     const {
       contentLocale,
       categoryId,
@@ -253,27 +289,28 @@ export class ProductsController {
     } = parseProductBody(body);
 
     if (!Number.isInteger(categoryId) || categoryId < 1) {
-      removeUploadedFile(file?.path);
+      removeUploadedFiles(uploadedFiles.map((file) => file?.path));
       throw new BadRequestException('Category is required');
     }
 
     if (!name) {
-      removeUploadedFile(file?.path);
+      removeUploadedFiles(uploadedFiles.map((file) => file?.path));
       throw new BadRequestException('Product name is required');
     }
 
-    let imageFile:
-      | Awaited<ReturnType<typeof optimizeUploadedImage>>
-      | undefined;
-
     try {
-      imageFile = file?.filename
-        ? await optimizeUploadedImage(file)
-        : undefined;
+      const [imageFile, imageFileEn] = await Promise.all([
+        image?.filename
+          ? optimizeUploadedImage(image)
+          : Promise.resolve(undefined),
+        imageEn?.filename
+          ? optimizeUploadedImage(imageEn)
+          : Promise.resolve(undefined),
+      ]);
 
       const currentProduct = await this.prisma.product.findUnique({
         where: { id },
-        select: { imageUrl: true },
+        select: { imageUrl: true, imageUrlEn: true },
       });
 
       const updatedProduct = await this.productsService.update({
@@ -288,18 +325,23 @@ export class ProductsController {
         imageUrl: imageFile?.filename
           ? `products/${imageFile.filename}`
           : undefined,
+        imageUrlEn: imageFileEn?.filename
+          ? `products/${imageFileEn.filename}`
+          : undefined,
       });
 
-      if (imageFile?.filename && currentProduct?.imageUrl) {
-        removeUploadedFile(getStoredProductImagePath(currentProduct.imageUrl));
-      }
+      removeUploadedFiles([
+        imageFile?.filename
+          ? getStoredProductImagePath(currentProduct?.imageUrl)
+          : undefined,
+        imageFileEn?.filename
+          ? getStoredProductImagePath(currentProduct?.imageUrlEn)
+          : undefined,
+      ]);
 
       return updatedProduct;
     } catch (error) {
-      removeUploadedFile(file?.path);
-      if (imageFile?.path && imageFile.path !== file?.path) {
-        removeUploadedFile(imageFile.path);
-      }
+      removeUploadedFiles(uploadedFiles.map((file) => file?.path));
       throw error;
     }
   }

@@ -36,6 +36,7 @@ model Product {
   application   String   @default("") // JSON string or blank-line separated blocks
   applicationEn String   @default("") // English translation or blank fallback
   imageUrl      String
+  imageUrlEn    String   @default("")
   translations  ProductTranslation[]
 }
 

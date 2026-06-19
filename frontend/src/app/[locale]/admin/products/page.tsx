@@ -146,24 +146,48 @@ function ProductFormFields({
         </label>
       </div>
 
-      <label className={adminFieldClassName}>
-        <span className={adminLabelClassName}>
-          {adminCopy.imageLabel}
-          {!imageRequired ? (
+      <div className="grid gap-5 md:grid-cols-2">
+        <label className={adminFieldClassName}>
+          <span className={adminLabelClassName}>
+            {locale === 'en' ? 'Image for Russian' : 'Фото для русской версии'}
+            {!imageRequired ? (
+              <span className={adminOptionalLabelClassName}> ({adminCopy.optionalLabel})</span>
+            ) : null}
+          </span>
+          <input
+            name="image"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            required={imageRequired}
+            className={adminFileInputClassName}
+          />
+          <span className={adminHintClassName}>
+            {imageRequired ? adminCopy.imageHint : adminCopy.replaceImageHint}
+          </span>
+        </label>
+
+        <label className={adminFieldClassName}>
+          <span className={adminLabelClassName}>
+            {locale === 'en'
+              ? 'Image for English, French, Spanish'
+              : 'Фото для английской, французской и испанской версий'}
             <span className={adminOptionalLabelClassName}> ({adminCopy.optionalLabel})</span>
-          ) : null}
-        </span>
-        <input
-          name="image"
-          type="file"
-          accept="image/png,image/jpeg,image/webp"
-          required={imageRequired}
-          className={adminFileInputClassName}
-        />
-        <span className={adminHintClassName}>
-          {imageRequired ? adminCopy.imageHint : adminCopy.replaceImageHint}
-        </span>
-      </label>
+          </span>
+          <input
+            name="imageEn"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            className={adminFileInputClassName}
+          />
+          <span className={adminHintClassName}>
+            {imageRequired
+              ? locale === 'en'
+                ? 'If omitted, the Russian image is used.'
+                : 'Если не загружать, будет использовано русское фото.'
+              : adminCopy.replaceImageHint}
+          </span>
+        </label>
+      </div>
 
       <label className={adminFieldClassName}>
         <span className={adminLabelClassName}>
