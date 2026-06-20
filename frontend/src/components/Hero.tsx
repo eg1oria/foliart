@@ -6,7 +6,8 @@ export default function Hero() {
   const locale = useLocale();
   const isRu = locale === 'ru';
   const logoSrc = isRu ? '/logo5.PNG' : '/logo_eng-w.webp';
-  const logoWidth = isRu ? 440 : 440;
+  const logoWidth = 440;
+  const logoHeight = isRu ? 238 : 262;
 
   const items = [
     {
@@ -35,7 +36,8 @@ export default function Hero() {
         src={logoSrc}
         alt="Foliart logo"
         width={logoWidth}
-        height={70}
+        height={logoHeight}
+        priority
         sizes="(max-width: 767px) calc(100vw - 32px), 520px"
         className={`mt-0 h-auto ${isRu ? 'md:mt-20' : 'md:mt-13'}`}
         style={{
@@ -45,7 +47,8 @@ export default function Hero() {
       />
       <h1
         className="w-full max-w-3xl text-center text-xl text-white/85"
-        style={{ fontWeight: 100 }}>
+        style={{ fontWeight: 100 }}
+      >
         {t('title')}
       </h1>
 
@@ -53,7 +56,8 @@ export default function Hero() {
         {items.map((item) => (
           <li
             key={item.title}
-            className="flex w-full min-w-0 items-start gap-5 tablet:max-w-[250px] tablet:flex-col tablet:items-center tablet:gap-9">
+            className="flex w-full min-w-0 items-start gap-5 tablet:max-w-[250px] tablet:flex-col tablet:items-center tablet:gap-9"
+          >
             <Image
               src={item.img}
               alt={item.title}

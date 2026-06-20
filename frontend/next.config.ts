@@ -3,11 +3,14 @@ import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 const backendUrl = (process.env.BACKEND_URL ?? 'http://localhost:3001').replace(/\/$/, '');
+const isStandaloneBuild = process.env.NEXT_OUTPUT === 'standalone';
+const isHttpsDeployment = (process.env.SITE_URL ?? '').startsWith('https://');
 
 const createConfig = (): NextConfig => {
   const nextConfig: NextConfig = {
     reactCompiler: true,
-    output: 'standalone',
+    output: isStandaloneBuild ? 'standalone' : undefined,
+    poweredByHeader: false,
     experimental: {
       serverActions: {
         bodySizeLimit: '5mb',
@@ -18,6 +21,33 @@ const createConfig = (): NextConfig => {
         {
           source: '/media/:path*',
           destination: `${backendUrl}/images/:path*`,
+        },
+      ];
+    },
+    async headers() {
+      return [
+        {
+          source: '/(.*)',
+          headers: [
+            { key: 'X-Content-Type-Options', value: 'nosniff' },
+            { key: 'X-Frame-Options', value: 'DENY' },
+            {
+              key: 'Referrer-Policy',
+              value: 'strict-origin-when-cross-origin',
+            },
+            {
+              key: 'Permissions-Policy',
+              value: 'camera=(), microphone=(), geolocation=()',
+            },
+            ...(isHttpsDeployment
+              ? [
+                  {
+                    key: 'Strict-Transport-Security',
+                    value: 'max-age=31536000; includeSubDomains',
+                  },
+                ]
+              : []),
+          ],
         },
       ];
     },

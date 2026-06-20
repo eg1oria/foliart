@@ -25,6 +25,7 @@ const articleHtmlOptions: IOptions = {
     a: ['href', 'target', 'rel'],
   },
   allowedSchemes: ['http', 'https', 'mailto', 'tel'],
+  allowProtocolRelative: false,
   transformTags: {
     b: 'strong',
     i: 'em',

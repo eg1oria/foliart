@@ -69,9 +69,7 @@ export default async function CatalogPage({ params }: { params: Promise<{ locale
           <h1 className="font-bold text-3xl md:text-5xl text-white mb-4 text-start">
             {copy.title}
           </h1>
-          <p className="text-base text-lg md:text-xl text-start text-white/85 mb-2">
-            {copy.subtitle}
-          </p>
+          <p className="mb-2 text-start text-lg text-white/85 md:text-xl">{copy.subtitle}</p>
         </div>
       </div>
 
@@ -106,7 +104,8 @@ export default async function CatalogPage({ params }: { params: Promise<{ locale
                 key={category.id}
                 href={getCategoryHref(category)}
                 aria-label={`${category.name}: ${categoryCta}`}
-                className={cardClassName}>
+                className={cardClassName}
+              >
                 <div className="absolute inset-0">
                   <MediaImage
                     src={imageSrc}

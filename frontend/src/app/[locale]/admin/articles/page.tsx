@@ -283,42 +283,63 @@ export default async function AdminArticlesPage({
       locale={locale}
       shortcuts={shortcuts}
       stats={stats}
-      title={copy.adminTitle}>
+      title={copy.adminTitle}
+    >
       <AdminWorkspace>
         <AdminPanel
           id="create-article"
           badge={createBadge}
           title={copy.adminFormTitle}
-          description={copy.adminFormDescription}>
+          description={copy.adminFormDescription}
+        >
           <div className="space-y-4">
             {topLevelStatus ? <AdminNotice tone="success">{topLevelStatus}</AdminNotice> : null}
             {topLevelError ? <AdminNotice tone="error">{topLevelError}</AdminNotice> : null}
           </div>
 
-          <form action={createArticleAction} className="mt-6 space-y-6">
-            <input type="hidden" name="locale" value={locale} />
-            <input type="hidden" name="contentLocale" value={contentLocale} />
+          {contentLocale === 'ru' ? (
+            <form action={createArticleAction} className="mt-6 space-y-6">
+              <input type="hidden" name="locale" value={locale} />
+              <input type="hidden" name="contentLocale" value={contentLocale} />
 
-            <ArticleFormFields
-              contentLocale={contentLocale}
-              locale={locale}
-              copy={copy}
-              imageRequired
-            />
+              <ArticleFormFields
+                contentLocale={contentLocale}
+                locale={locale}
+                copy={copy}
+                imageRequired
+              />
 
-            <div className="flex flex-col gap-3 border-t border-[#0b5a45]/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
-              <button
-                type="submit"
-                className={adminCx(adminPrimaryButtonClassName, 'w-full sm:w-auto')}>
-                {copy.submitLabel}
-              </button>
-              <p className={adminHintClassName}>
-                {locale === 'en'
-                  ? 'Use the toolbar to add headings, lists, quotes, and links.'
-                  : 'Используйте панель редактора для заголовков, списков, цитат и ссылок.'}
-              </p>
+              <div className="flex flex-col gap-3 border-t border-[#0b5a45]/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
+                <button
+                  type="submit"
+                  className={adminCx(adminPrimaryButtonClassName, 'w-full sm:w-auto')}
+                >
+                  {copy.submitLabel}
+                </button>
+                <p className={adminHintClassName}>
+                  {locale === 'en'
+                    ? 'Use the toolbar to add headings, lists, quotes, and links.'
+                    : 'Используйте панель редактора для заголовков, списков, цитат и ссылок.'}
+                </p>
+              </div>
+            </form>
+          ) : (
+            <div className="mt-6">
+              <AdminEmptyState
+                badge={contentLocaleLabel}
+                title={
+                  locale === 'en'
+                    ? 'Create the Russian article first'
+                    : 'Сначала создайте статью на русском языке'
+                }
+                description={
+                  locale === 'en'
+                    ? 'Switch to RU to create the base article, then return here to add its translation.'
+                    : 'Переключитесь на RU, создайте основную статью, затем вернитесь сюда и добавьте перевод.'
+                }
+              />
             </div>
-          </form>
+          )}
         </AdminPanel>
 
         <AdminPanel
@@ -327,7 +348,8 @@ export default async function AdminArticlesPage({
           title={copy.adminExistingTitle}
           description={copy.adminPathHint}
           tone="muted"
-          headerContent={<span className={adminBadgeClassName}>{articles.length}</span>}>
+          headerContent={<span className={adminBadgeClassName}>{articles.length}</span>}
+        >
           {articles.length === 0 ? (
             <AdminEmptyState
               badge={manageBadge}
@@ -346,7 +368,8 @@ export default async function AdminArticlesPage({
                   <div
                     key={articleItem.id}
                     id={`article-${articleItem.id}`}
-                    className="scroll-mt-6 rounded-lg border border-[#0b5a45]/10 bg-white p-4 shadow-[0_12px_40px_-30px_rgba(11,62,49,0.8)] sm:p-5">
+                    className="scroll-mt-6 rounded-lg border border-[#0b5a45]/10 bg-white p-4 shadow-[0_12px_40px_-30px_rgba(11,62,49,0.8)] sm:p-5"
+                  >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
                       <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden rounded-md border border-[#0b5a45]/10 bg-[#eef3ef] sm:h-[90px] sm:w-[116px]">
                         <MediaImage
@@ -373,7 +396,8 @@ export default async function AdminArticlesPage({
                                 hasContentTranslation
                                   ? 'bg-emerald-50 text-emerald-700'
                                   : 'bg-amber-50 text-amber-700',
-                              )}>
+                              )}
+                            >
                               {hasContentTranslation
                                 ? `${contentLocaleLabel} ✓`
                                 : locale === 'en'
@@ -383,7 +407,13 @@ export default async function AdminArticlesPage({
                           </div>
 
                           <div className="grid w-full grid-cols-[2.5rem_minmax(0,1fr)] gap-1.5 sm:w-auto sm:flex sm:shrink-0">
-                            <Link href={getArticleHref(articleItem)} className={adminCx(adminSecondaryButtonClassName, 'min-h-8 px-2.5 py-1.5 text-xs')}>
+                            <Link
+                              href={getArticleHref(articleItem)}
+                              className={adminCx(
+                                adminSecondaryButtonClassName,
+                                'min-h-8 px-2.5 py-1.5 text-xs',
+                              )}
+                            >
                               <FiExternalLink />
                             </Link>
                             <Link
@@ -391,7 +421,11 @@ export default async function AdminArticlesPage({
                                 `/admin/articles?edit=${articleItem.id}#article-${articleItem.id}`,
                                 contentLocale,
                               )}
-                              className={adminCx(adminSecondaryButtonClassName, 'min-h-8 px-2.5 py-1.5 text-xs')}>
+                              className={adminCx(
+                                adminSecondaryButtonClassName,
+                                'min-h-8 px-2.5 py-1.5 text-xs',
+                              )}
+                            >
                               <FiEdit3 className="mr-1" />
                               {openEditorLabel}
                             </Link>
@@ -413,9 +447,7 @@ export default async function AdminArticlesPage({
                       <summary className={adminSummaryClassName}>
                         <span>{copy.editLabel}</span>
                         <span className="text-xs font-medium text-[#6a7f76]">
-                          {locale === 'en'
-                            ? 'Inline article editor'
-                            : 'Встроенный редактор статьи'}
+                          {locale === 'en' ? 'Inline article editor' : 'Встроенный редактор статьи'}
                         </span>
                       </summary>
 
@@ -455,7 +487,8 @@ export default async function AdminArticlesPage({
 
                           <button
                             type="submit"
-                            className={adminCx(adminPrimaryButtonClassName, 'w-full sm:w-auto')}>
+                            className={adminCx(adminPrimaryButtonClassName, 'w-full sm:w-auto')}
+                          >
                             {copy.updateLabel}
                           </button>
                         </form>

@@ -23,6 +23,18 @@ describe('AppController (e2e)', () => {
       .expect('Hello World!');
   });
 
+  it('rate-limits repeated article view requests', async () => {
+    for (let requestIndex = 0; requestIndex < 30; requestIndex += 1) {
+      await request(app.getHttpServer())
+        .post('/articles/999999/views')
+        .expect(404);
+    }
+
+    await request(app.getHttpServer())
+      .post('/articles/999999/views')
+      .expect(429);
+  });
+
   afterEach(async () => {
     await app.close();
   });

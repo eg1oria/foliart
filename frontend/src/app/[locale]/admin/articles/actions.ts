@@ -3,11 +3,11 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getAdminApiHeaders } from '@/lib/adminApi';
+import { adminApiFetch, getAdminApiErrorMessage } from '@/lib/adminBackend';
 import { requireAdminSession } from '@/lib/adminAuthServer';
 import { getArticleHref } from '@/lib/articles';
 import { normalizeContentLocale } from '@/lib/contentLocales';
 
-const backendUrl = process.env.BACKEND_URL ?? 'http://localhost:3001';
 const articleLocales = ['ru', 'en', 'fr', 'es'] as const;
 
 type ArticleFormPayload = {
@@ -63,16 +63,6 @@ function appendArticlePayload(
   payload.append('publishedAt', values.publishedAt);
 }
 
-async function getRequestErrorMessage(response: Response) {
-  const errorPayload = (await response.json().catch(() => null)) as {
-    message?: string | string[];
-  } | null;
-
-  return Array.isArray(errorPayload?.message)
-    ? errorPayload.message.join(', ')
-    : errorPayload?.message;
-}
-
 async function revalidateArticlePages(args: { articleTitle: string; previousTitle?: string }) {
   const { articleTitle, previousTitle } = args;
 
@@ -91,6 +81,22 @@ export async function createArticleAction(formData: FormData) {
   const locale = normalizeLocale(formData.get('locale'));
   const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
   await requireAdminSession(locale);
+
+  if (contentLocale !== 'ru') {
+    redirect(
+      buildAdminRedirectPath(
+        locale,
+        {
+          contentLocale,
+          error:
+            locale === 'en'
+              ? 'Create the Russian version first, then add translations.'
+              : 'Сначала создайте русскую версию, затем добавьте переводы.',
+        },
+        'create-article',
+      ),
+    );
+  }
 
   const values = getArticleFormPayload(formData);
   const image = formData.get('image');
@@ -117,15 +123,14 @@ export async function createArticleAction(formData: FormData) {
   appendArticlePayload(payload, values, contentLocale);
   payload.append('image', image);
 
-  const response = await fetch(`${backendUrl}/api/articles`, {
+  const response = await adminApiFetch('/api/articles', {
     method: 'POST',
     headers: getAdminApiHeaders(),
     body: payload,
-    cache: 'no-store',
   });
 
   if (!response.ok) {
-    const rawMessage = await getRequestErrorMessage(response);
+    const rawMessage = await getAdminApiErrorMessage(response, locale);
 
     redirect(
       buildAdminRedirectPath(
@@ -197,15 +202,14 @@ export async function updateArticleAction(formData: FormData) {
     payload.append('image', image);
   }
 
-  const response = await fetch(`${backendUrl}/api/articles/${articleId}`, {
+  const response = await adminApiFetch(`/api/articles/${articleId}`, {
     method: 'PATCH',
     headers: getAdminApiHeaders(),
     body: payload,
-    cache: 'no-store',
   });
 
   if (!response.ok) {
-    const rawMessage = await getRequestErrorMessage(response);
+    const rawMessage = await getAdminApiErrorMessage(response, locale);
 
     redirect(
       buildAdminRedirectPath(

@@ -3,10 +3,10 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getAdminApiHeaders } from '@/lib/adminApi';
+import { adminApiFetch, getAdminApiErrorMessage } from '@/lib/adminBackend';
 import { requireAdminSession } from '@/lib/adminAuthServer';
 import { normalizeContentLocale } from '@/lib/contentLocales';
 
-const backendUrl = process.env.BACKEND_URL ?? 'http://localhost:3001';
 const calendarLocales = ['ru', 'en', 'fr', 'es'] as const;
 const imageFieldNames = ['image1', 'image2', 'image3', 'image4'] as const;
 const requiredImageFieldNames = ['image1', 'image2'] as const;
@@ -62,16 +62,6 @@ function hasFile(value: FormDataEntryValue | null): value is File {
   return value instanceof File && value.size > 0;
 }
 
-async function getRequestErrorMessage(response: Response) {
-  const errorPayload = (await response.json().catch(() => null)) as {
-    message?: string | string[];
-  } | null;
-
-  return Array.isArray(errorPayload?.message)
-    ? errorPayload.message.join(', ')
-    : errorPayload?.message;
-}
-
 async function revalidateCalendarAdminPages() {
   for (const locale of calendarLocales) {
     revalidatePath(`/${locale}/admin/calendars`);
@@ -82,6 +72,22 @@ export async function createCalendarAction(formData: FormData) {
   const locale = normalizeLocale(formData.get('locale'));
   const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
   await requireAdminSession(locale);
+
+  if (contentLocale !== 'ru') {
+    redirect(
+      buildAdminRedirectPath(
+        locale,
+        {
+          contentLocale,
+          error:
+            locale === 'en'
+              ? 'Create the Russian version first, then add translations.'
+              : 'Сначала создайте русскую версию, затем добавьте переводы.',
+        },
+        'create-calendar',
+      ),
+    );
+  }
 
   const values = getCalendarFormPayload(formData);
   const requiredImages = requiredImageFieldNames.map((fieldName) => formData.get(fieldName));
@@ -113,15 +119,14 @@ export async function createCalendarAction(formData: FormData) {
     }
   }
 
-  const response = await fetch(`${backendUrl}/api/calendars`, {
+  const response = await adminApiFetch('/api/calendars', {
     method: 'POST',
     headers: getAdminApiHeaders(),
     body: payload,
-    cache: 'no-store',
   });
 
   if (!response.ok) {
-    const rawMessage = await getRequestErrorMessage(response);
+    const rawMessage = await getAdminApiErrorMessage(response, locale);
 
     redirect(
       buildAdminRedirectPath(
@@ -189,15 +194,14 @@ export async function updateCalendarAction(formData: FormData) {
     }
   }
 
-  const response = await fetch(`${backendUrl}/api/calendars/${calendarId}`, {
+  const response = await adminApiFetch(`/api/calendars/${calendarId}`, {
     method: 'PATCH',
     headers: getAdminApiHeaders(),
     body: payload,
-    cache: 'no-store',
   });
 
   if (!response.ok) {
-    const rawMessage = await getRequestErrorMessage(response);
+    const rawMessage = await getAdminApiErrorMessage(response, locale);
 
     redirect(
       buildAdminRedirectPath(

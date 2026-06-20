@@ -27,6 +27,7 @@ import {
 } from '@/lib/seo';
 
 const exo2 = localFont({
+  preload: false,
   src: [
     {
       path: '../../../public/fonts/exo2_0_extralight.otf',
@@ -177,12 +178,18 @@ export default async function RootLayout({
   ]);
 
   return (
-    <html lang={locale} className={`${exo2.variable} h-full antialiased`}>
+    <html
+      lang={locale}
+      data-scroll-behavior="smooth"
+      className={`${exo2.variable} h-full antialiased`}
+    >
       <body className={`${exo2.className} min-h-full flex flex-col`}>
         <NextIntlClientProvider messages={messages}>
           <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: stringifyJsonLd(organizationJsonLd) }}
+            dangerouslySetInnerHTML={{
+              __html: stringifyJsonLd(organizationJsonLd),
+            }}
           />
           <script
             type="application/ld+json"

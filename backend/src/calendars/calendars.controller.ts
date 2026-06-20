@@ -18,7 +18,10 @@ import { diskStorage } from 'multer';
 import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
 import { AdminApiGuard } from '../admin-api.guard';
-import { normalizeContentLocale } from '../content-locales';
+import {
+  DEFAULT_CONTENT_LOCALE,
+  isSupportedContentLocale,
+} from '../content-locales';
 import {
   allowedImageMimeTypes,
   optimizeUploadedImage,
@@ -185,7 +188,7 @@ export class CalendarsController {
     @Body() body: Record<string, string | undefined>,
     @UploadedFiles() files?: UploadedCalendarFiles,
   ) {
-    const contentLocale = normalizeContentLocale(body.contentLocale);
+    const contentLocale = body.contentLocale?.trim().toLowerCase();
     const title = body.title?.trim() ?? '';
     const description = body.description?.trim() ?? '';
     const uploadedFiles = calendarImageFields.map((fieldName) =>
@@ -194,6 +197,18 @@ export class CalendarsController {
     const requiredUploadedFiles = requiredCalendarImageFields.map((fieldName) =>
       getUploadedFile(files, fieldName),
     );
+
+    if (!isSupportedContentLocale(contentLocale)) {
+      removeUploadedFiles(uploadedFiles.map((file) => file?.path));
+      throw new BadRequestException('Unsupported content locale');
+    }
+
+    if (contentLocale !== DEFAULT_CONTENT_LOCALE) {
+      removeUploadedFiles(uploadedFiles.map((file) => file?.path));
+      throw new BadRequestException(
+        'Calendar entries must be created in Russian first',
+      );
+    }
 
     if (!title) {
       removeUploadedFiles(uploadedFiles.map((file) => file?.path));
@@ -244,12 +259,17 @@ export class CalendarsController {
     @Body() body: Record<string, string | undefined>,
     @UploadedFiles() files?: UploadedCalendarFiles,
   ) {
-    const contentLocale = normalizeContentLocale(body.contentLocale);
+    const contentLocale = body.contentLocale?.trim().toLowerCase();
     const title = body.title?.trim() ?? '';
     const description = body.description?.trim() ?? '';
     const uploadedFiles = calendarImageFields.map((fieldName) =>
       getUploadedFile(files, fieldName),
     );
+
+    if (!isSupportedContentLocale(contentLocale)) {
+      removeUploadedFiles(uploadedFiles.map((file) => file?.path));
+      throw new BadRequestException('Unsupported content locale');
+    }
 
     if (!title) {
       removeUploadedFiles(uploadedFiles.map((file) => file?.path));

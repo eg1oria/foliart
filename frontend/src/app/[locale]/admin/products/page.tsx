@@ -123,7 +123,8 @@ function ProductFormFields({
             name="categoryId"
             required
             defaultValue={values?.categoryId ? String(values.categoryId) : ''}
-            className={adminCx(adminInputClassName, 'appearance-none')}>
+            className={adminCx(adminInputClassName, 'appearance-none')}
+          >
             <option value="">{locale === 'en' ? 'Select category' : 'Выберите категорию'}</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
@@ -473,43 +474,64 @@ export default async function AdminProductsPage({
       locale={locale}
       shortcuts={shortcuts}
       stats={stats}
-      title={adminCopy.title}>
+      title={adminCopy.title}
+    >
       <AdminWorkspace>
         <AdminPanel
           id="create-product"
           badge={createBadge}
           title={adminCopy.formTitle}
-          description={adminCopy.formDescription}>
+          description={adminCopy.formDescription}
+        >
           <div className="space-y-4">
             {topLevelStatus ? <AdminNotice tone="success">{topLevelStatus}</AdminNotice> : null}
             {topLevelError ? <AdminNotice tone="error">{topLevelError}</AdminNotice> : null}
           </div>
 
-          <form action={createProductAction} className="mt-6 space-y-6">
-            <input type="hidden" name="locale" value={locale} />
-            <input type="hidden" name="contentLocale" value={contentLocale} />
+          {contentLocale === 'ru' ? (
+            <form action={createProductAction} className="mt-6 space-y-6">
+              <input type="hidden" name="locale" value={locale} />
+              <input type="hidden" name="contentLocale" value={contentLocale} />
 
-            <ProductFormFields
-              contentLocale={contentLocale}
-              locale={locale}
-              adminCopy={adminCopy}
-              categories={categories}
-              imageRequired
-            />
+              <ProductFormFields
+                contentLocale={contentLocale}
+                locale={locale}
+                adminCopy={adminCopy}
+                categories={categories}
+                imageRequired
+              />
 
-            <div className="flex flex-col gap-3 border-t border-[#0b5a45]/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
-              <button
-                type="submit"
-                className={adminCx(adminPrimaryButtonClassName, 'w-full sm:w-auto')}>
-                {adminCopy.submitLabel}
-              </button>
-              <p className={adminHintClassName}>
-                {locale === 'en'
-                  ? 'The uploaded image will be stored in backend/images/products.'
-                  : 'Загруженное изображение будет сохранено в backend/images/products.'}
-              </p>
+              <div className="flex flex-col gap-3 border-t border-[#0b5a45]/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
+                <button
+                  type="submit"
+                  className={adminCx(adminPrimaryButtonClassName, 'w-full sm:w-auto')}
+                >
+                  {adminCopy.submitLabel}
+                </button>
+                <p className={adminHintClassName}>
+                  {locale === 'en'
+                    ? 'The uploaded image will be stored in backend/images/products.'
+                    : 'Загруженное изображение будет сохранено в backend/images/products.'}
+                </p>
+              </div>
+            </form>
+          ) : (
+            <div className="mt-6">
+              <AdminEmptyState
+                badge={contentLocaleLabel}
+                title={
+                  locale === 'en'
+                    ? 'Create the Russian product first'
+                    : 'Сначала создайте товар на русском языке'
+                }
+                description={
+                  locale === 'en'
+                    ? 'Switch to RU to create the base product, then return here to add its translation.'
+                    : 'Переключитесь на RU, создайте основной товар, затем вернитесь сюда и добавьте перевод.'
+                }
+              />
             </div>
-          </form>
+          )}
         </AdminPanel>
 
         <AdminPanel
@@ -522,7 +544,8 @@ export default async function AdminProductsPage({
             <span className={adminBadgeClassName}>
               {products.length} {adminCopy.productCountLabel}
             </span>
-          }>
+          }
+        >
           {categories.length === 0 ? (
             <AdminEmptyState
               badge={manageBadge}
@@ -542,7 +565,8 @@ export default async function AdminProductsPage({
                   <div
                     key={categoryItem.id}
                     id={`category-${categoryItem.id}`}
-                    className="scroll-mt-6 rounded-lg border border-[#0b5a45]/10 bg-white p-4 shadow-[0_12px_40px_-30px_rgba(11,62,49,0.8)] sm:p-5">
+                    className="scroll-mt-6 rounded-lg border border-[#0b5a45]/10 bg-white p-4 shadow-[0_12px_40px_-30px_rgba(11,62,49,0.8)] sm:p-5"
+                  >
                     <div className="flex flex-col gap-3">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0">
@@ -559,7 +583,8 @@ export default async function AdminProductsPage({
                                 hasTranslation
                                   ? 'bg-emerald-50 text-emerald-700'
                                   : 'bg-amber-50 text-amber-700',
-                              )}>
+                              )}
+                            >
                               {hasTranslation
                                 ? locale === 'en'
                                   ? `${contentLocaleLabel} ✓`
@@ -577,7 +602,8 @@ export default async function AdminProductsPage({
                             className={adminCx(
                               adminSecondaryButtonClassName,
                               'min-h-9 p-2 text-xs',
-                            )}>
+                            )}
+                          >
                             <FiExternalLink className="mr-1.5" />
                             <span className="hidden sm:inline">{catalogCopy.openCategory}</span>
                           </Link>
@@ -589,7 +615,8 @@ export default async function AdminProductsPage({
                             className={adminCx(
                               adminSecondaryButtonClassName,
                               'min-h-9 p-2 text-xs',
-                            )}>
+                            )}
+                          >
                             <FiGlobe className="mr-1.5" />
                             {editCategoryLabel}
                           </Link>
@@ -599,7 +626,8 @@ export default async function AdminProductsPage({
 
                     <details
                       open={isCategoryEditing}
-                      className={adminCx('mt-5', adminDetailsClassName)}>
+                      className={adminCx('mt-5', adminDetailsClassName)}
+                    >
                       <summary className={adminSummaryClassName}>
                         <span>{categoryTranslationTitle}</span>
                         <span className="text-xs font-medium text-[#6a7f76]">
@@ -651,7 +679,8 @@ export default async function AdminProductsPage({
 
                           <button
                             type="submit"
-                            className={adminCx(adminPrimaryButtonClassName, 'w-full sm:w-auto')}>
+                            className={adminCx(adminPrimaryButtonClassName, 'w-full sm:w-auto')}
+                          >
                             {saveCategoryTranslationLabel}
                           </button>
                         </form>
@@ -673,7 +702,8 @@ export default async function AdminProductsPage({
                             <div
                               key={productItem.id}
                               id={`product-${productItem.id}`}
-                              className="scroll-mt-6 rounded-lg border border-[#0b5a45]/10 bg-[#f8f7f2] p-3 sm:p-4">
+                              className="scroll-mt-6 rounded-lg border border-[#0b5a45]/10 bg-[#f8f7f2] p-3 sm:p-4"
+                            >
                               <div className="flex items-start gap-3">
                                 <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md border border-[#0b5a45]/10 bg-white sm:h-[72px] sm:w-[72px]">
                                   <MediaImage
@@ -711,7 +741,8 @@ export default async function AdminProductsPage({
                                         className={adminCx(
                                           adminSecondaryButtonClassName,
                                           'min-h-8 px-2.5 py-1.5 text-xs',
-                                        )}>
+                                        )}
+                                      >
                                         <FiExternalLink />
                                       </Link>
                                       <Link
@@ -722,7 +753,8 @@ export default async function AdminProductsPage({
                                         className={adminCx(
                                           adminSecondaryButtonClassName,
                                           'min-h-8 px-2.5 py-1.5 text-xs',
-                                        )}>
+                                        )}
+                                      >
                                         <FiEdit3 className="mr-1" />
                                         {openEditorLabel}
                                       </Link>
@@ -739,7 +771,8 @@ export default async function AdminProductsPage({
 
                               <details
                                 open={isEditing}
-                                className={adminCx('mt-4', adminDetailsClassName)}>
+                                className={adminCx('mt-4', adminDetailsClassName)}
+                              >
                                 <summary className={adminSummaryClassName}>
                                   <span>{adminCopy.editLabel}</span>
                                   <span className="text-xs font-medium text-[#6a7f76]">
@@ -805,7 +838,8 @@ export default async function AdminProductsPage({
                                       className={adminCx(
                                         adminPrimaryButtonClassName,
                                         'w-full sm:w-auto',
-                                      )}>
+                                      )}
+                                    >
                                       {adminCopy.updateLabel}
                                     </button>
                                   </form>

@@ -49,7 +49,7 @@ export default function About() {
         />
         <div className="absolute inset-0 bg-black/50 -z-10" />
         <h1 className="mb-4 text-3xl font-bold text-white md:text-5xl">{t('title')}</h1>
-        <p className="mb-2 text-base text-lg text-white/70 md:text-xl">{t('subtitle')}</p>
+        <p className="mb-2 text-lg text-white/70 md:text-xl">{t('subtitle')}</p>
         <Image src={logoSrc} alt="Foliart logo" width={130} height={40} className="h-auto w-auto" />
       </div>
 
@@ -60,21 +60,24 @@ export default function About() {
               <li className="border-b border-l border-l-3 border-gray-200 transition-colors hover:border-l-gray-400 hover:bg-gray-100">
                 <a
                   href="#description"
-                  className="block py-3 pl-4 text-blue-500 transition-colors hover:text-gray-700">
+                  className="block py-3 pl-4 text-blue-500 transition-colors hover:text-gray-700"
+                >
                   {t('nav.description')}
                 </a>
               </li>
               <li className="border-b border-l border-l-3 border-gray-200 transition-colors hover:border-l-gray-400 hover:bg-gray-100">
                 <a
                   href="#feedback"
-                  className="block py-3 pl-4 text-blue-500 transition-colors hover:text-gray-700">
+                  className="block py-3 pl-4 text-blue-500 transition-colors hover:text-gray-700"
+                >
                   {t('nav.feedback')}
                 </a>
               </li>
               <li className="border-b border-l border-l-3 border-gray-200 transition-colors hover:border-l-gray-400 hover:bg-gray-100">
                 <Link
                   href="/"
-                  className="flex items-center gap-2 py-3 pl-4 text-gray-500 transition-colors hover:text-gray-700">
+                  className="flex items-center gap-2 py-3 pl-4 text-gray-500 transition-colors hover:text-gray-700"
+                >
                   <TbArrowBackUp />
                   <span>{t('nav.back')}</span>
                 </Link>
@@ -98,7 +101,8 @@ export default function About() {
 
           <div
             id="feedback"
-            className="scroll-mt-28 md:items-start items-center gap-10 md:gap=0 md:mt-0 flex flex-col-reverse md:grid md:grid-cols-2 justify-between relative mb-20 p-4 md:p-8">
+            className="scroll-mt-28 md:items-start items-center gap-10 md:gap=0 md:mt-0 flex flex-col-reverse md:grid md:grid-cols-2 justify-between relative mb-20 p-4 md:p-8"
+          >
             <Image
               src="/about-form.webp"
               alt=""

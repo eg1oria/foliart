@@ -18,7 +18,10 @@ import { basename, extname, join } from 'node:path';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { AdminApiGuard } from '../admin-api.guard';
-import { normalizeContentLocale } from '../content-locales';
+import {
+  DEFAULT_CONTENT_LOCALE,
+  isSupportedContentLocale,
+} from '../content-locales';
 import {
   allowedImageMimeTypes,
   optimizeUploadedImage,
@@ -110,7 +113,7 @@ function getRequestTextField(req: Request, fieldName: string) {
 
 function parseProductBody(body: Record<string, string | undefined>) {
   return {
-    contentLocale: normalizeContentLocale(body.contentLocale),
+    contentLocale: body.contentLocale?.trim().toLowerCase(),
     categoryId: Number.parseInt(body.categoryId ?? '', 10),
     name: body.name?.trim() ?? '',
     description: body.description?.trim() ?? '',
@@ -227,6 +230,18 @@ export class ProductsController {
       application,
     } = parseProductBody(body);
 
+    if (!isSupportedContentLocale(contentLocale)) {
+      removeUploadedFiles(uploadedFiles.map((file) => file?.path));
+      throw new BadRequestException('Unsupported content locale');
+    }
+
+    if (contentLocale !== DEFAULT_CONTENT_LOCALE) {
+      removeUploadedFiles(uploadedFiles.map((file) => file?.path));
+      throw new BadRequestException(
+        'Products must be created in Russian first',
+      );
+    }
+
     if (!Number.isInteger(categoryId) || categoryId < 1) {
       removeUploadedFiles(uploadedFiles.map((file) => file?.path));
       throw new BadRequestException('Category is required');
@@ -287,6 +302,11 @@ export class ProductsController {
       composition,
       application,
     } = parseProductBody(body);
+
+    if (!isSupportedContentLocale(contentLocale)) {
+      removeUploadedFiles(uploadedFiles.map((file) => file?.path));
+      throw new BadRequestException('Unsupported content locale');
+    }
 
     if (!Number.isInteger(categoryId) || categoryId < 1) {
       removeUploadedFiles(uploadedFiles.map((file) => file?.path));

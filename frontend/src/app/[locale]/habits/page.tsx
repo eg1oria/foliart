@@ -1,123 +1,249 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useLocale } from 'next-intl';
+import {
+  HABITS_CHANGED_EVENT,
+  HABITS_STORAGE_KEY,
+  getHabitDays,
+  getTodayDateValue,
+  parseStoredHabits,
+  type Habit,
+} from '@/lib/habits';
 
-interface Habit {
-  name: string;
-  dateVal: string;
+const copy = {
+  ru: {
+    name: 'привычка',
+    empty: 'пока пусто',
+    add: 'Добавить привычку',
+    remove: 'Удалить привычку',
+    daysShort: 'дн',
+    daysLong: 'дней без срыва',
+    close: 'закрыть',
+    details: 'Подробности привычки',
+  },
+  en: {
+    name: 'habit',
+    empty: 'nothing here yet',
+    add: 'Add habit',
+    remove: 'Remove habit',
+    daysShort: 'days',
+    daysLong: 'days on track',
+    close: 'close',
+    details: 'Habit details',
+  },
+  fr: {
+    name: 'habitude',
+    empty: 'rien pour le moment',
+    add: 'Ajouter une habitude',
+    remove: "Supprimer l'habitude",
+    daysShort: 'j',
+    daysLong: 'jours sans interruption',
+    close: 'fermer',
+    details: "Détails de l'habitude",
+  },
+  es: {
+    name: 'hábito',
+    empty: 'todavía no hay nada',
+    add: 'Añadir hábito',
+    remove: 'Eliminar hábito',
+    daysShort: 'días',
+    daysLong: 'días sin interrupción',
+    close: 'cerrar',
+    details: 'Detalles del hábito',
+  },
+} as const;
+
+function readHabitsSnapshot() {
+  try {
+    return window.localStorage.getItem(HABITS_STORAGE_KEY) ?? '[]';
+  } catch {
+    return '[]';
+  }
 }
 
-function getDays(dateVal: string) {
-  const ms = Date.now() - new Date(dateVal).getTime();
-  return Math.max(0, Math.floor(ms / 86400000));
+function subscribeToHabits(callback: () => void) {
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === HABITS_STORAGE_KEY) callback();
+  };
+
+  window.addEventListener('storage', handleStorage);
+  window.addEventListener(HABITS_CHANGED_EVENT, callback);
+
+  return () => {
+    window.removeEventListener('storage', handleStorage);
+    window.removeEventListener(HABITS_CHANGED_EVENT, callback);
+  };
+}
+
+function saveHabits(habits: Habit[]) {
+  try {
+    window.localStorage.setItem(HABITS_STORAGE_KEY, JSON.stringify(habits));
+    window.dispatchEvent(new Event(HABITS_CHANGED_EVENT));
+  } catch {
+    // Storage can be unavailable in private or restricted browser contexts.
+  }
 }
 
 export default function HabitsPage() {
-  const [habits, setHabits] = useState<Habit[]>([]);
+  const locale = useLocale() as keyof typeof copy;
+  const t = copy[locale] ?? copy.en;
+  const rawHabits = useSyncExternalStore(subscribeToHabits, readHabitsSnapshot, () => '[]');
+  const habits = useMemo(() => parseStoredHabits(rawHabits), [rawHabits]);
   const [nameInput, setNameInput] = useState('');
   const [dateInput, setDateInput] = useState('');
-  const [selected, setSelected] = useState<Habit | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const selected = habits.find((habit) => habit.id === selectedId) ?? null;
+  const today = getTodayDateValue();
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('habits');
-      if (saved) setHabits(JSON.parse(saved));
-    } catch {}
-  }, []);
+    if (!selected) return;
 
-  useEffect(() => {
-    localStorage.setItem('habits', JSON.stringify(habits));
-  }, [habits]);
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSelectedId(null);
+    };
+
+    document.body.style.overflow = 'hidden';
+    closeButtonRef.current?.focus();
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selected]);
 
   const add = () => {
-    if (!nameInput || !dateInput) return;
-    const next = [...habits, { name: nameInput, dateVal: dateInput }];
-    next.sort((a, b) => getDays(b.dateVal) - getDays(a.dateVal));
-    setHabits(next);
+    const name = nameInput.trim();
+    if (!name || !dateInput || dateInput > today) return;
+
+    const next = [
+      ...habits,
+      {
+        id: crypto.randomUUID(),
+        name,
+        dateVal: dateInput,
+      },
+    ].sort((left, right) => getHabitDays(right.dateVal) - getHabitDays(left.dateVal));
+
+    saveHabits(next);
     setNameInput('');
     setDateInput('');
   };
 
-  const remove = (e: React.MouseEvent, i: number) => {
-    e.stopPropagation();
-    setHabits(habits.filter((_, idx) => idx !== i));
+  const remove = (event: React.MouseEvent, id: string) => {
+    event.stopPropagation();
+    saveHabits(habits.filter((habit) => habit.id !== id));
+    if (selectedId === id) setSelectedId(null);
   };
 
-  const h = selected;
-  const days = h ? getDays(h.dateVal) : 0;
-
   return (
-    <div className="flex flex-col items-center min-h-dvh px-5 md:pt-60 pt-40 pb-1">
-      <div className="flex flex-col gap-4 w-full max-w-sm mb-14">
-        <input
-          className="bg-transparent border-b border-gray-300 py-3 text-base outline-none"
-          type="text"
-          placeholder="привычка"
-          value={nameInput}
-          onChange={(e) => setNameInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && document.getElementById('date')?.focus()}
-          autoComplete="off"
-          autoCapitalize="none"
-        />
-        <div className="flex gap-3 items-center">
+    <main className="flex min-h-dvh flex-col items-center px-5 pb-8 pt-40 md:pt-60">
+      <div className="mb-14 flex w-full max-w-sm flex-col gap-4">
+        <label>
+          <span className="sr-only">{t.name}</span>
           <input
-            id="date"
-            className="bg-transparent border-b border-gray-300 py-3 text-base outline-none flex-1"
-            type="date"
-            value={dateInput}
-            onChange={(e) => setDateInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && add()}
+            className="w-full border-b border-gray-300 bg-transparent py-3 text-base outline-none focus:border-[#0b5a45]"
+            type="text"
+            placeholder={t.name}
+            value={nameInput}
+            onChange={(event) => setNameInput(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') document.getElementById('habit-date')?.focus();
+            }}
+            autoComplete="off"
           />
+        </label>
+        <div className="flex items-center gap-3">
+          <label className="flex-1">
+            <span className="sr-only">{t.add}</span>
+            <input
+              id="habit-date"
+              className="w-full border-b border-gray-300 bg-transparent py-3 text-base outline-none focus:border-[#0b5a45]"
+              type="date"
+              max={today}
+              value={dateInput}
+              onChange={(event) => setDateInput(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') add();
+              }}
+            />
+          </label>
           <button
+            type="button"
             onClick={add}
-            className="w-10 h-10 flex items-center justify-center rounded-full text-gray-400 active:bg-gray-100 text-2xl transition-colors">
+            disabled={!nameInput.trim() || !dateInput || dateInput > today}
+            aria-label={t.add}
+            className="flex h-10 w-10 items-center justify-center rounded-full text-2xl text-gray-500 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-35"
+          >
             +
           </button>
         </div>
       </div>
 
       <div className="w-full max-w-sm flex-1">
-        {habits.length === 0 && (
-          <p className="text-xs text-gray-400 text-center py-8">пока пусто</p>
-        )}
-        {habits.map((habit, i) => (
+        {habits.length === 0 ? (
+          <p className="py-8 text-center text-xs text-gray-400">{t.empty}</p>
+        ) : null}
+        {habits.map((habit) => (
           <div
-            key={i}
-            className="flex items-center justify-between py-4 border-b border-gray-100 active:opacity-50 transition-opacity"
-            onClick={() => setSelected(habit)}>
-            <span className="text-sm text-gray-500 flex-1 truncate mr-4">{habit.name}</span>
+            key={habit.id}
+            className="flex w-full items-center justify-between border-b border-gray-100 py-4 text-left transition-opacity active:opacity-50"
+            role="button"
+            tabIndex={0}
+            onClick={() => setSelectedId(habit.id)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') setSelectedId(habit.id);
+            }}
+          >
+            <span className="mr-4 min-w-0 flex-1 truncate text-sm text-gray-500">{habit.name}</span>
             <span className="text-2xl font-medium tabular-nums">
-              {getDays(habit.dateVal)}
-              <span className="text-xs font-normal text-gray-400 ml-1">дн</span>
+              {getHabitDays(habit.dateVal)}
+              <span className="ml-1 text-xs font-normal text-gray-400">{t.daysShort}</span>
             </span>
             <button
-              onClick={(e) => remove(e, i)}
-              className="ml-4 w-8 h-8 flex items-center justify-center text-gray-300 active:text-red-400 text-base">
-              ✕
+              type="button"
+              onClick={(event) => remove(event, habit.id)}
+              aria-label={t.remove}
+              className="ml-4 flex h-8 w-8 items-center justify-center text-base text-gray-300 hover:text-red-500"
+            >
+              ×
             </button>
           </div>
         ))}
       </div>
 
-      {selected && (
+      {selected ? (
         <div
-          className="fixed inset-0 bg-black/20 flex items-end justify-center z-50"
-          onClick={() => setSelected(null)}>
+          className="fixed inset-0 z-[200] flex items-end justify-center bg-black/20"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t.details}
+          onMouseDown={() => setSelectedId(null)}
+        >
           <div
-            className="bg-white flex flex-col items-center rounded-t-3xl px-8 pt-3 pb-10 w-full"
-            onClick={(e) => e.stopPropagation()}>
-            <div className="w-10 h-1 rounded-full bg-gray-200 mb-8" />
-            <p className="text-xs text-gray-400 mb-2">{h!.name}</p>
-            <div className="text-7xl font-medium tracking-tight leading-none mb-2">{days}</div>
-            <p className="text-sm text-gray-400 mb-10">дней без срыва</p>
+            className="flex w-full flex-col items-center rounded-t-3xl bg-white px-8 pb-10 pt-3"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <div className="mb-8 h-1 w-10 rounded-full bg-gray-200" />
+            <p className="mb-2 text-xs text-gray-400">{selected.name}</p>
+            <div className="mb-2 text-7xl font-medium leading-none tracking-tight">
+              {getHabitDays(selected.dateVal)}
+            </div>
+            <p className="mb-10 text-sm text-gray-400">{t.daysLong}</p>
             <button
-              onClick={() => setSelected(null)}
-              className="w-full bg-gray-100 active:bg-gray-200 rounded-2xl py-4 text-sm text-gray-500 transition-colors">
-              закрыть
+              ref={closeButtonRef}
+              type="button"
+              onClick={() => setSelectedId(null)}
+              className="w-full rounded-2xl bg-gray-100 py-4 text-sm text-gray-500 transition-colors hover:bg-gray-200"
+            >
+              {t.close}
             </button>
           </div>
         </div>
-      )}
-    </div>
+      ) : null}
+    </main>
   );
 }

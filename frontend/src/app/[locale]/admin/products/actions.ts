@@ -3,12 +3,12 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getAdminApiHeaders } from '@/lib/adminApi';
+import { adminApiFetch, getAdminApiErrorMessage } from '@/lib/adminBackend';
 import { requireAdminSession } from '@/lib/adminAuthServer';
 import { getCategories, getProducts, noStoreApiFetchOptions } from '@/lib/api';
 import { normalizeContentLocale } from '@/lib/contentLocales';
 import { getCategoryHref, getProductHref } from '@/lib/catalog';
 
-const backendUrl = process.env.BACKEND_URL ?? 'http://localhost:3001';
 const catalogLocales = ['ru', 'en', 'fr', 'es'] as const;
 
 type ProductFormPayload = {
@@ -68,16 +68,6 @@ function appendProductPayload(
   payload.append('advantages', values.advantages);
   payload.append('composition', values.composition);
   payload.append('application', values.application);
-}
-
-async function getRequestErrorMessage(response: Response) {
-  const errorPayload = (await response.json().catch(() => null)) as {
-    message?: string | string[];
-  } | null;
-
-  return Array.isArray(errorPayload?.message)
-    ? errorPayload.message.join(', ')
-    : errorPayload?.message;
 }
 
 async function revalidateCatalogPages(args: {
@@ -141,6 +131,22 @@ export async function createProductAction(formData: FormData) {
   const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
   await requireAdminSession(locale);
 
+  if (contentLocale !== 'ru') {
+    redirect(
+      buildAdminRedirectPath(
+        locale,
+        {
+          contentLocale,
+          error:
+            locale === 'en'
+              ? 'Create the Russian version first, then add translations.'
+              : 'Сначала создайте русскую версию, затем добавьте переводы.',
+        },
+        'create-product',
+      ),
+    );
+  }
+
   const values = getProductFormPayload(formData);
   const image = formData.get('image');
   const imageEn = formData.get('imageEn');
@@ -168,15 +174,14 @@ export async function createProductAction(formData: FormData) {
     payload.append('imageEn', imageEn);
   }
 
-  const response = await fetch(`${backendUrl}/api/products`, {
+  const response = await adminApiFetch('/api/products', {
     method: 'POST',
     headers: getAdminApiHeaders(),
     body: payload,
-    cache: 'no-store',
   });
 
   if (!response.ok) {
-    const rawMessage = await getRequestErrorMessage(response);
+    const rawMessage = await getAdminApiErrorMessage(response, locale);
 
     redirect(
       buildAdminRedirectPath(
@@ -248,15 +253,14 @@ export async function updateProductAction(formData: FormData) {
     payload.append('imageEn', imageEn);
   }
 
-  const response = await fetch(`${backendUrl}/api/products/${productId}`, {
+  const response = await adminApiFetch(`/api/products/${productId}`, {
     method: 'PATCH',
     headers: getAdminApiHeaders(),
     body: payload,
-    cache: 'no-store',
   });
 
   if (!response.ok) {
-    const rawMessage = await getRequestErrorMessage(response);
+    const rawMessage = await getAdminApiErrorMessage(response, locale);
 
     redirect(
       buildAdminRedirectPath(
@@ -317,7 +321,7 @@ export async function updateCategoryTranslationAction(formData: FormData) {
     );
   }
 
-  const response = await fetch(`${backendUrl}/api/categories/${categoryId}`, {
+  const response = await adminApiFetch(`/api/categories/${categoryId}`, {
     method: 'PATCH',
     headers: {
       ...getAdminApiHeaders(),
@@ -328,11 +332,10 @@ export async function updateCategoryTranslationAction(formData: FormData) {
       name,
       description,
     }),
-    cache: 'no-store',
   });
 
   if (!response.ok) {
-    const rawMessage = await getRequestErrorMessage(response);
+    const rawMessage = await getAdminApiErrorMessage(response, locale);
 
     redirect(
       buildAdminRedirectPath(

@@ -102,6 +102,7 @@ export class ApiError extends Error {
 }
 
 const baseUrl = process.env.BACKEND_URL ?? 'http://localhost:3001';
+const apiRequestTimeoutMs = 8_000;
 export type ApiFetchOptions = RequestInit & {
   next?: {
     revalidate?: number | false;
@@ -120,7 +121,12 @@ export const noStoreApiFetchOptions: ApiFetchOptions = {
 };
 
 function resolveFetchOptions(fetchOptions?: ApiFetchOptions): ApiFetchOptions {
-  return fetchOptions ?? publicApiFetchOptions;
+  const resolved = fetchOptions ?? publicApiFetchOptions;
+
+  return {
+    ...resolved,
+    signal: resolved.signal ?? AbortSignal.timeout(apiRequestTimeoutMs),
+  };
 }
 
 async function fetchJson<T>(path: string, fetchOptions?: ApiFetchOptions): Promise<T> {
@@ -183,19 +189,7 @@ export async function getProducts(
   contentLocale?: string,
 ): Promise<Product[]> {
   const path = categoryId ? `/api/products?categoryId=${categoryId}` : '/api/products';
-  const url = `${baseUrl}${buildLocalizedPath(path, locale, contentLocale)}`;
-  let res: Response;
-
-  try {
-    res = await fetch(url, resolveFetchOptions(fetchOptions));
-  } catch {
-    throw new ApiError('Failed to fetch products', 503);
-  }
-
-  if (!res.ok) {
-    throw new ApiError('Failed to fetch products', res.status);
-  }
-  return (await res.json()) as Product[];
+  return fetchJson<Product[]>(buildLocalizedPath(path, locale, contentLocale), fetchOptions);
 }
 
 export async function getProduct(

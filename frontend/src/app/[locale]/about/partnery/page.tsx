@@ -32,7 +32,7 @@ export default function Partners() {
 
   return (
     <main>
-      <div className="catalog-header relative flex flex-col items:center md:items-start justify-center overflow-hidden px-6 py-14 pt-30 text-center md:pt-60">
+      <div className="catalog-header relative flex flex-col items-center justify-center overflow-hidden px-6 py-14 pt-30 text-center md:items-start md:pt-60">
         <Image
           src="/partners-head.webp"
           alt=""
@@ -52,25 +52,29 @@ export default function Partners() {
           <span className="font-bold text-black/65">г.Краснодар</span>
           <a
             href="tel:+78612247537"
-            className="flex items-center gap-2 text-blue-500 hover:underline">
+            className="flex items-center gap-2 text-blue-500 hover:underline"
+          >
             <FaPhoneAlt className="inline-block text-black" />
             +7 (861) 224-75-37
           </a>
           <a
             href="tel:+79898024378"
-            className="flex items-center gap-2 text-blue-500 hover:underline">
+            className="flex items-center gap-2 text-blue-500 hover:underline"
+          >
             <FaPhoneAlt className="inline-block text-black" />
             +7 (989) 802 43 78
           </a>
           <a
             href="mailto:info@ecogreen.ru"
-            className="flex items-center gap-2 text-blue-500 hover:underline">
+            className="flex items-center gap-2 text-blue-500 hover:underline"
+          >
             <IoIosMail className="inline-block text-black" />
             info@ecogreen.ru
           </a>
           <a
             href="https://ecogreen.ru"
-            className="flex items-center gap-2 text-blue-500 hover:underline">
+            className="flex items-center gap-2 text-blue-500 hover:underline"
+          >
             <TbArrowBackUp className="inline-block scale-x-[-1] text-black" />
             https://ecogreen.ru
           </a>
@@ -87,13 +91,15 @@ export default function Partners() {
           <span className="font-bold text-black/65">г. Симферополь</span>
           <a
             href="tel:+79787701041"
-            className="mt-auto flex items-center gap-2 text-blue-500 hover:underline">
+            className="mt-auto flex items-center gap-2 text-blue-500 hover:underline"
+          >
             <FaPhoneAlt className="inline-block text-black" />
             +7 (978) 770-10-41
           </a>
           <a
             href="mailto:iimperia-agro-Crimea@mail.ru"
-            className="flex items-center gap-2 text-blue-500 hover:underline">
+            className="flex items-center gap-2 text-blue-500 hover:underline"
+          >
             <IoIosMail className="inline-block text-black" />
             iimperia-agro-Crimea@mail.ru
           </a>

@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import {
   DEFAULT_CONTENT_LOCALE,
   isDefaultContentLocale,
@@ -211,16 +212,17 @@ export class ProductsService {
     return {};
   }
 
-  private async syncCategoryProductCount(categoryId: number) {
-    await this.prisma.$transaction(async (tx) => {
-      const productCount = await tx.product.count({
-        where: { categoryId },
-      });
+  private async syncCategoryProductCount(
+    tx: Prisma.TransactionClient,
+    categoryId: number,
+  ) {
+    const productCount = await tx.product.count({
+      where: { categoryId },
+    });
 
-      await tx.category.update({
-        where: { id: categoryId },
-        data: { productCount },
-      });
+    await tx.category.update({
+      where: { id: categoryId },
+      data: { productCount },
     });
   }
 
@@ -265,81 +267,24 @@ export class ProductsService {
   }
 
   async create(input: CreateProductInput) {
-    const category = await this.prisma.category.findUnique({
-      where: { id: input.categoryId },
-    });
-
-    if (!category) {
-      throw new NotFoundException(`Category #${input.categoryId} not found`);
-    }
-
     const contentLocale = normalizeContentLocale(input.contentLocale);
 
-    const product = await this.prisma.product.create({
-      data: {
-        categoryId: input.categoryId,
-        ...this.getCreateLegacyFields(contentLocale, input),
-        imageUrl: input.imageUrl,
-        imageUrlEn: input.imageUrlEn ?? '',
-        translations: {
-          create: {
-            locale: contentLocale,
-            name: input.name,
-            description: input.description,
-            advantages: input.advantages,
-            composition: input.composition,
-            application: input.application,
-          },
-        },
-      },
-    });
+    return this.prisma.$transaction(async (tx) => {
+      const category = await tx.category.findUnique({
+        where: { id: input.categoryId },
+      });
 
-    await this.syncCategoryProductCount(input.categoryId);
+      if (!category) {
+        throw new NotFoundException(`Category #${input.categoryId} not found`);
+      }
 
-    return product;
-  }
-
-  async update(input: UpdateProductInput) {
-    const existingProduct = await this.prisma.product.findUnique({
-      where: { id: input.id },
-    });
-
-    if (!existingProduct) {
-      throw new NotFoundException(`Product #${input.id} not found`);
-    }
-
-    const category = await this.prisma.category.findUnique({
-      where: { id: input.categoryId },
-    });
-
-    if (!category) {
-      throw new NotFoundException(`Category #${input.categoryId} not found`);
-    }
-
-    const contentLocale = normalizeContentLocale(input.contentLocale);
-
-    const product = await this.prisma.product.update({
-      where: { id: input.id },
-      data: {
-        categoryId: input.categoryId,
-        ...this.getUpdateLegacyFields(contentLocale, input),
-        ...(input.imageUrl ? { imageUrl: input.imageUrl } : {}),
-        ...(input.imageUrlEn ? { imageUrlEn: input.imageUrlEn } : {}),
-        translations: {
-          upsert: {
-            where: {
-              productId_locale: {
-                productId: input.id,
-                locale: contentLocale,
-              },
-            },
-            update: {
-              name: input.name,
-              description: input.description,
-              advantages: input.advantages,
-              composition: input.composition,
-              application: input.application,
-            },
+      const product = await tx.product.create({
+        data: {
+          categoryId: input.categoryId,
+          ...this.getCreateLegacyFields(contentLocale, input),
+          imageUrl: input.imageUrl,
+          imageUrlEn: input.imageUrlEn ?? '',
+          translations: {
             create: {
               locale: contentLocale,
               name: input.name,
@@ -350,16 +295,75 @@ export class ProductsService {
             },
           },
         },
-      },
+      });
+
+      await this.syncCategoryProductCount(tx, input.categoryId);
+
+      return product;
     });
+  }
 
-    if (existingProduct.categoryId !== input.categoryId) {
-      await Promise.all([
-        this.syncCategoryProductCount(existingProduct.categoryId),
-        this.syncCategoryProductCount(input.categoryId),
-      ]);
-    }
+  async update(input: UpdateProductInput) {
+    const contentLocale = normalizeContentLocale(input.contentLocale);
 
-    return product;
+    return this.prisma.$transaction(async (tx) => {
+      const existingProduct = await tx.product.findUnique({
+        where: { id: input.id },
+      });
+
+      if (!existingProduct) {
+        throw new NotFoundException(`Product #${input.id} not found`);
+      }
+
+      const category = await tx.category.findUnique({
+        where: { id: input.categoryId },
+      });
+
+      if (!category) {
+        throw new NotFoundException(`Category #${input.categoryId} not found`);
+      }
+
+      const product = await tx.product.update({
+        where: { id: input.id },
+        data: {
+          categoryId: input.categoryId,
+          ...this.getUpdateLegacyFields(contentLocale, input),
+          ...(input.imageUrl ? { imageUrl: input.imageUrl } : {}),
+          ...(input.imageUrlEn ? { imageUrlEn: input.imageUrlEn } : {}),
+          translations: {
+            upsert: {
+              where: {
+                productId_locale: {
+                  productId: input.id,
+                  locale: contentLocale,
+                },
+              },
+              update: {
+                name: input.name,
+                description: input.description,
+                advantages: input.advantages,
+                composition: input.composition,
+                application: input.application,
+              },
+              create: {
+                locale: contentLocale,
+                name: input.name,
+                description: input.description,
+                advantages: input.advantages,
+                composition: input.composition,
+                application: input.application,
+              },
+            },
+          },
+        },
+      });
+
+      if (existingProduct.categoryId !== input.categoryId) {
+        await this.syncCategoryProductCount(tx, existingProduct.categoryId);
+        await this.syncCategoryProductCount(tx, input.categoryId);
+      }
+
+      return product;
+    });
   }
 }

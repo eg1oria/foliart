@@ -19,6 +19,7 @@ declare module 'sanitize-html' {
   }
 
   export interface IOptions {
+    allowProtocolRelative?: boolean;
     allowedAttributes?: Record<string, string[]>;
     allowedSchemes?: string[];
     allowedTags?: string[];

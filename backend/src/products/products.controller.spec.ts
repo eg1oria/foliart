@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { BadRequestException } from '@nestjs/common';
 
 describe('ProductsController', () => {
   let controller: ProductsController;
@@ -38,5 +39,17 @@ describe('ProductsController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
+  });
+
+  it('rejects creating a product before its Russian base content exists', async () => {
+    await expect(
+      controller.create({
+        contentLocale: 'en',
+        categoryId: '1',
+        name: 'Product',
+      }),
+    ).rejects.toThrow(BadRequestException);
+
+    expect(productsServiceMock.create).not.toHaveBeenCalled();
   });
 });

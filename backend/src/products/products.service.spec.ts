@@ -4,18 +4,28 @@ import { ProductsService } from './products.service';
 
 describe('ProductsService', () => {
   let service: ProductsService;
+  const categoryMock = {
+    findUnique: jest.fn(),
+    update: jest.fn(),
+  };
+  const productMock = {
+    count: jest.fn(),
+    create: jest.fn(),
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
+  };
+  const transactionClientMock = {
+    category: categoryMock,
+    product: productMock,
+  };
+  const transactionMock = jest.fn(
+    async (operation: (tx: typeof transactionClientMock) => Promise<unknown>) =>
+      operation(transactionClientMock),
+  );
   const prismaServiceMock = {
-    category: {
-      findUnique: jest.fn(),
-      update: jest.fn(),
-    },
-    product: {
-      count: jest.fn(),
-      create: jest.fn(),
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      update: jest.fn(),
-    },
+    ...transactionClientMock,
+    $transaction: transactionMock,
   };
   const baseProduct = {
     id: 1,
@@ -175,28 +185,94 @@ describe('ProductsService', () => {
       imageUrlEn: 'products/riza-new-international.webp',
     });
 
-    expect(prismaServiceMock.product.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: 1 },
-        data: expect.objectContaining({
-          nameEn: 'Riza',
-          descriptionEn: 'English description',
-          imageUrlEn: 'products/riza-new-international.webp',
-          translations: {
-            upsert: expect.objectContaining({
-              where: {
-                productId_locale: {
-                  productId: 1,
-                  locale: 'en',
-                },
-              },
-            }),
-          },
-        }),
-      }),
-    );
-    expect(
-      prismaServiceMock.product.update.mock.calls[0][0].data.name,
-    ).toBeUndefined();
+    type ProductUpdateCall = {
+      where: { id: number };
+      data: Record<string, unknown> & {
+        translations: {
+          upsert: {
+            where: { productId_locale: { productId: number; locale: string } };
+          };
+        };
+      };
+    };
+    const updateCalls = prismaServiceMock.product.update.mock
+      .calls as unknown as Array<[ProductUpdateCall]>;
+    const updateCall = updateCalls[0]?.[0];
+
+    expect(updateCall?.where).toEqual({ id: 1 });
+    expect(updateCall?.data).toMatchObject({
+      nameEn: 'Riza',
+      descriptionEn: 'English description',
+      imageUrlEn: 'products/riza-new-international.webp',
+    });
+    expect(updateCall?.data.translations.upsert.where).toEqual({
+      productId_locale: {
+        productId: 1,
+        locale: 'en',
+      },
+    });
+    expect(updateCall?.data.name).toBeUndefined();
+    expect(prismaServiceMock.$transaction).toHaveBeenCalledTimes(1);
+  });
+
+  it('creates a product and updates its category count in one transaction', async () => {
+    prismaServiceMock.category.findUnique.mockResolvedValue({ id: 1 });
+    prismaServiceMock.product.create.mockResolvedValue(baseProduct);
+    prismaServiceMock.product.count.mockResolvedValue(1);
+    prismaServiceMock.category.update.mockResolvedValue({
+      id: 1,
+      productCount: 1,
+    });
+
+    await service.create({
+      categoryId: 1,
+      contentLocale: 'ru',
+      name: 'Риза',
+      description: 'Описание',
+      advantages: 'Преимущество',
+      composition: 'Азот | 20 г/л',
+      application: 'Схема',
+      imageUrl: 'products/riza.webp',
+    });
+
+    expect(prismaServiceMock.$transaction).toHaveBeenCalledTimes(1);
+    expect(prismaServiceMock.product.create).toHaveBeenCalledTimes(1);
+    expect(prismaServiceMock.category.update).toHaveBeenCalledWith({
+      where: { id: 1 },
+      data: { productCount: 1 },
+    });
+  });
+
+  it('updates both category counts when a product moves categories', async () => {
+    prismaServiceMock.product.findUnique.mockResolvedValue(baseProduct);
+    prismaServiceMock.category.findUnique.mockResolvedValue({ id: 2 });
+    prismaServiceMock.product.update.mockResolvedValue({
+      ...baseProduct,
+      categoryId: 2,
+    });
+    prismaServiceMock.product.count
+      .mockResolvedValueOnce(0)
+      .mockResolvedValueOnce(3);
+
+    await service.update({
+      id: 1,
+      categoryId: 2,
+      contentLocale: 'ru',
+      name: 'Риза',
+      description: 'Описание',
+      advantages: 'Преимущество',
+      composition: 'Азот | 20 г/л',
+      application: 'Схема',
+    });
+
+    expect(prismaServiceMock.category.update).toHaveBeenNthCalledWith(1, {
+      where: { id: 1 },
+      data: { productCount: 0 },
+    });
+    expect(prismaServiceMock.category.update).toHaveBeenNthCalledWith(2, {
+      where: { id: 2 },
+      data: { productCount: 3 },
+    });
+    expect(prismaServiceMock.$transaction).toHaveBeenCalledTimes(1);
   });
 });

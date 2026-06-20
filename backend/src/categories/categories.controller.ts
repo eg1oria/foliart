@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -9,7 +10,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AdminApiGuard } from '../admin-api.guard';
-import { normalizeContentLocale } from '../content-locales';
+import {
+  isSupportedContentLocale,
+  normalizeContentLocale,
+} from '../content-locales';
 import { CategoriesService } from './categories.service';
 
 @Controller('categories')
@@ -39,9 +43,14 @@ export class CategoriesController {
     @Param('id', ParseIntPipe) id: number,
     @Body() body: Record<string, string | undefined>,
   ) {
-    const contentLocale = normalizeContentLocale(
-      body.contentLocale ?? (body.nameEn || body.descriptionEn ? 'en' : 'ru'),
-    );
+    const localeInput =
+      body.contentLocale ?? (body.nameEn || body.descriptionEn ? 'en' : 'ru');
+
+    if (!isSupportedContentLocale(localeInput)) {
+      throw new BadRequestException('Unsupported content locale');
+    }
+
+    const contentLocale = normalizeContentLocale(localeInput);
 
     return this.categoriesService.updateTranslation(id, {
       locale: contentLocale,

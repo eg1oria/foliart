@@ -14,11 +14,15 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Throttle } from '@nestjs/throttler';
 import { diskStorage } from 'multer';
 import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
 import { AdminApiGuard } from '../admin-api.guard';
-import { normalizeContentLocale } from '../content-locales';
+import {
+  DEFAULT_CONTENT_LOCALE,
+  isSupportedContentLocale,
+} from '../content-locales';
 import {
   allowedImageMimeTypes,
   optimizeUploadedImage,
@@ -184,10 +188,22 @@ export class ArticlesController {
     @UploadedFile()
     file?: StoredUploadFile,
   ) {
-    const contentLocale = normalizeContentLocale(body.contentLocale);
+    const contentLocale = body.contentLocale?.trim().toLowerCase();
     const title = body.title?.trim() ?? '';
     const content = sanitizeArticleContent(body.content ?? '');
     const excerpt = sanitizeArticleExcerpt(body.excerpt?.trim() ?? '', content);
+
+    if (!isSupportedContentLocale(contentLocale)) {
+      removeUploadedFile(file?.path);
+      throw new BadRequestException('Unsupported content locale');
+    }
+
+    if (contentLocale !== DEFAULT_CONTENT_LOCALE) {
+      removeUploadedFile(file?.path);
+      throw new BadRequestException(
+        'Articles must be created in Russian first',
+      );
+    }
 
     if (!title) {
       removeUploadedFile(file?.path);
@@ -229,10 +245,15 @@ export class ArticlesController {
     @UploadedFile()
     file?: StoredUploadFile,
   ) {
-    const contentLocale = normalizeContentLocale(body.contentLocale);
+    const contentLocale = body.contentLocale?.trim().toLowerCase();
     const title = body.title?.trim() ?? '';
     const content = sanitizeArticleContent(body.content ?? '');
     const excerpt = sanitizeArticleExcerpt(body.excerpt?.trim() ?? '', content);
+
+    if (!isSupportedContentLocale(contentLocale)) {
+      removeUploadedFile(file?.path);
+      throw new BadRequestException('Unsupported content locale');
+    }
 
     if (!title) {
       removeUploadedFile(file?.path);
@@ -273,6 +294,7 @@ export class ArticlesController {
   }
 
   @Post(':id/views')
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
   incrementViewCount(@Param('id', ParseIntPipe) id: number) {
     return this.articlesService.incrementViewCount(id);
   }

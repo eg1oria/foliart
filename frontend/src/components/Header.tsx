@@ -44,6 +44,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
   const [hasOpenedMenu, setHasOpenedMenu] = useState(false);
   const [activeDesktopMenu, setActiveDesktopMenu] = useState<string | null>(null);
   const desktopMenuCloseTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollFrame = useRef<number | null>(null);
   const t = useTranslations('Header');
   const locale = useLocale();
   const router = useRouter();
@@ -122,18 +123,26 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
   ];
 
   useEffect(() => {
+    const updateScrollState = () => {
+      scrollFrame.current = null;
+      setIsScrolled((current) => {
+        const next = window.scrollY > 100;
+        return current === next ? current : next;
+      });
+    };
     const handleScroll = () => {
-      if (window.scrollY > 100) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
+      if (scrollFrame.current === null) {
+        scrollFrame.current = window.requestAnimationFrame(updateScrollState);
       }
     };
 
-    handleScroll();
+    updateScrollState();
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollFrame.current !== null) window.cancelAnimationFrame(scrollFrame.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -155,7 +164,8 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
       <button
         type="button"
         onClick={() => setIsLocaleSwitcherOpen((prev) => !prev)}
-        className="flex flex-row items-center gap-1 p-2 text-[15px] text-white/85 uppercase transition-colors hover:text-white cursor-pointer">
+        className="flex flex-row items-center gap-1 p-2 text-[15px] text-white/85 uppercase transition-colors hover:text-white cursor-pointer"
+      >
         {locale}
         <FiChevronDown size={14} className="mt-0.5" />
       </button>
@@ -166,7 +176,8 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
             {localeOptions.map((localeOption, index) => (
               <li
                 key={localeOption}
-                className={`${index === 0 ? 'border-b border-gray-200' : ''} transition-colors hover:bg-gray-100`}>
+                className={`${index === 0 ? 'border-b border-gray-200' : ''} transition-colors hover:bg-gray-100`}
+              >
                 <button
                   type="button"
                   onClick={() => {
@@ -176,7 +187,8 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
                   disabled={isPending}
                   className={`block w-full cursor-pointer px-4 py-2 text-center text-sm ${
                     locale === localeOption ? 'font-bold text-[#074031]' : 'text-gray-700'
-                  }`}>
+                  }`}
+                >
                   {localeOption.toUpperCase()}
                 </button>
               </li>
@@ -215,7 +227,8 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
         href="/"
         aria-label={t('home')}
         className={`relative block flex-shrink-0 ${className}`}
-        style={{ width, height: containerHeight }}>
+        style={{ width, height: containerHeight }}
+      >
         {/* RU logo */}
         <Image
           src="/logo5.PNG"
@@ -255,13 +268,15 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
     <>
       <header
         className="absolute top-0 left-0 z-50 flex w-full flex-col gap-4 pb-4 pt-4 md:gap-10 md:pb-0 md:pt-6"
-        style={{ backgroundColor: 'rgba(7,64,49, 0.1)' }}>
+        style={{ backgroundColor: 'rgba(7,64,49, 0.1)' }}
+      >
         <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 md:hidden">
           <button
             type="button"
             onClick={openMenu}
-            aria-label="Open menu"
-            className={mobileActionButtonClassName}>
+            aria-label={t('openMenu')}
+            className={mobileActionButtonClassName}
+          >
             <RxHamburgerMenu size={20} />
           </button>
 
@@ -292,13 +307,15 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
                   typeof item.name === 'string' ? 'hover:border-[#074031]' : ''
                 } ${item.id === 'contacts' ? 'max-[1140px]:hidden' : ''} ${
                   item.id === 'calendar' ? 'max-[950px]:hidden' : ''
-                } transition-colors`}>
+                } transition-colors`}
+              >
                 {item.href === '#' ? (
                   <button
                     type="button"
                     onClick={openMenu}
-                    aria-label="Open menu"
-                    className="text-white text-sm hover:text-white/80 transition-colors flex items-center cursor-pointer bg-transparent border-0 p-4 px-2">
+                    aria-label={t('openMenu')}
+                    className="text-white text-sm hover:text-white/80 transition-colors flex items-center cursor-pointer bg-transparent border-0 p-4 px-2"
+                  >
                     {item.name}
                   </button>
                 ) : (
@@ -329,7 +346,8 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
                       }}
                       className={`inline-flex items-center gap-1 text-white text-sm hover:text-white/80 transition-colors py-5 px-4 ${
                         item.children ? 'hover:bg-[#074031]' : ''
-                      } ${activeDesktopMenu === item.id ? 'bg-[#074031]' : ''}`}>
+                      } ${activeDesktopMenu === item.id ? 'bg-[#074031]' : ''}`}
+                    >
                       {typeof item.name === 'string' ? item.name.toUpperCase() : item.name}
                       {item.children && <FiChevronDown size={14} className="mt-0.5" />}
                     </Link>
@@ -338,10 +356,12 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
                         {item.children.map((child, childIdx) => (
                           <li
                             key={childIdx}
-                            className="border-b border-gray-200 bg-white transition-colors hover:border-black last:border-b-0">
+                            className="border-b border-gray-200 bg-white transition-colors hover:border-black last:border-b-0"
+                          >
                             <Link
                               href={child.href}
-                              className="block px-4 py-4 text-gray-700 bg-white text-ls transition-colors hover:text-[#074031]">
+                              className="block bg-white px-4 py-4 text-sm text-gray-700 transition-colors hover:text-[#074031]"
+                            >
                               {child.name}
                             </Link>
                           </li>
@@ -366,7 +386,8 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
               activeDesktopMenu === 'catalog'
                 ? 'visible translate-y-0 opacity-100'
                 : 'invisible -translate-y-1 opacity-0'
-            }`}>
+            }`}
+          >
             <div className="header-catalog py-10 pb-12">
               <div className="grid gap-x-10 gap-y-7 md:grid-cols-2 lg:grid-cols-4 xl:gap-x-16">
                 {catalogChildren.map((item) => (
@@ -374,7 +395,8 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
                     key={`${item.href}-${item.name}`}
                     href={item.href}
                     onClick={() => setActiveDesktopMenu(null)}
-                    className="group flex items-start gap-5">
+                    className="group flex items-start gap-5"
+                  >
                     <div className="relative h-18 w-18 flex-shrink-0 overflow-hidden rounded-full bg-[#eef3ef] shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
                       {item.image ? (
                         <Image
@@ -408,18 +430,20 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
 
       {/* Sticky header on scroll */}
       <div
-        className={`site-gutter fixed top-0 px-90 left-0 z-50 w-full py-3 transition-all duration-300 md:py-2 ${
+        className={`site-gutter fixed left-0 top-0 z-50 w-full py-3 transition-all duration-300 md:py-2 ${
           isScrolled ? 'translate-y-0 opacity-100 visible' : '-translate-y-full opacity-0 invisible'
         }`}
         style={{
           backgroundColor: '#4d4d4de7',
-        }}>
+        }}
+      >
         <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 md:hidden">
           <button
             type="button"
             onClick={openMenu}
-            aria-label="Open menu"
-            className={mobileActionButtonClassName}>
+            aria-label={t('openMenu')}
+            className={mobileActionButtonClassName}
+          >
             <RxHamburgerMenu size={20} />
           </button>
           {renderCompactLogo('h-auto w-11 justify-self-center sm:w-12')}
@@ -431,9 +455,10 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
             <button
               type="button"
               onClick={openMenu}
-              aria-label="Open menu"
+              aria-label={t('openMenu')}
               className={`${phoneBadgeClassName} p-3`}
-              style={{ backgroundColor: '#074031' }}>
+              style={{ backgroundColor: '#074031' }}
+            >
               <RxHamburgerMenu size={22} />
             </button>
 
