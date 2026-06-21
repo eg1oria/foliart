@@ -1,10 +1,11 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, updateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getAdminApiHeaders } from '@/lib/adminApi';
 import { adminApiFetch, getAdminApiErrorMessage } from '@/lib/adminBackend';
 import { requireAdminSession } from '@/lib/adminAuthServer';
+import { calendarsCacheTag } from '@/lib/api';
 import { normalizeContentLocale } from '@/lib/contentLocales';
 
 const calendarLocales = ['ru', 'en', 'fr', 'es'] as const;
@@ -62,9 +63,12 @@ function hasFile(value: FormDataEntryValue | null): value is File {
   return value instanceof File && value.size > 0;
 }
 
-async function revalidateCalendarAdminPages() {
+function revalidateCalendarPages() {
+  updateTag(calendarsCacheTag);
+
   for (const locale of calendarLocales) {
     revalidatePath(`/${locale}/admin/calendars`);
+    revalidatePath(`/${locale}/calendar`);
   }
 }
 
@@ -144,7 +148,7 @@ export async function createCalendarAction(formData: FormData) {
     );
   }
 
-  await revalidateCalendarAdminPages();
+  revalidateCalendarPages();
 
   redirect(
     buildAdminRedirectPath(
@@ -220,7 +224,7 @@ export async function updateCalendarAction(formData: FormData) {
     );
   }
 
-  await revalidateCalendarAdminPages();
+  revalidateCalendarPages();
 
   redirect(
     buildAdminRedirectPath(

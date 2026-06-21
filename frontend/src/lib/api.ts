@@ -120,12 +120,30 @@ export const noStoreApiFetchOptions: ApiFetchOptions = {
   cache: 'no-store',
 };
 
+export const calendarsCacheTag = 'calendars';
+
 function resolveFetchOptions(fetchOptions?: ApiFetchOptions): ApiFetchOptions {
   const resolved = fetchOptions ?? publicApiFetchOptions;
 
   return {
     ...resolved,
     signal: resolved.signal ?? AbortSignal.timeout(apiRequestTimeoutMs),
+  };
+}
+
+function withCacheTag(fetchOptions: ApiFetchOptions | undefined, tag: string): ApiFetchOptions {
+  const resolved = fetchOptions ?? publicApiFetchOptions;
+
+  if (resolved.cache === 'no-store' || resolved.next?.revalidate === false) {
+    return resolved;
+  }
+
+  return {
+    ...resolved,
+    next: {
+      ...resolved.next,
+      tags: Array.from(new Set([...(resolved.next?.tags ?? []), tag])),
+    },
   };
 }
 
@@ -234,7 +252,7 @@ export async function getCalendars(
 ): Promise<CalendarEntry[]> {
   return fetchJson<CalendarEntry[]>(
     buildLocalizedPath('/api/calendars', locale, contentLocale),
-    fetchOptions,
+    withCacheTag(fetchOptions, calendarsCacheTag),
   );
 }
 
@@ -246,6 +264,6 @@ export async function getCalendar(
 ): Promise<CalendarEntry> {
   return fetchJson<CalendarEntry>(
     buildLocalizedPath(`/api/calendars/${calendarId}`, locale, contentLocale),
-    fetchOptions,
+    withCacheTag(fetchOptions, calendarsCacheTag),
   );
 }
