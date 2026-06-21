@@ -20,9 +20,11 @@ const articleHtmlOptions: IOptions = {
     'li',
     'blockquote',
     'a',
+    'img',
   ],
   allowedAttributes: {
     a: ['href', 'target', 'rel'],
+    img: ['src', 'alt', 'title'],
   },
   allowedSchemes: ['http', 'https', 'mailto', 'tel'],
   allowProtocolRelative: false,
@@ -52,8 +54,28 @@ const articleHtmlOptions: IOptions = {
         },
       };
     },
+    img: (_tagName, attribs) => {
+      const src = typeof attribs.src === 'string' ? attribs.src.trim() : '';
+      const isUploadedArticleImage =
+        /^\/media\/articles\/content\/[a-z0-9-]+\.webp$/i.test(src);
+
+      return {
+        tagName: 'img',
+        attribs: isUploadedArticleImage
+          ? {
+              src,
+              alt: typeof attribs.alt === 'string' ? attribs.alt.trim() : '',
+              ...(typeof attribs.title === 'string' && attribs.title.trim()
+                ? { title: attribs.title.trim() }
+                : {}),
+            }
+          : {},
+      };
+    },
   },
-  exclusiveFilter: (frame: IFrame) => frame.tag === 'a' && !frame.attribs.href,
+  exclusiveFilter: (frame: IFrame) =>
+    (frame.tag === 'a' && !frame.attribs.href) ||
+    (frame.tag === 'img' && !frame.attribs.src),
 };
 
 function escapeHtml(value: string) {

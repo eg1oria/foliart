@@ -76,7 +76,7 @@ export function getArticlesCopy(locale: string) {
         'Create and update article cards, cover images, publication dates, and rich text content.',
       adminFormTitle: 'Add article',
       adminFormDescription:
-        'The body supports formatted text: headings, lists, quotes, links, and emphasis.',
+        'The body supports formatted text and images between paragraphs.',
       adminExistingTitle: 'Published articles',
       adminEmptyState: 'There are no articles yet.',
       statusCreated: 'Article created successfully.',
@@ -99,7 +99,7 @@ export function getArticlesCopy(locale: string) {
       imagePathLabel: 'Image path',
       adminPathHint: 'Use this section to keep the articles page updated quickly.',
       contentHint:
-        'Use the toolbar to format the text. Links will open in a new tab if they point to an external site.',
+        'Use the toolbar to format text and insert images at the current cursor position.',
       excerptHint: 'If empty, the excerpt will be generated automatically from the article body.',
       translationHint:
         'Leave the English fields empty if the English site should reuse the Russian version.',
@@ -124,7 +124,7 @@ export function getArticlesCopy(locale: string) {
         "Créez et mettez à jour les cartes d'articles, les images de couverture, les dates de publication et le contenu formaté.",
       adminFormTitle: 'Ajouter un article',
       adminFormDescription:
-        "Le corps de l'article prend en charge le texte formaté : titres, listes, citations, liens et mises en valeur.",
+        "Le corps de l'article prend en charge le texte formaté et les images entre les paragraphes.",
       adminExistingTitle: 'Articles publiés',
       adminEmptyState: "Aucun article pour l'instant.",
       statusCreated: 'Article ajouté avec succès.',
@@ -148,7 +148,7 @@ export function getArticlesCopy(locale: string) {
       adminPathHint:
         'Utilisez cette section pour maintenir la page des articles à jour rapidement.',
       contentHint:
-        "Utilisez la barre d'outils pour mettre en forme le texte. Les liens vers des sites externes s'ouvriront dans un nouvel onglet.",
+        "Utilisez la barre d'outils pour mettre en forme le texte et insérer des images à la position du curseur.",
       excerptHint:
         "Si le champ est vide, l'extrait sera généré automatiquement à partir du corps de l'article.",
       translationHint:
@@ -173,7 +173,7 @@ export function getArticlesCopy(locale: string) {
         'Cree y actualice tarjetas de artículos, imágenes de portada, fechas de publicación y contenido con formato.',
       adminFormTitle: 'Añadir artículo',
       adminFormDescription:
-        'El cuerpo del artículo admite texto con formato: encabezados, listas, citas, enlaces y énfasis.',
+        'El cuerpo del artículo admite texto con formato e imágenes entre párrafos.',
       adminExistingTitle: 'Artículos publicados',
       adminEmptyState: 'Aún no hay artículos.',
       statusCreated: 'Artículo creado correctamente.',
@@ -197,7 +197,7 @@ export function getArticlesCopy(locale: string) {
       adminPathHint:
         'Use esta sección para mantener la página de artículos actualizada rápidamente.',
       contentHint:
-        'Use la barra de herramientas para dar formato al texto. Los enlaces externos se abrirán en una nueva pestaña.',
+        'Use la barra de herramientas para dar formato e insertar imágenes en la posición del cursor.',
       excerptHint:
         'Si el campo está vacío, el extracto se generará automáticamente a partir del cuerpo del artículo.',
       translationHint:
@@ -221,7 +221,7 @@ export function getArticlesCopy(locale: string) {
       'Добавляйте и обновляйте карточки статей, обложки, даты публикации и форматированный текст.',
     adminFormTitle: 'Добавить статью',
     adminFormDescription:
-      'Тело статьи поддерживает форматирование: заголовки, списки, цитаты, ссылки и акценты.',
+      'В тексте статьи можно использовать форматирование и вставлять фото между абзацами.',
     adminExistingTitle: 'Опубликованные статьи',
     adminEmptyState: 'Статей пока нет.',
     statusCreated: 'Статья успешно добавлена.',
@@ -245,7 +245,7 @@ export function getArticlesCopy(locale: string) {
     adminPathHint:
       'Используйте этот раздел, чтобы быстро поддерживать раздел статей в актуальном состоянии.',
     contentHint:
-      'Используйте панель форматирования для заголовков, списков, цитат, ссылок и выделения текста.',
+      'Поставьте курсор между абзацами и нажмите кнопку с изображением, чтобы вставить фото.',
     excerptHint: 'Если поле пустое, описание сформируется автоматически из текста статьи.',
     translationHint:
       'Оставьте английские поля пустыми, если в английской версии сайта должен использоваться русский текст.',

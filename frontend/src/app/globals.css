@@ -188,6 +188,15 @@ header,
   text-underline-offset: 0.2em;
 }
 
+.article-content img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 44rem;
+  object-fit: contain;
+  border-radius: 0.75rem;
+}
+
 .admin-rich-text > * + * {
   margin-top: 1rem;
 }
@@ -228,6 +237,20 @@ header,
   color: #0b5a45;
   text-decoration: underline;
   text-underline-offset: 0.2em;
+}
+
+.admin-rich-text img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 28rem;
+  object-fit: contain;
+  border-radius: 0.6rem;
+}
+
+.admin-rich-text img.ProseMirror-selectednode {
+  outline: 3px solid rgba(11, 90, 69, 0.35);
+  outline-offset: 3px;
 }
 
 .article-card-wrapper {

@@ -1,12 +1,22 @@
 'use client';
 
+import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Underline from '@tiptap/extension-underline';
 import StarterKit from '@tiptap/starter-kit';
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import type { ReactNode } from 'react';
 import { useEffect, useId, useState } from 'react';
-import { FiBold, FiItalic, FiLink, FiList, FiMinus, FiType, FiUnderline } from 'react-icons/fi';
+import {
+  FiBold,
+  FiImage,
+  FiItalic,
+  FiLink,
+  FiList,
+  FiMinus,
+  FiType,
+  FiUnderline,
+} from 'react-icons/fi';
 import { MdFormatListNumbered, MdFormatQuote } from 'react-icons/md';
 
 type ToolbarItem = {
@@ -81,6 +91,10 @@ const i18n: Record<string, Record<string, string>> = {
     numbers: 'Numbers',
     quote: 'Quote',
     link: 'Link',
+    image: 'Insert image',
+    uploadingImage: 'Uploading image...',
+    imageUploadError: 'Could not upload the image. Please try again.',
+    imageTooLarge: 'The image must be no larger than 5 MB.',
   },
   ru: {
     linkPrompt: 'Вставьте URL ссылки. Оставьте пустым, чтобы удалить ссылку.',
@@ -92,6 +106,10 @@ const i18n: Record<string, Record<string, string>> = {
     numbers: 'Нумерация',
     quote: 'Цитата',
     link: 'Ссылка',
+    image: 'Вставить фото',
+    uploadingImage: 'Фото загружается...',
+    imageUploadError: 'Не удалось загрузить фото. Попробуйте ещё раз.',
+    imageTooLarge: 'Размер фото не должен превышать 5 МБ.',
   },
 };
 
@@ -111,8 +129,11 @@ export default function ArticleRichTextEditor({
   placeholder: string;
 }) {
   const [html, setHtml] = useState(defaultValue);
+  const [imageError, setImageError] = useState('');
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   // FIX 2: useId для связи placeholder с редактором через aria-describedby
   const placeholderId = useId();
+  const imageInputId = useId();
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -125,6 +146,10 @@ export default function ArticleRichTextEditor({
         // эти ключи молча игнорировались и создавали ложное ощущение отключения.
       }),
       Underline,
+      Image.configure({
+        allowBase64: false,
+        inline: false,
+      }),
       Link.configure({
         openOnClick: false,
         autolink: true,
@@ -265,6 +290,44 @@ export default function ArticleRichTextEditor({
     editor.chain().focus().extendMarkRange('link').setLink({ href: trimmed }).run();
   };
 
+  const uploadImage = async (file: File) => {
+    if (!editor) {
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setImageError(t(locale, 'imageTooLarge'));
+      return;
+    }
+
+    setImageError('');
+    setIsUploadingImage(true);
+
+    try {
+      const payload = new FormData();
+      payload.append('image', file);
+
+      const response = await fetch('/api/admin/article-images', {
+        method: 'POST',
+        body: payload,
+      });
+      const data = (await response.json().catch(() => null)) as {
+        url?: string;
+      } | null;
+
+      if (!response.ok || !data?.url) {
+        throw new Error('Image upload failed');
+      }
+
+      const alt = file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ');
+      editor.chain().focus().setImage({ src: data.url, alt }).run();
+    } catch {
+      setImageError(t(locale, 'imageUploadError'));
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
   const toolbar: ToolbarItem[] = [
     {
       active: toolbarState.isH2,
@@ -334,6 +397,22 @@ export default function ArticleRichTextEditor({
   return (
     <div className="min-w-0 overflow-hidden rounded-lg border border-[#0b5a45]/12 bg-[#f8f7f2] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]">
       <input type="hidden" name={name} value={html} />
+      <input
+        id={imageInputId}
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        className="sr-only"
+        tabIndex={-1}
+        onChange={(event) => {
+          const input = event.currentTarget;
+          const file = event.target.files?.[0];
+          if (file) {
+            void uploadImage(file).finally(() => {
+              input.value = '';
+            });
+          }
+        }}
+      />
 
       <div
         role="toolbar"
@@ -359,6 +438,19 @@ export default function ArticleRichTextEditor({
             {item.icon}
           </button>
         ))}
+        <label
+          htmlFor={imageInputId}
+          title={isUploadingImage ? t(locale, 'uploadingImage') : t(locale, 'image')}
+          aria-label={isUploadingImage ? t(locale, 'uploadingImage') : t(locale, 'image')}
+          aria-disabled={!editor || isUploadingImage}
+          className={`inline-flex h-10 min-w-10 shrink-0 items-center justify-center rounded-lg border border-[#0b5a45]/12 bg-white px-2.5 text-[#0b3e31] transition hover:border-[#0b5a45]/30 hover:bg-[#eef4ef] sm:h-11 sm:min-w-11 sm:px-3 ${
+            !editor || isUploadingImage
+              ? 'pointer-events-none cursor-not-allowed opacity-50'
+              : 'cursor-pointer'
+          }`}
+        >
+          <FiImage />
+        </label>
       </div>
 
       <div className="relative">
@@ -378,6 +470,16 @@ export default function ArticleRichTextEditor({
 
         <EditorContent editor={editor} />
       </div>
+
+      {imageError ? (
+        <p role="alert" className="border-t border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+          {imageError}
+        </p>
+      ) : isUploadingImage ? (
+        <p className="border-t border-[#0b5a45]/10 px-4 py-2 text-sm text-[#567068]">
+          {t(locale, 'uploadingImage')}
+        </p>
+      ) : null}
     </div>
   );
 }
