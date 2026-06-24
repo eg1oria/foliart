@@ -6,7 +6,7 @@ import Underline from '@tiptap/extension-underline';
 import StarterKit from '@tiptap/starter-kit';
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import type { ReactNode } from 'react';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import {
   FiBold,
   FiImage,
@@ -94,6 +94,7 @@ const i18n: Record<string, Record<string, string>> = {
     image: 'Insert image',
     uploadingImage: 'Uploading image...',
     imageUploadError: 'Could not upload the image. Please try again.',
+    imageInsertError: 'The image was uploaded but could not be inserted into the article.',
     imageTooLarge: 'The image must be no larger than 5 MB.',
   },
   ru: {
@@ -109,6 +110,7 @@ const i18n: Record<string, Record<string, string>> = {
     image: 'Вставить фото',
     uploadingImage: 'Фото загружается...',
     imageUploadError: 'Не удалось загрузить фото. Попробуйте ещё раз.',
+    imageInsertError: 'Фото загрузилось, но не вставилось в статью.',
     imageTooLarge: 'Размер фото не должен превышать 5 МБ.',
   },
 };
@@ -131,27 +133,19 @@ export default function ArticleRichTextEditor({
   const [imageError, setImageError] = useState('');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const contentInputRef = useRef<HTMLInputElement>(null);
+  const lastDefaultValueRef = useRef(defaultValue);
   // FIX 2: useId для связи placeholder с редактором через aria-describedby
   const placeholderId = useId();
   const imageInputId = useId();
 
-  const syncContentInput = (
-    nextEditor: NonNullable<ReturnType<typeof useEditor>>,
-  ) => {
-    if (contentInputRef.current) {
-      contentInputRef.current.value = normalizeEditorHtml(nextEditor);
-    }
-  };
-
-  const editor = useEditor({
-    immediatelyRender: false,
-    extensions: [
+  const extensions = useMemo(
+    () => [
       StarterKit.configure({
         heading: {
           levels: [2, 3],
         },
-        // FIX 3: Убраны `link: false` и `underline: false` — их нет в StarterKit,
-        // эти ключи молча игнорировались и создавали ложное ощущение отключения.
+        link: false,
+        underline: false,
       }),
       Underline,
       Image.configure({
@@ -168,6 +162,20 @@ export default function ArticleRichTextEditor({
         },
       }),
     ],
+    [],
+  );
+
+  const syncContentInput = (
+    nextEditor: NonNullable<ReturnType<typeof useEditor>>,
+  ) => {
+    if (contentInputRef.current) {
+      contentInputRef.current.value = normalizeEditorHtml(nextEditor);
+    }
+  };
+
+  const editor = useEditor({
+    immediatelyRender: false,
+    extensions,
     content: defaultValue || '',
     editorProps: {
       attributes: {
@@ -210,26 +218,25 @@ export default function ArticleRichTextEditor({
 
   const toolbarState = editorState ?? defaultToolbarState;
 
-  // FIX 5: Синхронизация defaultValue не трогает редактор если он в фокусе,
-  // чтобы не сбрасывать набранный текст при быстрых обновлениях пропа.
+  // Применяем defaultValue только когда с сервера действительно пришёл новый
+  // контент. Локальный ререндер после загрузки изображения не должен возвращать
+  // старое значение поверх уже изменённого документа Tiptap.
   useEffect(() => {
     if (!editor) {
       return;
     }
 
     const nextValue = defaultValue || '';
-    const currentValue = normalizeEditorHtml(editor);
-
-    if (currentValue === nextValue) {
+    if (lastDefaultValueRef.current === nextValue) {
       return;
     }
 
-    // Не перезаписываем контент пока пользователь редактирует
-    if (editor.isFocused) {
-      return;
-    }
+    lastDefaultValueRef.current = nextValue;
 
-    editor.commands.setContent(nextValue);
+    if (normalizeEditorHtml(editor) !== nextValue) {
+      editor.commands.setContent(nextValue, { emitUpdate: false });
+    }
+    syncContentInput(editor);
   }, [defaultValue, editor]);
 
   // FIX 6: Кастомный paste-обработчик теперь проверяет наличие HTML в буфере.
@@ -332,7 +339,17 @@ export default function ArticleRichTextEditor({
       }
 
       const alt = file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ');
-      editor.chain().focus().setImage({ src: data.url, alt }).run();
+      const inserted = editor
+        .chain()
+        .focus()
+        .setImage({ src: data.url, alt })
+        .run();
+
+      if (!inserted) {
+        throw new Error(t(locale, 'imageInsertError'));
+      }
+
+      syncContentInput(editor);
     } catch (error) {
       setImageError(
         error instanceof Error && error.message !== 'Image upload failed'
