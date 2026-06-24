@@ -6,7 +6,7 @@ import Underline from '@tiptap/extension-underline';
 import StarterKit from '@tiptap/starter-kit';
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import type { ReactNode } from 'react';
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import {
   FiBold,
   FiImage,
@@ -128,12 +128,20 @@ export default function ArticleRichTextEditor({
   name: string;
   placeholder: string;
 }) {
-  const [html, setHtml] = useState(defaultValue);
   const [imageError, setImageError] = useState('');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const contentInputRef = useRef<HTMLInputElement>(null);
   // FIX 2: useId для связи placeholder с редактором через aria-describedby
   const placeholderId = useId();
   const imageInputId = useId();
+
+  const syncContentInput = (
+    nextEditor: NonNullable<ReturnType<typeof useEditor>>,
+  ) => {
+    if (contentInputRef.current) {
+      contentInputRef.current.value = normalizeEditorHtml(nextEditor);
+    }
+  };
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -172,10 +180,10 @@ export default function ArticleRichTextEditor({
       },
     },
     onCreate: ({ editor: nextEditor }) => {
-      setHtml(normalizeEditorHtml(nextEditor));
+      syncContentInput(nextEditor);
     },
     onUpdate: ({ editor: nextEditor }) => {
-      setHtml(normalizeEditorHtml(nextEditor));
+      syncContentInput(nextEditor);
     },
   });
 
@@ -307,22 +315,30 @@ export default function ArticleRichTextEditor({
       const payload = new FormData();
       payload.append('image', file);
 
-      const response = await fetch('/api/admin/article-images', {
+      const response = await fetch('/admin-api/article-images', {
         method: 'POST',
         body: payload,
       });
       const data = (await response.json().catch(() => null)) as {
+        message?: string | string[];
         url?: string;
       } | null;
 
       if (!response.ok || !data?.url) {
-        throw new Error('Image upload failed');
+        const message = Array.isArray(data?.message)
+          ? data.message.join(', ')
+          : data?.message;
+        throw new Error(message || 'Image upload failed');
       }
 
       const alt = file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ');
       editor.chain().focus().setImage({ src: data.url, alt }).run();
-    } catch {
-      setImageError(t(locale, 'imageUploadError'));
+    } catch (error) {
+      setImageError(
+        error instanceof Error && error.message !== 'Image upload failed'
+          ? error.message
+          : t(locale, 'imageUploadError'),
+      );
     } finally {
       setIsUploadingImage(false);
     }
@@ -396,7 +412,12 @@ export default function ArticleRichTextEditor({
 
   return (
     <div className="min-w-0 overflow-hidden rounded-lg border border-[#0b5a45]/12 bg-[#f8f7f2] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]">
-      <input type="hidden" name={name} value={html} />
+      <input
+        ref={contentInputRef}
+        type="hidden"
+        name={name}
+        defaultValue={defaultValue}
+      />
       <input
         id={imageInputId}
         type="file"
