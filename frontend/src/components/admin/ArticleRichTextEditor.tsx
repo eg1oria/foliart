@@ -6,7 +6,7 @@ import Underline from '@tiptap/extension-underline';
 import StarterKit from '@tiptap/starter-kit';
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import type { ReactNode } from 'react';
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import {
   FiBold,
   FiImage,
@@ -96,6 +96,7 @@ const i18n: Record<string, Record<string, string>> = {
     imageUploadError: 'Could not upload the image. Please try again.',
     imageInsertError: 'The image was uploaded but could not be inserted into the article.',
     imageTooLarge: 'The image must be no larger than 5 MB.',
+    waitForImageUpload: 'Please wait until the image finishes uploading before saving.',
   },
   ru: {
     linkPrompt: 'Вставьте URL ссылки. Оставьте пустым, чтобы удалить ссылку.',
@@ -112,6 +113,7 @@ const i18n: Record<string, Record<string, string>> = {
     imageUploadError: 'Не удалось загрузить фото. Попробуйте ещё раз.',
     imageInsertError: 'Фото загрузилось, но не вставилось в статью.',
     imageTooLarge: 'Размер фото не должен превышать 5 МБ.',
+    waitForImageUpload: 'Дождитесь окончания загрузки фото перед сохранением.',
   },
 };
 
@@ -130,9 +132,11 @@ export default function ArticleRichTextEditor({
   name: string;
   placeholder: string;
 }) {
+  const [html, setHtml] = useState(defaultValue);
   const [imageError, setImageError] = useState('');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
-  const contentInputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isUploadingImageRef = useRef(false);
   const lastDefaultValueRef = useRef(defaultValue);
   // FIX 2: useId для связи placeholder с редактором через aria-describedby
   const placeholderId = useId();
@@ -165,13 +169,12 @@ export default function ArticleRichTextEditor({
     [],
   );
 
-  const syncContentInput = (
-    nextEditor: NonNullable<ReturnType<typeof useEditor>>,
-  ) => {
-    if (contentInputRef.current) {
-      contentInputRef.current.value = normalizeEditorHtml(nextEditor);
-    }
-  };
+  const syncEditorHtml = useCallback(
+    (nextEditor: NonNullable<ReturnType<typeof useEditor>>) => {
+      setHtml(normalizeEditorHtml(nextEditor));
+    },
+    [],
+  );
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -188,10 +191,10 @@ export default function ArticleRichTextEditor({
       },
     },
     onCreate: ({ editor: nextEditor }) => {
-      syncContentInput(nextEditor);
+      syncEditorHtml(nextEditor);
     },
     onUpdate: ({ editor: nextEditor }) => {
-      syncContentInput(nextEditor);
+      syncEditorHtml(nextEditor);
     },
   });
 
@@ -236,8 +239,50 @@ export default function ArticleRichTextEditor({
     if (normalizeEditorHtml(editor) !== nextValue) {
       editor.commands.setContent(nextValue, { emitUpdate: false });
     }
-    syncContentInput(editor);
-  }, [defaultValue, editor]);
+    syncEditorHtml(editor);
+  }, [defaultValue, editor, syncEditorHtml]);
+
+  useEffect(() => {
+    const form = containerRef.current?.closest('form');
+
+    if (!form) {
+      return;
+    }
+
+    const handleSubmit = (event: SubmitEvent) => {
+      if (!isUploadingImageRef.current) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      setImageError(t(locale, 'waitForImageUpload'));
+    };
+
+    form.addEventListener('submit', handleSubmit, true);
+
+    return () => {
+      form.removeEventListener('submit', handleSubmit, true);
+    };
+  }, [locale]);
+
+  useEffect(() => {
+    const form = containerRef.current?.closest('form');
+
+    if (!form) {
+      return;
+    }
+
+    if (isUploadingImage) {
+      form.setAttribute('aria-busy', 'true');
+    } else {
+      form.removeAttribute('aria-busy');
+    }
+
+    return () => {
+      form.removeAttribute('aria-busy');
+    };
+  }, [isUploadingImage]);
 
   // FIX 6: Кастомный paste-обработчик теперь проверяет наличие HTML в буфере.
   // Если HTML есть — пропускаем, Tiptap сам его обработает корректно.
@@ -316,6 +361,7 @@ export default function ArticleRichTextEditor({
     }
 
     setImageError('');
+    isUploadingImageRef.current = true;
     setIsUploadingImage(true);
 
     try {
@@ -349,7 +395,7 @@ export default function ArticleRichTextEditor({
         throw new Error(t(locale, 'imageInsertError'));
       }
 
-      syncContentInput(editor);
+      syncEditorHtml(editor);
     } catch (error) {
       setImageError(
         error instanceof Error && error.message !== 'Image upload failed'
@@ -357,7 +403,11 @@ export default function ArticleRichTextEditor({
           : t(locale, 'imageUploadError'),
       );
     } finally {
+      isUploadingImageRef.current = false;
       setIsUploadingImage(false);
+      setImageError((currentError) =>
+        currentError === t(locale, 'waitForImageUpload') ? '' : currentError,
+      );
     }
   };
 
@@ -428,12 +478,15 @@ export default function ArticleRichTextEditor({
   ];
 
   return (
-    <div className="min-w-0 overflow-hidden rounded-lg border border-[#0b5a45]/12 bg-[#f8f7f2] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]">
+    <div
+      ref={containerRef}
+      className="min-w-0 overflow-hidden rounded-lg border border-[#0b5a45]/12 bg-[#f8f7f2] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]"
+    >
       <input
-        ref={contentInputRef}
         type="hidden"
         name={name}
-        defaultValue={defaultValue}
+        value={html}
+        readOnly
       />
       <input
         id={imageInputId}

@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(sqlite3 *)",
+      "Bash(git -C /Users/egor/Documents/GitHub/foliart status backend/images/)",
+      "Bash(node *)",
+      "Bash(python3 -m json.tool)"
     ]
   }
 }
