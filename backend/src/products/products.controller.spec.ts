@@ -11,6 +11,7 @@ describe('ProductsController', () => {
     findAll: jest.fn(),
     findByCategory: jest.fn(),
     findOne: jest.fn(),
+    remove: jest.fn(),
     update: jest.fn(),
   };
   const prismaServiceMock = {

@@ -5,9 +5,11 @@ import {
   AdminShell,
   AdminWorkspace,
 } from '@/components/admin/AdminShell';
+import AdminDeleteButton from '@/components/admin/AdminDeleteButton';
 import {
   adminBadgeClassName,
   adminCx,
+  adminDangerButtonClassName,
   adminDetailsClassName,
   adminFieldClassName,
   adminFileInputClassName,
@@ -36,13 +38,14 @@ import { parseEntityId } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
 import { FiEdit3, FiExternalLink } from 'react-icons/fi';
 
-import { createCalendarAction, updateCalendarAction } from './actions';
+import { createCalendarAction, deleteCalendarAction, updateCalendarAction } from './actions';
 
 type AdminPageSearchParams = {
   calendar?: string;
   contentLocale?: string;
   edit?: string;
   error?: string;
+  manageError?: string;
   status?: string;
 };
 
@@ -284,7 +287,8 @@ export default async function AdminCalendarsPage({
   const { locale } = await params;
   await requireAdminSession(locale, `/${locale}/admin/calendars`);
 
-  const { calendar, contentLocale: contentLocaleParam, edit, error, status } = await searchParams;
+  const { calendar, contentLocale: contentLocaleParam, edit, error, manageError, status } =
+    await searchParams;
   const contentLocale = normalizeContentLocale(contentLocaleParam);
   const contentLocaleLabel = getContentLocaleLabel(contentLocale);
   const copy = getCalendarsAdminCopy(locale);
@@ -293,7 +297,11 @@ export default async function AdminCalendarsPage({
   const editCalendarId = parseEntityId(edit ?? '');
   const statusCalendarId = parseEntityId(calendar ?? '');
   const topLevelError = error && !editCalendarId ? error : null;
+  const managePanelError = manageError ?? null;
+  const deletedStatusMessage =
+    locale === 'en' ? 'Calendar item deleted successfully.' : 'Запись календаря удалена.';
   const topLevelStatus = status === 'created' ? copy.statusCreated : null;
+  const manageStatus = status === 'deleted' ? deletedStatusMessage : null;
   const completeGalleryCount = calendars.filter(
     (calendarItem) =>
       calendarItem.imageUrl1?.trim() &&
@@ -310,6 +318,8 @@ export default async function AdminCalendarsPage({
   const createBadge = locale === 'en' ? 'Create' : 'Создание';
   const manageBadge = locale === 'en' ? 'Manage' : 'Управление';
   const openEditorLabel = locale === 'en' ? 'Open editor' : 'Открыть редактор';
+  const deleteLabel = locale === 'en' ? 'Delete' : 'Удалить';
+  const deletingLabel = locale === 'en' ? 'Deleting...' : 'Удаление...';
   const stats = [
     {
       label: locale === 'en' ? 'Entries' : 'Записи',
@@ -428,6 +438,16 @@ export default async function AdminCalendarsPage({
           tone="muted"
           headerContent={<span className={adminBadgeClassName}>{calendars.length}</span>}
         >
+          {manageStatus ? (
+            <div className="mb-5">
+              <AdminNotice tone="success">{manageStatus}</AdminNotice>
+            </div>
+          ) : null}
+          {managePanelError ? (
+            <div className="mb-5">
+              <AdminNotice tone="error">{managePanelError}</AdminNotice>
+            </div>
+          ) : null}
           {calendars.length === 0 ? (
             <AdminEmptyState
               badge={manageBadge}
@@ -496,6 +516,33 @@ export default async function AdminCalendarsPage({
                           <FiEdit3 className="mr-1" />
                           {openEditorLabel}
                         </Link>
+                        <form
+                          action={deleteCalendarAction}
+                          className="col-span-2 sm:col-span-1"
+                        >
+                          <input type="hidden" name="locale" value={locale} />
+                          <input type="hidden" name="contentLocale" value={contentLocale} />
+                          <input type="hidden" name="calendarId" value={calendarItem.id} />
+                          <input
+                            type="hidden"
+                            name="calendarTitle"
+                            value={calendarItem.slugSourceTitle ?? calendarItem.title}
+                          />
+                          <AdminDeleteButton
+                            className={adminCx(
+                              adminDangerButtonClassName,
+                              'min-h-8 w-full px-2.5 py-1.5 text-xs sm:w-auto',
+                            )}
+                            confirmMessage={
+                              locale === 'en'
+                                ? `Delete calendar item "${calendarItem.title}"? This cannot be undone.`
+                                : `Удалить запись календаря «${calendarItem.title}»? Это действие нельзя отменить.`
+                            }
+                            pendingLabel={deletingLabel}
+                          >
+                            {deleteLabel}
+                          </AdminDeleteButton>
+                        </form>
                       </div>
                     </div>
 

@@ -11,6 +11,7 @@ describe('ProductsService', () => {
   const productMock = {
     count: jest.fn(),
     create: jest.fn(),
+    delete: jest.fn(),
     findMany: jest.fn(),
     findUnique: jest.fn(),
     update: jest.fn(),
@@ -272,6 +273,33 @@ describe('ProductsService', () => {
     expect(prismaServiceMock.category.update).toHaveBeenNthCalledWith(2, {
       where: { id: 2 },
       data: { productCount: 3 },
+    });
+    expect(prismaServiceMock.$transaction).toHaveBeenCalledTimes(1);
+  });
+
+  it('deletes a product and refreshes its category count in one transaction', async () => {
+    prismaServiceMock.product.findUnique.mockResolvedValue(baseProduct);
+    prismaServiceMock.product.delete.mockResolvedValue(baseProduct);
+    prismaServiceMock.product.count.mockResolvedValue(2);
+    prismaServiceMock.category.update.mockResolvedValue({
+      id: 1,
+      productCount: 2,
+    });
+
+    const deletedProduct = await service.remove(1);
+
+    expect(deletedProduct).toMatchObject({
+      id: 1,
+      categoryId: 1,
+      imageUrl: 'products/riza.webp',
+      imageUrlEn: 'products/riza-international.webp',
+    });
+    expect(prismaServiceMock.product.delete).toHaveBeenCalledWith({
+      where: { id: 1 },
+    });
+    expect(prismaServiceMock.category.update).toHaveBeenCalledWith({
+      where: { id: 1 },
+      data: { productCount: 2 },
     });
     expect(prismaServiceMock.$transaction).toHaveBeenCalledTimes(1);
   });

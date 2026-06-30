@@ -5,9 +5,11 @@ import {
   AdminShell,
   AdminWorkspace,
 } from '@/components/admin/AdminShell';
+import AdminDeleteButton from '@/components/admin/AdminDeleteButton';
 import {
   adminBadgeClassName,
   adminCx,
+  adminDangerButtonClassName,
   adminDetailsClassName,
   adminFieldClassName,
   adminFileInputClassName,
@@ -44,6 +46,7 @@ import { FiEdit3, FiExternalLink, FiGlobe } from 'react-icons/fi';
 
 import {
   createProductAction,
+  deleteProductAction,
   updateCategoryTranslationAction,
   updateProductAction,
 } from './actions';
@@ -55,6 +58,7 @@ type AdminPageSearchParams = {
   contentLocale?: string;
   edit?: string;
   error?: string;
+  manageError?: string;
   product?: string;
   status?: string;
 };
@@ -73,6 +77,12 @@ type ProductFormValues = Pick<
   | 'application'
   | 'applicationEn'
 >;
+
+function getCatalogDataLoadError(locale: string) {
+  return locale === 'en'
+    ? 'Could not load catalog data. Check that the backend API is running and try again.'
+    : 'Не удалось загрузить данные каталога. Проверьте, что backend API запущен, и обновите страницу.';
+}
 
 function ProductFormFields({
   contentLocale,
@@ -371,6 +381,7 @@ export default async function AdminProductsPage({
     contentLocale: contentLocaleParam,
     edit,
     error,
+    manageError,
     product,
     status,
   } = await searchParams;
@@ -378,15 +389,25 @@ export default async function AdminProductsPage({
   const contentLocaleLabel = getContentLocaleLabel(contentLocale);
   const adminCopy = getCatalogAdminCopy(locale);
   const catalogCopy = getCatalogCopy(locale);
-  const [categories, products] = await Promise.all([
+  const [categoriesResult, productsResult] = await Promise.allSettled([
     getCategories(contentLocale, noStoreApiFetchOptions, contentLocale),
     getProducts(undefined, contentLocale, noStoreApiFetchOptions, contentLocale),
   ]);
+  const categories = categoriesResult.status === 'fulfilled' ? categoriesResult.value : [];
+  const products = productsResult.status === 'fulfilled' ? productsResult.value : [];
+  const dataLoadError =
+    categoriesResult.status === 'rejected' || productsResult.status === 'rejected'
+      ? getCatalogDataLoadError(locale)
+      : null;
   const activeCategoryId = parseEntityId(category ?? '');
   const editProductId = parseEntityId(edit ?? '');
   const statusProductId = parseEntityId(product ?? '');
   const topLevelError = error && !editProductId ? error : null;
+  const managePanelError = manageError ?? null;
+  const deletedStatusMessage =
+    locale === 'en' ? 'Product deleted successfully.' : 'Товар успешно удален.';
   const topLevelStatus = status === 'created' ? adminCopy.statusCreated : null;
+  const manageStatus = status === 'deleted' ? deletedStatusMessage : null;
   const untranslatedCategories = categories.filter(
     (categoryItem) => !categoryItem.adminTranslation?.isComplete,
   ).length;
@@ -418,6 +439,8 @@ export default async function AdminProductsPage({
   const emptyManageTitle =
     locale === 'en' ? 'Categories will appear here' : 'Категории появятся здесь';
   const openEditorLabel = locale === 'en' ? 'Open editor' : 'Открыть редактор';
+  const deleteLabel = locale === 'en' ? 'Delete' : 'Удалить';
+  const deletingLabel = locale === 'en' ? 'Deleting...' : 'Удаление...';
   const editCategoryLabel = locale === 'en' ? 'Open translation form' : 'Открыть форму перевода';
   const stats = [
     {
@@ -485,6 +508,7 @@ export default async function AdminProductsPage({
         >
           <div className="space-y-4">
             {topLevelStatus ? <AdminNotice tone="success">{topLevelStatus}</AdminNotice> : null}
+            {dataLoadError ? <AdminNotice tone="error">{dataLoadError}</AdminNotice> : null}
             {topLevelError ? <AdminNotice tone="error">{topLevelError}</AdminNotice> : null}
           </div>
 
@@ -546,6 +570,21 @@ export default async function AdminProductsPage({
             </span>
           }
         >
+          {manageStatus ? (
+            <div className="mb-5">
+              <AdminNotice tone="success">{manageStatus}</AdminNotice>
+            </div>
+          ) : null}
+          {managePanelError ? (
+            <div className="mb-5">
+              <AdminNotice tone="error">{managePanelError}</AdminNotice>
+            </div>
+          ) : null}
+          {dataLoadError ? (
+            <div className="mb-5">
+              <AdminNotice tone="error">{dataLoadError}</AdminNotice>
+            </div>
+          ) : null}
           {categories.length === 0 ? (
             <AdminEmptyState
               badge={manageBadge}
@@ -758,6 +797,46 @@ export default async function AdminProductsPage({
                                         <FiEdit3 className="mr-1" />
                                         {openEditorLabel}
                                       </Link>
+                                      <form
+                                        action={deleteProductAction}
+                                        className="col-span-2 sm:col-span-1"
+                                      >
+                                        <input type="hidden" name="locale" value={locale} />
+                                        <input
+                                          type="hidden"
+                                          name="contentLocale"
+                                          value={contentLocale}
+                                        />
+                                        <input
+                                          type="hidden"
+                                          name="productId"
+                                          value={productItem.id}
+                                        />
+                                        <input
+                                          type="hidden"
+                                          name="categoryId"
+                                          value={productItem.categoryId}
+                                        />
+                                        <input
+                                          type="hidden"
+                                          name="productName"
+                                          value={productItem.slugSourceName ?? productItem.name}
+                                        />
+                                        <AdminDeleteButton
+                                          className={adminCx(
+                                            adminDangerButtonClassName,
+                                            'min-h-8 w-full px-2.5 py-1.5 text-xs sm:w-auto',
+                                          )}
+                                          confirmMessage={
+                                            locale === 'en'
+                                              ? `Delete product "${productItem.name}"? This cannot be undone.`
+                                              : `Удалить товар «${productItem.name}»? Это действие нельзя отменить.`
+                                          }
+                                          pendingLabel={deletingLabel}
+                                        >
+                                          {deleteLabel}
+                                        </AdminDeleteButton>
+                                      </form>
                                     </div>
                                   </div>
 

@@ -298,6 +298,68 @@ export async function updateProductAction(formData: FormData) {
   );
 }
 
+export async function deleteProductAction(formData: FormData) {
+  const locale = normalizeLocale(formData.get('locale'));
+  const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
+  await requireAdminSession(locale);
+
+  const productId = normalizeText(formData.get('productId'));
+  const categoryId = normalizeText(formData.get('categoryId'));
+  const productName = normalizeText(formData.get('productName'));
+
+  if (!productId || !categoryId || !productName) {
+    redirect(
+      buildAdminRedirectPath(
+        locale,
+        {
+          contentLocale,
+          manageError:
+            locale === 'en' ? 'Select a product to delete.' : 'Выберите товар для удаления.',
+        },
+        'manage-products',
+      ),
+    );
+  }
+
+  const response = await adminApiFetch(`/api/products/${productId}`, {
+    method: 'DELETE',
+    headers: getAdminApiHeaders(),
+  });
+
+  if (!response.ok) {
+    const rawMessage = await getAdminApiErrorMessage(response, locale);
+
+    redirect(
+      buildAdminRedirectPath(
+        locale,
+        {
+          contentLocale,
+          manageError:
+            rawMessage ||
+            (locale === 'en' ? 'Failed to delete product.' : 'Не удалось удалить товар.'),
+        },
+        'manage-products',
+      ),
+    );
+  }
+
+  await revalidateCatalogPages({
+    categoryId,
+    productName,
+  });
+
+  redirect(
+    buildAdminRedirectPath(
+      locale,
+      {
+        contentLocale,
+        status: 'deleted',
+      },
+      'manage-products',
+    ),
+  );
+}
+
 export async function updateCategoryTranslationAction(formData: FormData) {
   const locale = normalizeLocale(formData.get('locale'));
   const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));

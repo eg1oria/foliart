@@ -366,4 +366,30 @@ export class ProductsService {
       return product;
     });
   }
+
+  async remove(id: number) {
+    return this.prisma.$transaction(async (tx) => {
+      const existingProduct = await tx.product.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          categoryId: true,
+          imageUrl: true,
+          imageUrlEn: true,
+        },
+      });
+
+      if (!existingProduct) {
+        throw new NotFoundException(`Product #${id} not found`);
+      }
+
+      await tx.product.delete({
+        where: { id },
+      });
+
+      await this.syncCategoryProductCount(tx, existingProduct.categoryId);
+
+      return existingProduct;
+    });
+  }
 }

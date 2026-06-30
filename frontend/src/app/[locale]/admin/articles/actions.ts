@@ -251,3 +251,67 @@ export async function updateArticleAction(formData: FormData) {
     ),
   );
 }
+
+export async function deleteArticleAction(formData: FormData) {
+  const locale = normalizeLocale(formData.get('locale'));
+  const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
+  await requireAdminSession(locale);
+
+  const articleId = normalizeText(formData.get('articleId'));
+  const articleTitle = normalizeText(formData.get('articleTitle'));
+
+  if (!articleId || !articleTitle) {
+    redirect(
+      buildAdminRedirectPath(
+        locale,
+        {
+          contentLocale,
+          manageError:
+            locale === 'en' ? 'Select an article to delete.' : 'Выберите статью для удаления.',
+        },
+        'manage-articles',
+      ),
+    );
+  }
+
+  const response = await adminApiFetch(`/api/articles/${articleId}`, {
+    method: 'DELETE',
+    headers: getAdminApiHeaders(),
+  });
+
+  if (!response.ok) {
+    const rawMessage = await getAdminApiErrorMessage(response, locale);
+
+    redirect(
+      buildAdminRedirectPath(
+        locale,
+        {
+          contentLocale,
+          manageError:
+            rawMessage ||
+            (locale === 'en'
+              ? 'Failed to delete article.'
+              : locale === 'fr'
+                ? "Impossible de supprimer l'article."
+                : 'Не удалось удалить статью.'),
+        },
+        'manage-articles',
+      ),
+    );
+  }
+
+  await revalidateArticlePages({
+    articleTitle,
+  });
+
+  redirect(
+    buildAdminRedirectPath(
+      locale,
+      {
+        contentLocale,
+        status: 'deleted',
+      },
+      'manage-articles',
+    ),
+  );
+}

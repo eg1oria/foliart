@@ -5,9 +5,11 @@ import {
   AdminShell,
   AdminWorkspace,
 } from '@/components/admin/AdminShell';
+import AdminDeleteButton from '@/components/admin/AdminDeleteButton';
 import {
   adminBadgeClassName,
   adminCx,
+  adminDangerButtonClassName,
   adminDetailsClassName,
   adminFieldClassName,
   adminFileInputClassName,
@@ -42,13 +44,14 @@ import { parseEntityId } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
 import { FiEdit3, FiExternalLink } from 'react-icons/fi';
 
-import { createArticleAction, updateArticleAction } from './actions';
+import { createArticleAction, deleteArticleAction, updateArticleAction } from './actions';
 
 type AdminPageSearchParams = {
   article?: string;
   contentLocale?: string;
   edit?: string;
   error?: string;
+  manageError?: string;
   status?: string;
 };
 
@@ -212,7 +215,8 @@ export default async function AdminArticlesPage({
   const { locale } = await params;
   await requireAdminSession(locale, `/${locale}/admin/articles`);
 
-  const { article, contentLocale: contentLocaleParam, edit, error, status } = await searchParams;
+  const { article, contentLocale: contentLocaleParam, edit, error, manageError, status } =
+    await searchParams;
   const contentLocale = normalizeContentLocale(contentLocaleParam);
   const contentLocaleLabel = getContentLocaleLabel(contentLocale);
   const copy = getArticlesCopy(locale);
@@ -220,7 +224,11 @@ export default async function AdminArticlesPage({
   const editArticleId = parseEntityId(edit ?? '');
   const statusArticleId = parseEntityId(article ?? '');
   const topLevelError = error && !editArticleId ? error : null;
+  const managePanelError = manageError ?? null;
+  const deletedStatusMessage =
+    locale === 'en' ? 'Article deleted successfully.' : 'Статья успешно удалена.';
   const topLevelStatus = status === 'created' ? copy.statusCreated : null;
+  const manageStatus = status === 'deleted' ? deletedStatusMessage : null;
   const latestArticle = articles.reduce<Article | null>((current, articleItem) => {
     if (!current) {
       return articleItem;
@@ -236,6 +244,8 @@ export default async function AdminArticlesPage({
   const createBadge = locale === 'en' ? 'Create' : 'Создание';
   const manageBadge = locale === 'en' ? 'Manage' : 'Управление';
   const openEditorLabel = locale === 'en' ? 'Open editor' : 'Открыть редактор';
+  const deleteLabel = locale === 'en' ? 'Delete' : 'Удалить';
+  const deletingLabel = locale === 'en' ? 'Deleting...' : 'Удаление...';
   const stats = [
     {
       label: locale === 'en' ? 'Published' : 'Опубликовано',
@@ -350,6 +360,16 @@ export default async function AdminArticlesPage({
           tone="muted"
           headerContent={<span className={adminBadgeClassName}>{articles.length}</span>}
         >
+          {manageStatus ? (
+            <div className="mb-5">
+              <AdminNotice tone="success">{manageStatus}</AdminNotice>
+            </div>
+          ) : null}
+          {managePanelError ? (
+            <div className="mb-5">
+              <AdminNotice tone="error">{managePanelError}</AdminNotice>
+            </div>
+          ) : null}
           {articles.length === 0 ? (
             <AdminEmptyState
               badge={manageBadge}
@@ -429,6 +449,33 @@ export default async function AdminArticlesPage({
                               <FiEdit3 className="mr-1" />
                               {openEditorLabel}
                             </Link>
+                            <form
+                              action={deleteArticleAction}
+                              className="col-span-2 sm:col-span-1"
+                            >
+                              <input type="hidden" name="locale" value={locale} />
+                              <input type="hidden" name="contentLocale" value={contentLocale} />
+                              <input type="hidden" name="articleId" value={articleItem.id} />
+                              <input
+                                type="hidden"
+                                name="articleTitle"
+                                value={articleItem.slugSourceTitle ?? articleItem.title}
+                              />
+                              <AdminDeleteButton
+                                className={adminCx(
+                                  adminDangerButtonClassName,
+                                  'min-h-8 w-full px-2.5 py-1.5 text-xs sm:w-auto',
+                                )}
+                                confirmMessage={
+                                  locale === 'en'
+                                    ? `Delete article "${articleItem.title}"? This cannot be undone.`
+                                    : `Удалить статью «${articleItem.title}»? Это действие нельзя отменить.`
+                                }
+                                pendingLabel={deletingLabel}
+                              >
+                                {deleteLabel}
+                              </AdminDeleteButton>
+                            </form>
                           </div>
                         </div>
 

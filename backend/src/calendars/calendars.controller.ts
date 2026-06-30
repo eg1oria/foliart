@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -327,5 +328,20 @@ export class CalendarsController {
       removeUploadedFiles(uploadedFiles.map((file) => file?.path));
       throw error;
     }
+  }
+
+  @Delete(':id')
+  @UseGuards(AdminApiGuard)
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    const deletedEntry = await this.calendarsService.remove(id);
+
+    removeUploadedFiles([
+      getStoredCalendarImagePath(deletedEntry.imageUrl1),
+      getStoredCalendarImagePath(deletedEntry.imageUrl2),
+      getStoredCalendarImagePath(deletedEntry.imageUrl3),
+      getStoredCalendarImagePath(deletedEntry.imageUrl4),
+    ]);
+
+    return { id: deletedEntry.id };
   }
 }

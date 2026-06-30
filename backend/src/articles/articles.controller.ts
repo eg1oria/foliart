@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -351,6 +352,16 @@ export class ArticlesController {
       removeUploadedFile(file?.path);
       throw error;
     }
+  }
+
+  @Delete(':id')
+  @UseGuards(AdminApiGuard)
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    const deletedArticle = await this.articlesService.remove(id);
+
+    removeUploadedFile(getStoredArticleImagePath(deletedArticle.imageUrl));
+
+    return { id: deletedArticle.id };
   }
 
   @Post(':id/views')

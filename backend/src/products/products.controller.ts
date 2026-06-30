@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -373,5 +374,18 @@ export class ProductsController {
     @Query('contentLocale') contentLocale?: string,
   ) {
     return this.productsService.findOne(id, locale, contentLocale);
+  }
+
+  @Delete(':id')
+  @UseGuards(AdminApiGuard)
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    const deletedProduct = await this.productsService.remove(id);
+
+    removeUploadedFiles([
+      getStoredProductImagePath(deletedProduct.imageUrl),
+      getStoredProductImagePath(deletedProduct.imageUrlEn),
+    ]);
+
+    return { id: deletedProduct.id };
   }
 }

@@ -6,6 +6,7 @@ import { getAdminApiHeaders } from '@/lib/adminApi';
 import { adminApiFetch, getAdminApiErrorMessage } from '@/lib/adminBackend';
 import { requireAdminSession } from '@/lib/adminAuthServer';
 import { calendarsCacheTag } from '@/lib/api';
+import { getCalendarHref } from '@/lib/calendars';
 import { normalizeContentLocale } from '@/lib/contentLocales';
 
 const calendarLocales = ['ru', 'en', 'fr', 'es'] as const;
@@ -158,6 +159,72 @@ export async function createCalendarAction(formData: FormData) {
         status: 'created',
       },
       'create-calendar',
+    ),
+  );
+}
+
+export async function deleteCalendarAction(formData: FormData) {
+  const locale = normalizeLocale(formData.get('locale'));
+  const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
+  await requireAdminSession(locale);
+
+  const calendarId = normalizeText(formData.get('calendarId'));
+  const calendarTitle = normalizeText(formData.get('calendarTitle'));
+
+  if (!calendarId || !calendarTitle) {
+    redirect(
+      buildAdminRedirectPath(
+        locale,
+        {
+          contentLocale,
+          manageError:
+            locale === 'en'
+              ? 'Select a calendar item to delete.'
+              : 'Выберите запись календаря для удаления.',
+        },
+        'manage-calendars',
+      ),
+    );
+  }
+
+  const response = await adminApiFetch(`/api/calendars/${calendarId}`, {
+    method: 'DELETE',
+    headers: getAdminApiHeaders(),
+  });
+
+  if (!response.ok) {
+    const rawMessage = await getAdminApiErrorMessage(response, locale);
+
+    redirect(
+      buildAdminRedirectPath(
+        locale,
+        {
+          contentLocale,
+          manageError:
+            rawMessage ||
+            (locale === 'en'
+              ? 'Failed to delete calendar item.'
+              : 'Не удалось удалить запись календаря.'),
+        },
+        'manage-calendars',
+      ),
+    );
+  }
+
+  revalidateCalendarPages();
+
+  for (const siteLocale of calendarLocales) {
+    revalidatePath(`/${siteLocale}${getCalendarHref({ title: calendarTitle })}`);
+  }
+
+  redirect(
+    buildAdminRedirectPath(
+      locale,
+      {
+        contentLocale,
+        status: 'deleted',
+      },
+      'manage-calendars',
     ),
   );
 }

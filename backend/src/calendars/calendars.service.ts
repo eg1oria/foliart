@@ -259,4 +259,27 @@ export class CalendarsService {
       },
     });
   }
+
+  async remove(id: number) {
+    const entry = await this.prisma.calendarEntry.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        imageUrl1: true,
+        imageUrl2: true,
+        imageUrl3: true,
+        imageUrl4: true,
+      },
+    });
+
+    if (!entry) {
+      throw new NotFoundException(`Calendar entry #${id} not found`);
+    }
+
+    await this.prisma.calendarEntry.delete({
+      where: { id },
+    });
+
+    return entry;
+  }
 }

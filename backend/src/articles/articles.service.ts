@@ -252,6 +252,26 @@ export class ArticlesService {
     });
   }
 
+  async remove(id: number) {
+    const article = await this.prisma.article.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        imageUrl: true,
+      },
+    });
+
+    if (!article) {
+      throw new NotFoundException(`Article #${id} not found`);
+    }
+
+    await this.prisma.article.delete({
+      where: { id },
+    });
+
+    return article;
+  }
+
   async incrementViewCount(id: number) {
     const exists = await this.prisma.article.findUnique({
       where: { id },
