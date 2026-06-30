@@ -8,6 +8,11 @@ function createPrisma(url: string) {
   return new PrismaClient({ adapter });
 }
 
+function withoutId<T extends { id: number }>(record: T) {
+  const { id: _id, ...data } = record;
+  return data;
+}
+
 async function main() {
   const targetUrl = process.env.DATABASE_URL ?? 'file:./dev.db';
   const bundledSnapshotUrl = process.env.SEED_DATABASE_URL ?? 'file:./dev.db';
@@ -15,18 +20,6 @@ async function main() {
   const target = createPrisma(targetUrl);
 
   try {
-    const [categoryCount, productCount] = await Promise.all([
-      target.category.count(),
-      target.product.count(),
-    ]);
-
-    if (categoryCount > 0 || productCount > 0) {
-      console.log(
-        `Skip seed: target database already has ${categoryCount} categories and ${productCount} products.`,
-      );
-      return;
-    }
-
     if (!existsSync(bundledSnapshotPath)) {
       console.log(
         `Skip seed: bundled snapshot database was not found at ${bundledSnapshotPath}.`,
@@ -44,118 +37,188 @@ async function main() {
     const source = createPrisma(bundledSnapshotUrl);
 
     try {
-      const [categories, products] = await Promise.all([
+      const [
+        categories,
+        categoryTranslations,
+        products,
+        productTranslations,
+        articles,
+        articleTranslations,
+        calendarEntries,
+        calendarEntryTranslations,
+      ] = await Promise.all([
         source.category.findMany({ orderBy: { id: 'asc' } }),
+        source.categoryTranslation.findMany({ orderBy: { id: 'asc' } }),
         source.product.findMany({ orderBy: { id: 'asc' } }),
+        source.productTranslation.findMany({ orderBy: { id: 'asc' } }),
+        source.article.findMany({ orderBy: { id: 'asc' } }),
+        source.articleTranslation.findMany({ orderBy: { id: 'asc' } }),
+        source.calendarEntry.findMany({ orderBy: { id: 'asc' } }),
+        source.calendarEntryTranslation.findMany({ orderBy: { id: 'asc' } }),
       ]);
 
-      if (categories.length === 0 && products.length === 0) {
+      const snapshotRows =
+        categories.length +
+        categoryTranslations.length +
+        products.length +
+        productTranslations.length +
+        articles.length +
+        articleTranslations.length +
+        calendarEntries.length +
+        calendarEntryTranslations.length;
+
+      if (snapshotRows === 0) {
         console.log('Skip seed: bundled snapshot database is empty.');
         return;
       }
 
+      const created = {
+        categories: 0,
+        categoryTranslations: 0,
+        products: 0,
+        productTranslations: 0,
+        articles: 0,
+        articleTranslations: 0,
+        calendarEntries: 0,
+        calendarEntryTranslations: 0,
+      };
+
       for (const category of categories) {
-        await target.category.upsert({
+        const exists = await target.category.findUnique({
           where: { id: category.id },
-          update: category,
-          create: category,
+          select: { id: true },
         });
-        await target.categoryTranslation.upsert({
-          where: {
-            categoryId_locale: {
-              categoryId: category.id,
-              locale: 'ru',
-            },
-          },
-          update: {
-            name: category.name,
-            description: category.description,
-          },
-          create: {
-            categoryId: category.id,
-            locale: 'ru',
-            name: category.name,
-            description: category.description,
-          },
-        });
-        await target.categoryTranslation.upsert({
-          where: {
-            categoryId_locale: {
-              categoryId: category.id,
-              locale: 'en',
-            },
-          },
-          update: {
-            name: category.nameEn,
-            description: category.descriptionEn,
-          },
-          create: {
-            categoryId: category.id,
-            locale: 'en',
-            name: category.nameEn,
-            description: category.descriptionEn,
-          },
-        });
+
+        if (!exists) {
+          await target.category.create({ data: category });
+          created.categories += 1;
+        }
       }
 
       for (const product of products) {
-        await target.product.upsert({
+        const exists = await target.product.findUnique({
           where: { id: product.id },
-          update: product,
-          create: product,
+          select: { id: true },
         });
-        await target.productTranslation.upsert({
+
+        if (!exists) {
+          await target.product.create({ data: product });
+          created.products += 1;
+        }
+      }
+
+      for (const article of articles) {
+        const exists = await target.article.findUnique({
+          where: { id: article.id },
+          select: { id: true },
+        });
+
+        if (!exists) {
+          await target.article.create({ data: article });
+          created.articles += 1;
+        }
+      }
+
+      for (const entry of calendarEntries) {
+        const exists = await target.calendarEntry.findUnique({
+          where: { id: entry.id },
+          select: { id: true },
+        });
+
+        if (!exists) {
+          await target.calendarEntry.create({ data: entry });
+          created.calendarEntries += 1;
+        }
+      }
+
+      for (const translation of categoryTranslations) {
+        const exists = await target.categoryTranslation.findUnique({
           where: {
-            productId_locale: {
-              productId: product.id,
-              locale: 'ru',
+            categoryId_locale: {
+              categoryId: translation.categoryId,
+              locale: translation.locale,
             },
           },
-          update: {
-            name: product.name,
-            description: product.description,
-            advantages: product.advantages,
-            composition: product.composition,
-            application: product.application,
-          },
-          create: {
-            productId: product.id,
-            locale: 'ru',
-            name: product.name,
-            description: product.description,
-            advantages: product.advantages,
-            composition: product.composition,
-            application: product.application,
-          },
+          select: { id: true },
         });
-        await target.productTranslation.upsert({
+
+        if (!exists) {
+          await target.categoryTranslation.create({
+            data: withoutId(translation),
+          });
+          created.categoryTranslations += 1;
+        }
+      }
+
+      for (const translation of productTranslations) {
+        const exists = await target.productTranslation.findUnique({
           where: {
             productId_locale: {
-              productId: product.id,
-              locale: 'en',
+              productId: translation.productId,
+              locale: translation.locale,
             },
           },
-          update: {
-            name: product.nameEn,
-            description: product.descriptionEn,
-            advantages: product.advantagesEn,
-            composition: product.compositionEn,
-            application: product.applicationEn,
-          },
-          create: {
-            productId: product.id,
-            locale: 'en',
-            name: product.nameEn,
-            description: product.descriptionEn,
-            advantages: product.advantagesEn,
-            composition: product.compositionEn,
-            application: product.applicationEn,
-          },
+          select: { id: true },
         });
+
+        if (!exists) {
+          await target.productTranslation.create({
+            data: withoutId(translation),
+          });
+          created.productTranslations += 1;
+        }
+      }
+
+      for (const translation of articleTranslations) {
+        const exists = await target.articleTranslation.findUnique({
+          where: {
+            articleId_locale: {
+              articleId: translation.articleId,
+              locale: translation.locale,
+            },
+          },
+          select: { id: true },
+        });
+
+        if (!exists) {
+          await target.articleTranslation.create({
+            data: withoutId(translation),
+          });
+          created.articleTranslations += 1;
+        }
+      }
+
+      for (const translation of calendarEntryTranslations) {
+        const exists = await target.calendarEntryTranslation.findUnique({
+          where: {
+            calendarEntryId_locale: {
+              calendarEntryId: translation.calendarEntryId,
+              locale: translation.locale,
+            },
+          },
+          select: { id: true },
+        });
+
+        if (!exists) {
+          await target.calendarEntryTranslation.create({
+            data: withoutId(translation),
+          });
+          created.calendarEntryTranslations += 1;
+        }
       }
 
       console.log(
-        `Seeded ${categories.length} categories and ${products.length} products from bundled snapshot.`,
+        [
+          'Seeded missing content from bundled snapshot:',
+          `${created.categories}/${categories.length} categories`,
+          `${created.categoryTranslations}/${categoryTranslations.length} category translations`,
+          `${created.products}/${products.length} products`,
+          `${created.productTranslations}/${productTranslations.length} product translations`,
+          `${created.articles}/${articles.length} articles`,
+          `${created.articleTranslations}/${articleTranslations.length} article translations`,
+          `${created.calendarEntries}/${calendarEntries.length} calendar entries`,
+          `${created.calendarEntryTranslations}/${calendarEntryTranslations.length} calendar entry translations`,
+        ].join(' '),
       );
     } finally {
       await source.$disconnect();

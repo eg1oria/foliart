@@ -109,6 +109,15 @@ curl -I http://127.0.0.1:3000/ru/catalog
 curl -I http://127.0.0.1:5000/api
 ```
 
+При старте backend автоматически применяет миграции и дозаполняет отсутствующий контент из bundled `backend/dev.db`.
+Если в уже поднятой production-базе не хватает статей, календарей или переводов, seed можно запустить вручную:
+
+```bash
+docker compose exec backend npx prisma db seed
+docker compose exec -u root frontend sh -lc 'rm -rf /app/.next/cache/* && chown -R nextjs:nodejs /app/.next/cache'
+docker compose restart frontend
+```
+
 ## 8. Временный Nginx для выдачи SSL
 
 ```bash
@@ -167,6 +176,9 @@ curl -I https://foliart.me/api/
 cd /opt/foliart
 git pull
 docker compose up -d --build backend frontend
+docker compose exec backend npx prisma db seed
+docker compose exec -u root frontend sh -lc 'rm -rf /app/.next/cache/* && chown -R nextjs:nodejs /app/.next/cache'
+docker compose restart frontend
 docker compose ps
 docker image prune -f
 ```
