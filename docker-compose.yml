@@ -55,18 +55,18 @@ services:
     build:
       context: ./backend
       args:
-        DATABASE_URL: file:/app/data/prod.db
-        ADMIN_API_SECRET: 'foliart-admin-api-secret-2026'
+        DATABASE_URL: ${DATABASE_URL:-file:/app/data/prod.db}
+        ADMIN_API_SECRET: ${ADMIN_API_SECRET:?Set ADMIN_API_SECRET in .env}
     expose:
       - '5000'
     ports:
       - '127.0.0.1:5000:5000'
     environment:
       - PORT=5000
-      - DATABASE_URL=file:/app/data/prod.db
-      - FRONTEND_URL=https://foliart.me,https://www.foliart.me
-      - ADMIN_API_SECRET=foliart-admin-api-secret-2026
-      - CONTACT_TO_EMAIL=${CONTACT_TO_EMAIL:-leontevegor57@gmail.com}
+      - DATABASE_URL=${DATABASE_URL:-file:/app/data/prod.db}
+      - FRONTEND_URL=${FRONTEND_URL:-https://foliart.me,https://www.foliart.me}
+      - ADMIN_API_SECRET=${ADMIN_API_SECRET:?Set ADMIN_API_SECRET in .env}
+      - CONTACT_TO_EMAIL=${CONTACT_TO_EMAIL:-}
       - CONTACT_FROM_EMAIL=${CONTACT_FROM_EMAIL:-}
       - SMTP_HOST=${SMTP_HOST:-}
       - SMTP_PORT=${SMTP_PORT:-587}
@@ -94,14 +94,14 @@ services:
     build:
       context: ./frontend
       args:
-        NEXT_PUBLIC_API_URL: /api
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
         BACKEND_URL: http://backend:5000
-        SITE_URL: https://foliart.me
-        NEXT_PUBLIC_SITE_URL: https://foliart.me
-        ADMIN_USERNAME: admin
-        ADMIN_PASSWORD: 'Foliart2026!'
-        ADMIN_SESSION_SECRET: 'foliart-admin-session-secret-2026'
-        ADMIN_API_SECRET: 'foliart-admin-api-secret-2026'
+        SITE_URL: ${SITE_URL:-https://foliart.me}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://foliart.me}
+        ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+        ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+        ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET:?Set ADMIN_SESSION_SECRET in .env}
+        ADMIN_API_SECRET: ${ADMIN_API_SECRET:?Set ADMIN_API_SECRET in .env}
     expose:
       - '3000'
     ports:
@@ -110,14 +110,14 @@ services:
       backend:
         condition: service_healthy
     environment:
-      - NEXT_PUBLIC_API_URL=/api
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-/api}
       - BACKEND_URL=http://backend:5000
-      - SITE_URL=https://foliart.me
-      - NEXT_PUBLIC_SITE_URL=https://foliart.me
-      - ADMIN_USERNAME=admin
-      - ADMIN_PASSWORD=Foliart2026!
-      - ADMIN_SESSION_SECRET=foliart-admin-session-secret-2026
-      - ADMIN_API_SECRET=foliart-admin-api-secret-2026
+      - SITE_URL=${SITE_URL:-https://foliart.me}
+      - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://foliart.me}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+      - ADMIN_SESSION_SECRET=${ADMIN_SESSION_SECRET:?Set ADMIN_SESSION_SECRET in .env}
+      - ADMIN_API_SECRET=${ADMIN_API_SECRET:?Set ADMIN_API_SECRET in .env}
     volumes:
       - frontend_next_cache:/app/.next/cache
     networks:
