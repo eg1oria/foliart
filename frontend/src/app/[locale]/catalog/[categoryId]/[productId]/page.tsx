@@ -378,7 +378,7 @@ export default async function ProductDetailsPage({
               <h2 className="text-2xl text-[#0b3e31]">{pageCopy.advantagesLabel}</h2>
 
               {advantages.length === 0 ? (
-                <p className="mt-6 max-w-3xl text-lg leading-8 text-[#55676d]">
+                <p className="mt-6 max-w-3xl text-[16px] leading-[1.7] text-[#55676d]">
                   {copy.advantagesEmpty}
                 </p>
               ) : (

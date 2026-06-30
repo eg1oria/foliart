@@ -85,8 +85,7 @@ export default function FullscreenMenu({
       <button
         type="button"
         onClick={() => setIsLocaleSwitcherOpen((prev) => !prev)}
-        className="flex flex-row items-center gap-1 p-2 text-[15px] text-white/85 uppercase transition-colors hover:text-white"
-      >
+        className="flex flex-row items-center gap-1 p-2 text-[15px] text-white/85 uppercase transition-colors hover:text-white">
         {locale}
         <FiChevronDown size={14} className="mt-0.5" />
       </button>
@@ -97,8 +96,7 @@ export default function FullscreenMenu({
             {localeOptions.map((localeOption, index) => (
               <li
                 key={localeOption}
-                className={`${index === 0 ? 'border-b border-gray-200' : ''} transition-colors hover:bg-gray-100`}
-              >
+                className={`${index === 0 ? 'border-b border-gray-200' : ''} transition-colors hover:bg-gray-100`}>
                 <button
                   type="button"
                   onClick={() => {
@@ -108,8 +106,7 @@ export default function FullscreenMenu({
                   disabled={isPending}
                   className={`block w-full cursor-pointer px-4 py-2 text-center text-sm ${
                     locale === localeOption ? 'font-bold text-[#074031]' : 'text-gray-700'
-                  }`}
-                >
+                  }`}>
                   {localeOption.toUpperCase()}
                 </button>
               </li>
@@ -129,8 +126,7 @@ export default function FullscreenMenu({
         backgroundColor: 'rgba(43, 43, 43, 0.8)',
         backdropFilter: 'blur(12px)',
         boxShadow: 'inset 0 0 40px 0px rgba(255,255,255,0.3)',
-      }}
-    >
+      }}>
       <div className="header-top flex flex-shrink-0 items-center justify-between border-b border-white/10 py-4 sm:px-6 md:py-5">
         <div className="flex items-center gap-3 sm:gap-4 md:gap-6">
           <div className="flex items-center gap-4 sm:gap-5 md:gap-6">
@@ -145,8 +141,7 @@ export default function FullscreenMenu({
           type="button"
           onClick={onClose}
           className="p-1 text-white/60 transition-colors hover:text-white"
-          aria-label={t('closeMenu')}
-        >
+          aria-label={t('closeMenu')}>
           <RxCross1 size={28} />
         </button>
       </div>
@@ -158,8 +153,7 @@ export default function FullscreenMenu({
               <Link
                 href="/catalog"
                 onClick={onClose}
-                className="block mb-6 text-lg font-light tracking-widest text-white uppercase transition-colors hover:text-white/60"
-              >
+                className="block mb-6 text-lg font-light tracking-widest text-white uppercase transition-colors hover:text-white/60">
                 {t('catalog')}
               </Link>
               <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -168,8 +162,7 @@ export default function FullscreenMenu({
                     key={`${item.href}-${item.name}`}
                     href={item.href}
                     onClick={onClose}
-                    className="group flex items-center gap-4"
-                  >
+                    className="group flex items-center gap-4">
                     <div className="relative h-18 w-18 flex-shrink-0 overflow-hidden rounded-full border border-white/20 bg-white/10 shadow-[0_12px_30px_-18px_rgba(0,0,0,0.95)] md:h-20 md:w-20">
                       {item.image ? (
                         <Image
@@ -207,15 +200,13 @@ export default function FullscreenMenu({
             <Link
               href="/"
               onClick={onClose}
-              className="mb-2 block text-lg font-light tracking-widest text-white uppercase transition-colors hover:text-white/60"
-            >
+              className="mb-2 block text-lg font-light tracking-widest text-white uppercase transition-colors hover:text-white/60">
               {t('home')}
             </Link>
             <Link
               href="/contacts"
               onClick={onClose}
-              className="mt-6 block text-lg font-light tracking-widest text-white uppercase transition-colors hover:text-white/60"
-            >
+              className="mt-6 block text-lg font-light tracking-widest text-white uppercase transition-colors hover:text-white/60">
               {t('contacts')}
             </Link>
           </div>
@@ -224,15 +215,13 @@ export default function FullscreenMenu({
             <Link
               href="/about"
               onClick={onClose}
-              className="mb-4 block text-lg font-light tracking-widest text-white uppercase transition-colors hover:text-white/60"
-            >
+              className="mb-4 block text-lg font-light tracking-widest text-white uppercase transition-colors hover:text-white/60">
               {t('about')}
             </Link>
             <Link
               href="/about/partnery"
               onClick={onClose}
-              className="block text-sm text-white/80 transition-colors hover:text-white"
-            >
+              className="block text-sm text-white/80 transition-colors hover:text-white">
               {t('partners')}
             </Link>
           </div>
@@ -241,8 +230,7 @@ export default function FullscreenMenu({
             <Link
               href="/articles"
               onClick={onClose}
-              className="block text-lg font-light tracking-widest text-white uppercase transition-colors hover:text-white/60"
-            >
+              className="block text-lg font-light tracking-widest text-white uppercase transition-colors hover:text-white/60">
               {t('articles')}
             </Link>
           </div>
@@ -258,8 +246,7 @@ export default function FullscreenMenu({
                     key={link.href}
                     href={link.href}
                     onClick={onClose}
-                    className="text-sm text-white/80 transition-colors hover:text-white"
-                  >
+                    className="text-sm text-white/80 transition-colors hover:text-white">
                     {link.name}
                   </Link>
                 ))}
@@ -274,8 +261,7 @@ export default function FullscreenMenu({
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
             <ContactModalTrigger
               onOpen={onClose}
-              className="inline-flex w-fit cursor-pointer items-center justify-center rounded-full bg-[#074031] px-7 py-3 text-sm text-white transition-colors hover:bg-[#074031]/80"
-            >
+              className="inline-flex w-fit cursor-pointer items-center justify-center rounded-full bg-[#074031] px-7 py-3 text-sm text-white transition-colors hover:bg-[#074031]/80">
               {footerT('callOrder')}
             </ContactModalTrigger>
             <SocialLinks
@@ -289,8 +275,7 @@ export default function FullscreenMenu({
             <Link
               href="/privacy"
               onClick={onClose}
-              className="text-xs text-white/40 underline underline-offset-2 transition-colors hover:text-white/70"
-            >
+              className="text-xs text-white/40 underline underline-offset-2 transition-colors hover:text-white/70">
               {footerT('privacy')}
             </Link>
           </div>

@@ -6,7 +6,7 @@ export default function Hero() {
   const locale = useLocale();
   const isRu = locale === 'ru';
   const logoSrc = isRu ? '/logo5.PNG' : '/logo_eng-w.webp';
-  const logoWidth = 440;
+  const logoWidth = 480;
   const logoHeight = isRu ? 238 : 262;
 
   const items = [
@@ -39,25 +39,19 @@ export default function Hero() {
         height={logoHeight}
         priority
         sizes="(max-width: 767px) calc(100vw - 32px), 520px"
-        className={`mt-0 h-auto ${isRu ? 'md:mt-20' : 'md:mt-13'}`}
+        className={`mt-0 h-auto ${isRu ? 'md:mt-24' : 'md:mt-18'}`}
         style={{
           width: `min(${logoWidth}px, calc(100vw - 32px))`,
           maxWidth: '100%',
         }}
       />
-      <h1
-        className="w-full max-w-3xl text-center text-xl text-white/85"
-        style={{ fontWeight: 100 }}
-      >
-        {t('title')}
-      </h1>
+      <h1 className="w-full max-w-3xl text-center text-xl text-white/85">{t('title')}</h1>
 
       <ul className="mt-20 grid w-full grid-cols-1 gap-8 justify-items-start tablet:justify-items-center tablet:grid-cols-2 xl:grid-cols-4">
         {items.map((item) => (
           <li
             key={item.title}
-            className="flex w-full min-w-0 items-start gap-5 tablet:max-w-[250px] tablet:flex-col tablet:items-center tablet:gap-9"
-          >
+            className="flex w-full min-w-0 items-start gap-5 tablet:max-w-[250px] tablet:flex-col tablet:items-center tablet:gap-9">
             <Image
               src={item.img}
               alt={item.title}
@@ -65,7 +59,7 @@ export default function Hero() {
               height={45}
               className="h-auto w-auto shrink-0"
             />
-            <span className="mt-2 min-w-0 flex-1 text-start text-white/85 tablet:text-center">
+            <span className="mt-2 min-w-0 flex-1 text-lg leading-6 text-start text-white/80 tablet:text-center">
               {item.title}
             </span>
           </li>

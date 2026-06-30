@@ -63,7 +63,7 @@ export default function Advantages() {
               style={{ maxWidth: item.width }}
             />
             <div>
-              <h3 className="text-3xl min-[1000px]:text-4xl text-center md:text-start min-[1000px]:text-start font-semibold">
+              <h3 className="text-3xl max-w-xl min-[1000px]:text-4xl text-center md:text-start min-[1000px]:text-start font-semibold">
                 {item.title}
               </h3>
               {item.desc && <p className="text-black/75 mt-4 max-w-2xl">{item.desc}</p>}

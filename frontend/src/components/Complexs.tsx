@@ -21,7 +21,7 @@ export default function Complexs() {
         className="relative z-10 w-full max-w-[450px] px-8 min-[900px]:px-0 min-[900px]:-mt-25"
       />
       <div className="relative z-10 max-w-2xl">
-        <h2 className="mt-6 text-center min-[900px]:text-start text-3xl font-bold min-[900px]:mt-10 min-[900px]:text-4xl">
+        <h2 className="mt-6 text-center min-[900px]:text-start text-4xl font-bold min-[900px]:mt-10 min-[900px]:text-5xl">
           {t('title')}
         </h2>
         <p className="mt-6 max-w-2xl text-center min-[900px]:text-start text-lg text-black/75 min-[900px]:text-xl">
