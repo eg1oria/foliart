@@ -109,7 +109,7 @@ export function getArticlesCopy(locale: string) {
 
   if (locale === 'fr') {
     return {
-      title: 'Articles utiles pour les plantes',
+      title: 'Articles utiles',
       emptyState:
         "Les articles apparaîtront ici après leur ajout dans le panneau d'administration.",
       readMore: "Lire l'article",
@@ -159,7 +159,7 @@ export function getArticlesCopy(locale: string) {
 
   if (locale === 'es') {
     return {
-      title: 'Artículos útiles para las plantas',
+      title: 'Artículos útiles',
       emptyState: 'Los artículos aparecerán aquí una vez añadidos en el panel de administración.',
       readMore: 'Leer artículo',
       backToArticles: 'Volver a la lista de artículos',
@@ -207,7 +207,7 @@ export function getArticlesCopy(locale: string) {
   }
 
   return {
-    title: 'Полезные статьи для растений',
+    title: 'Полезные статьи',
     emptyState: 'Статьи появятся здесь после добавления в админке.',
     readMore: 'Читать статью',
     backToArticles: 'К списку статей раздела',
