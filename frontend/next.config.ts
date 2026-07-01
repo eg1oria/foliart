@@ -5,10 +5,11 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 const backendUrl = (process.env.BACKEND_URL ?? 'http://localhost:3001').replace(/\/$/, '');
 const isStandaloneBuild = process.env.NEXT_OUTPUT === 'standalone';
 const isHttpsDeployment = (process.env.SITE_URL ?? '').startsWith('https://');
+const isReactCompilerEnabled = process.env.NEXT_REACT_COMPILER !== 'false';
 
 const createConfig = (): NextConfig => {
   const nextConfig: NextConfig = {
-    reactCompiler: true,
+    reactCompiler: isReactCompilerEnabled,
     output: isStandaloneBuild ? 'standalone' : undefined,
     poweredByHeader: false,
     experimental: {
