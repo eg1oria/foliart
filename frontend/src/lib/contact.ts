@@ -10,7 +10,7 @@ export type ContactRequestPayload = {
 };
 
 export const phoneInputMaxLength = 25;
-export const phoneInputPattern = '[+0-9().\\s-]{6,25}';
+export const phoneInputPattern = '[+0-9.\\(\\)\\s\\-]{6,25}';
 
 function getContactApiBaseUrl() {
   return (process.env.NEXT_PUBLIC_API_URL?.trim() || '/api').replace(/\/$/, '');
