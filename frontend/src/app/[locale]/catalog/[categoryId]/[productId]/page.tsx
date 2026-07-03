@@ -119,7 +119,8 @@ export default async function ProductDetailsPage({
   const productText = product.description.trim();
   const categoryText = category.description.trim();
   const overviewText = productText || categoryText || copy.detailsFallback;
-  const descriptionText = getTextBlocks(overviewText).join('\n');
+  const [leadDescriptionBlock, ...descriptionRestBlocks] = getTextBlocks(overviewText);
+  const descriptionText = descriptionRestBlocks.join('\n');
   const pageCopy =
     locale === 'ru'
       ? {
@@ -320,9 +321,12 @@ export default async function ProductDetailsPage({
           <div
             id="description"
             className="order-2 min-[1000px]:max-w-full  scroll-mt-32 lg:order-3">
-            <p className="whitespace-pre-line text-base leading-6 text-[#243238]">
-              {descriptionText}
-            </p>
+            <div className="text-base leading-6 text-[#243238]">
+              {leadDescriptionBlock ? (
+                <p className={descriptionText ? 'mb-3' : undefined}>{leadDescriptionBlock}</p>
+              ) : null}
+              {descriptionText ? <p className="whitespace-pre-line">{descriptionText}</p> : null}
+            </div>
             <a
               href="#composition"
               className="mt-6 inline-flex items-center gap-2 text-sm text-[#3b76f6] transition hover:text-[#0b5a45]">
