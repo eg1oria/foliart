@@ -119,8 +119,7 @@ export default async function ProductDetailsPage({
   const productText = product.description.trim();
   const categoryText = category.description.trim();
   const overviewText = productText || categoryText || copy.detailsFallback;
-  const overviewBlocks = getTextBlocks(overviewText);
-  const summaryBlocks = overviewBlocks.slice(0, 2);
+  const descriptionText = getTextBlocks(overviewText).join('\n');
   const pageCopy =
     locale === 'ru'
       ? {
@@ -321,11 +320,9 @@ export default async function ProductDetailsPage({
           <div
             id="description"
             className="order-2 min-[1000px]:max-w-full  scroll-mt-32 lg:order-3">
-            <div className="space-y-4 text-sm leading-7 text-[#243238]">
-              {summaryBlocks.map((block, index) => (
-                <p key={`${product.id}-summary-${index}`}>{block}</p>
-              ))}
-            </div>
+            <p className="whitespace-pre-line text-base leading-6 text-[#243238]">
+              {descriptionText}
+            </p>
             <a
               href="#composition"
               className="mt-6 inline-flex items-center gap-2 text-sm text-[#3b76f6] transition hover:text-[#0b5a45]">
@@ -356,7 +353,11 @@ export default async function ProductDetailsPage({
                     {pageCopy.compositionEmpty}
                   </p>
                 ) : (
-                  <CompositionList items={compositionItems} locale={locale} productId={product.id} />
+                  <CompositionList
+                    items={compositionItems}
+                    locale={locale}
+                    productId={product.id}
+                  />
                 )}
 
                 {certificateLink}
