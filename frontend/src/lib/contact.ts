@@ -3,6 +3,7 @@ export type ContactFormType = 'contact' | 'callback' | 'question';
 export type ContactRequestPayload = {
   name: string;
   phone?: string;
+  email?: string;
   comment?: string;
   formType: ContactFormType;
   pageUrl?: string;

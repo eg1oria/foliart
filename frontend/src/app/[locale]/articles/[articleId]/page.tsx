@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import HeroBreadcrumbs, { getBreadcrumbCopy } from '@/components/HeroBreadcrumbs';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
 import {
@@ -72,6 +73,7 @@ export default async function ArticleDetailsPage({
 }) {
   const { locale, articleId: rawArticleId } = await params;
   const copy = getArticlesCopy(locale);
+  const breadcrumbCopy = getBreadcrumbCopy(locale);
   const articles = await getArticles(locale);
   const article = findArticleByParam(articles, rawArticleId);
 
@@ -86,28 +88,8 @@ export default async function ArticleDetailsPage({
   const relatedArticles = articles.filter((item) => item.id !== article.id).slice(0, 2);
   const imageSrc = resolveMediaUrl(article.imageUrl);
   const breadcrumbSchema = buildBreadcrumbSchema(locale, [
-    {
-      name:
-        locale === 'ru'
-          ? 'Главная'
-          : locale === 'fr'
-            ? 'Accueil'
-            : locale === 'es'
-              ? 'Inicio'
-              : 'Home',
-      path: '/',
-    },
-    {
-      name:
-        locale === 'ru'
-          ? 'Статьи'
-          : locale === 'fr'
-            ? 'Articles'
-            : locale === 'es'
-              ? 'Artículos'
-              : 'Articles',
-      path: '/articles',
-    },
+    { name: breadcrumbCopy.home, path: '/' },
+    { name: breadcrumbCopy.articles, path: '/articles' },
     { name: article.title, path: getArticleHref(article) },
   ]);
   const articleSchema = buildArticleSchema({
@@ -147,6 +129,9 @@ export default async function ArticleDetailsPage({
         <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
 
         <div className="relative z-10 max-w-5xl">
+          <div className="mb-3 md:mb-5">
+            <HeroBreadcrumbs locale={locale} items={[{ label: breadcrumbCopy.articles }]} />
+          </div>
           <h1 className="max-w-5xl text-3xl font-bold leading-[1.18] text-white md:text-4xl">
             {article.title}
           </h1>

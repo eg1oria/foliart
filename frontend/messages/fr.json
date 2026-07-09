@@ -86,7 +86,7 @@
     }
   },
   "About": {
-    "title": "Notre société SARL «Astoria»",
+    "title": "Notre société Foliart",
     "subtitle": "Nous sommes un fabricant russe de complexes organo-minéraux complexes pour les besoins de l'agriculture",
     "nav": {
       "description": "Description",
@@ -110,6 +110,7 @@
     "namePlaceholder": "Prénom",
     "phonePlaceholder": "Téléphone",
     "phoneInvalid": "Veuillez entrer un numéro valide : chiffres, +, espaces, parenthèses ou tirets.",
+    "emailPlaceholder": "E-mail",
     "commentPlaceholder": "Commentaire",
     "submit": "Envoyer",
     "sending": "Envoi en cours...",
@@ -220,6 +221,6 @@
     "slogan": "FOLIART — L'ART DE LA FERTILISATION",
     "seoText": "Engrais organo-minéraux, systèmes de nutrition des plantes, fertilisation foliaire, micro-engrais et accompagnement agronomique pour l'agriculture.",
     "privacy": "Traitement des données personnelles",
-    "copyright": "© SARL \"ASTORIA\", 2023"
+    "copyright": "© SARL \"ASTORIA\", 2026"
   }
 }

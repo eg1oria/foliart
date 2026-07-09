@@ -11,6 +11,7 @@ export type ContactFormType = 'contact' | 'callback' | 'question';
 export type ContactRequestBody = {
   name?: unknown;
   phone?: unknown;
+  email?: unknown;
   comment?: unknown;
   formType?: unknown;
   pageUrl?: unknown;
@@ -20,6 +21,7 @@ export type ContactRequestBody = {
 type ContactPayload = {
   name: string;
   phone?: string;
+  email?: string;
   comment?: string;
   formType: ContactFormType;
   pageUrl?: string;
@@ -41,6 +43,7 @@ const formLabels: Record<ContactFormType, string> = {
   question: 'Форма вопроса',
 };
 const phoneAllowedPattern = /^[+0-9().\s-]+$/;
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 @Injectable()
 export class ContactService {
@@ -84,6 +87,7 @@ export class ContactService {
     const phone = this.normalizePhone(body.phone, {
       required: formType === 'callback' || formType === 'question',
     });
+    const email = this.normalizeEmail(body.email);
     const comment = this.normalizeString(body.comment, 'Comment', {
       required: false,
       maxLength: 3000,
@@ -104,6 +108,7 @@ export class ContactService {
     return {
       name,
       phone: phone || undefined,
+      email: email || undefined,
       comment: comment || undefined,
       formType,
       pageUrl: pageUrl || undefined,
@@ -158,6 +163,19 @@ export class ContactService {
     }
 
     return phone;
+  }
+
+  private normalizeEmail(value: unknown) {
+    const email = this.normalizeString(value, 'Email', {
+      required: false,
+      maxLength: 254,
+    });
+
+    if (email && !emailPattern.test(email)) {
+      throw new BadRequestException('Email is invalid');
+    }
+
+    return email;
   }
 
   private normalizeFormType(value: unknown): ContactFormType {
@@ -267,6 +285,10 @@ export class ContactService {
       lines.push(`Phone: ${payload.phone}`);
     }
 
+    if (payload.email) {
+      lines.push(`Email: ${payload.email}`);
+    }
+
     if (payload.comment) {
       lines.push('', 'Comment:', payload.comment);
     }
@@ -283,6 +305,7 @@ export class ContactService {
       ['Form', formLabels[payload.formType]],
       ['Name', payload.name],
       ['Phone', payload.phone],
+      ['Email', payload.email],
       ['Comment', payload.comment],
       ['Page', payload.pageUrl],
     ];

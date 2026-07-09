@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
+import HeroBreadcrumbs, { getBreadcrumbCopy } from '@/components/HeroBreadcrumbs';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
 import { getArticleHref, getArticlesCopy, formatArticleDate } from '@/lib/articles';
 import { getArticles } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
-import { buildPageMetadata } from '@/lib/seo';
+import { buildBreadcrumbSchema, buildPageMetadata, stringifyJsonLd } from '@/lib/seo';
 import Image from 'next/image';
 
 export async function generateMetadata({
@@ -40,10 +41,19 @@ export async function generateMetadata({
 export default async function ArticlesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const copy = getArticlesCopy(locale);
+  const breadcrumbCopy = getBreadcrumbCopy(locale);
   const articles = await getArticles(locale);
+  const breadcrumbSchema = buildBreadcrumbSchema(locale, [
+    { name: breadcrumbCopy.home, path: '/' },
+    { name: breadcrumbCopy.articles, path: '/articles' },
+  ]);
 
   return (
     <main className="pb-24">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: stringifyJsonLd(breadcrumbSchema) }}
+      />
       <section className="catalog-header relative flex flex-col justify-center overflow-hidden px-6 pb-16 pt-30 md:pt-60">
         <Image
           src="/articles-head.webp"
@@ -56,9 +66,12 @@ export default async function ArticlesPage({ params }: { params: Promise<{ local
         <div className="absolute inset-0 bg-black/55" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
 
-        <h1 className="relative z-10 max-w-4xl text-3xl font-bold text-white md:text-5xl">
-          {copy.title}
-        </h1>
+        <div className="relative z-10 w-full">
+          <div className="mb-3 md:mb-5">
+            <HeroBreadcrumbs locale={locale} items={[{ label: breadcrumbCopy.articles }]} />
+          </div>
+          <h1 className="max-w-4xl text-3xl font-bold text-white md:text-5xl">{copy.title}</h1>
+        </div>
       </section>
 
       <section className="catalog-header py-10">

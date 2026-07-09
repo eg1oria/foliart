@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import ContactModalTrigger from '@/components/ContactModalTrigger';
+import HeroBreadcrumbs, { getBreadcrumbCopy } from '@/components/HeroBreadcrumbs';
 import CompositionList from '@/components/catalog/CompositionList';
 import MediaImage from '@/components/catalog/MediaImage';
 import ProductImageLightbox from '@/components/catalog/ProductImageLightbox';
@@ -96,6 +97,7 @@ export default async function ProductDetailsPage({
 }) {
   const { locale, categoryId: rawCategoryId, productId: rawProductId } = await params;
   const copy = getCatalogCopy(locale);
+  const breadcrumbCopy = getBreadcrumbCopy(locale);
   const { category, product } = await getProductPageData(rawCategoryId, rawProductId, locale);
 
   if (rawCategoryId !== getCategorySlug(category) || rawProductId !== getProductSlug(product)) {
@@ -207,28 +209,8 @@ export default async function ProductDetailsPage({
   ) : null;
   const productPath = getProductHref(category, product);
   const breadcrumbSchema = buildBreadcrumbSchema(locale, [
-    {
-      name:
-        locale === 'ru'
-          ? 'Главная'
-          : locale === 'fr'
-            ? 'Accueil'
-            : locale === 'es'
-              ? 'Inicio'
-              : 'Home',
-      path: '/',
-    },
-    {
-      name:
-        locale === 'ru'
-          ? 'Каталог'
-          : locale === 'fr'
-            ? 'Catalogue'
-            : locale === 'es'
-              ? 'Catálogo'
-              : 'Catalog',
-      path: '/catalog',
-    },
+    { name: breadcrumbCopy.home, path: '/' },
+    { name: breadcrumbCopy.catalog, path: '/catalog' },
     { name: category.name, path: getCategoryHref(category) },
     { name: product.name, path: productPath },
   ]);
@@ -257,7 +239,6 @@ export default async function ProductDetailsPage({
           src={categoryImage}
           alt={category.name}
           fill
-          priority
           sizes="100vw"
           className="object-cover"
           emptyState={
@@ -267,7 +248,20 @@ export default async function ProductDetailsPage({
         <div className="absolute inset-0 bg-black/45" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/55 to-transparent" />
 
-        <h1 className="relative z-10 text-[40px] font-bold text-white">{product.name}</h1>
+        <div className="relative z-10 w-full">
+          <div className="mb-3 md:mb-5">
+            <HeroBreadcrumbs
+              locale={locale}
+              items={[
+                { label: breadcrumbCopy.catalog, href: '/catalog' },
+                { label: category.name },
+              ]}
+            />
+          </div>
+          <h1 className="text-start text-3xl font-bold text-white md:text-[40px]">
+            {product.name}
+          </h1>
+        </div>
       </div>
 
       <section className="site-gutter py-2 md:py-12">

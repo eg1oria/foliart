@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import HeroBreadcrumbs, { getBreadcrumbCopy } from '@/components/HeroBreadcrumbs';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
 import { getCategories, getProducts } from '@/lib/api';
@@ -9,7 +10,7 @@ import {
   getCategoryProductCount,
 } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
-import { buildPageMetadata } from '@/lib/seo';
+import { buildBreadcrumbSchema, buildPageMetadata, stringifyJsonLd } from '@/lib/seo';
 import Image from 'next/image';
 
 export async function generateMetadata({
@@ -39,6 +40,7 @@ export async function generateMetadata({
 export default async function CatalogPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const copy = getCatalogCopy(locale);
+  const breadcrumbCopy = getBreadcrumbCopy(locale);
   const categoryCta =
     locale === 'ru'
       ? 'Посмотреть каталог'
@@ -51,9 +53,17 @@ export default async function CatalogPage({ params }: { params: Promise<{ locale
     getCategories(locale),
     getProducts(undefined, locale),
   ]);
+  const breadcrumbSchema = buildBreadcrumbSchema(locale, [
+    { name: breadcrumbCopy.home, path: '/' },
+    { name: breadcrumbCopy.catalog, path: '/catalog' },
+  ]);
 
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: stringifyJsonLd(breadcrumbSchema) }}
+      />
       <div className="catalog-header relative flex flex-col items-start justify-center overflow-hidden px-6 py-14 pt-30 md:pt-60 text-center">
         <Image
           src="/catalog-head.webp"
@@ -65,7 +75,10 @@ export default async function CatalogPage({ params }: { params: Promise<{ locale
         />
         <div className="absolute inset-0 bg-black/50 -z-10" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-30 bg-gradient-to-b from-black/60 via-black/40 to-transparent" />
-        <div className="relative z-10">
+        <div className="relative z-10 w-full">
+          <div className="mb-3 md:mb-5">
+            <HeroBreadcrumbs locale={locale} items={[{ label: breadcrumbCopy.catalog }]} />
+          </div>
           <h1 className="font-bold text-3xl md:text-5xl text-white mb-4 text-start">
             {copy.title}
           </h1>
@@ -104,8 +117,7 @@ export default async function CatalogPage({ params }: { params: Promise<{ locale
                 key={category.id}
                 href={getCategoryHref(category)}
                 aria-label={`${category.name}: ${categoryCta}`}
-                className={cardClassName}
-              >
+                className={cardClassName}>
                 <div className="absolute inset-0">
                   <MediaImage
                     src={imageSrc}

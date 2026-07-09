@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import ContactForm from '@/components/ContactForm';
+import ContactEmailForm from '@/components/ContactEmailForm';
 import { Link } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
@@ -121,7 +121,7 @@ export default function Contacts() {
             <div className="absolute inset-0 bg-black/50 -z-10" />
 
             <div className="">
-              <ContactForm />
+              <ContactEmailForm />
             </div>
             <div className="">
               <div className="mb-5 h-1 w-[40%] rounded-sm bg-gray-400" />

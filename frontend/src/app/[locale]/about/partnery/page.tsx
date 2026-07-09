@@ -52,56 +52,27 @@ export default function Partners() {
           <span className="font-bold text-black/65">г.Краснодар</span>
           <a
             href="tel:+78612247537"
-            className="flex items-center gap-2 text-blue-500 hover:underline"
-          >
+            className="flex items-center gap-2 text-blue-500 hover:underline">
             <FaPhoneAlt className="inline-block text-black" />
             +7 (861) 224-75-37
           </a>
           <a
             href="tel:+79898024378"
-            className="flex items-center gap-2 text-blue-500 hover:underline"
-          >
+            className="flex items-center gap-2 text-blue-500 hover:underline">
             <FaPhoneAlt className="inline-block text-black" />
             +7 (989) 802 43 78
           </a>
           <a
             href="mailto:info@ecogreen.ru"
-            className="flex items-center gap-2 text-blue-500 hover:underline"
-          >
+            className="flex items-center gap-2 text-blue-500 hover:underline">
             <IoIosMail className="inline-block text-black" />
             info@ecogreen.ru
           </a>
           <a
             href="https://ecogreen.ru"
-            className="flex items-center gap-2 text-blue-500 hover:underline"
-          >
+            className="flex items-center gap-2 text-blue-500 hover:underline">
             <TbArrowBackUp className="inline-block scale-x-[-1] text-black" />
             https://ecogreen.ru
-          </a>
-        </div>
-
-        <div className="flex flex-col items-center gap-4 border-5 border-gray-400 p-10 pb-20 text-center">
-          <Image
-            src="/partners1.webp"
-            alt="Imperia Agro Krym partner logo"
-            width={120}
-            height={150}
-          />
-          <p className="text-blue-600 font-medium">ООО &quot;Империя Агро Крым&quot;</p>
-          <span className="font-bold text-black/65">г. Симферополь</span>
-          <a
-            href="tel:+79787701041"
-            className="mt-auto flex items-center gap-2 text-blue-500 hover:underline"
-          >
-            <FaPhoneAlt className="inline-block text-black" />
-            +7 (978) 770-10-41
-          </a>
-          <a
-            href="mailto:iimperia-agro-Crimea@mail.ru"
-            className="flex items-center gap-2 text-blue-500 hover:underline"
-          >
-            <IoIosMail className="inline-block text-black" />
-            iimperia-agro-Crimea@mail.ru
           </a>
         </div>
       </div>

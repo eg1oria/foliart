@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
+import HeroBreadcrumbs, { getBreadcrumbCopy } from '@/components/HeroBreadcrumbs';
 import CategoryDropdown from '@/components/catalog/CategoryDropdown';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
 import { getCategories, getProducts } from '@/lib/api';
 import {
   findCategoryByParam,
-  formatProductCount,
   getCatalogCopy,
   getProductHref,
   getCategoryHref,
@@ -72,6 +72,7 @@ export default async function CategoryProductsPage({
 }) {
   const { locale, categoryId: rawCategoryId } = await params;
   const copy = getCatalogCopy(locale);
+  const breadcrumbCopy = getBreadcrumbCopy(locale);
   const pageCopy =
     locale === 'ru'
       ? {
@@ -117,28 +118,8 @@ export default async function CategoryProductsPage({
     }),
   );
   const breadcrumbSchema = buildBreadcrumbSchema(locale, [
-    {
-      name:
-        locale === 'ru'
-          ? 'Главная'
-          : locale === 'fr'
-            ? 'Accueil'
-            : locale === 'es'
-              ? 'Inicio'
-              : 'Home',
-      path: '/',
-    },
-    {
-      name:
-        locale === 'ru'
-          ? 'Каталог'
-          : locale === 'fr'
-            ? 'Catalogue'
-            : locale === 'es'
-              ? 'Catálogo'
-              : 'Catalog',
-      path: '/catalog',
-    },
+    { name: breadcrumbCopy.home, path: '/' },
+    { name: breadcrumbCopy.catalog, path: '/catalog' },
     { name: category.name, path: getCategoryHref(category) },
   ]);
 
@@ -163,14 +144,22 @@ export default async function CategoryProductsPage({
 
         <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(7,35,28,0.88),rgba(7,35,28,0.48),rgba(7,35,28,0.72))]" />
 
-        <div className="relative z-10 max-w-3xl">
-          <h1 className="mb-4 font-bold text-white text-start md:text-5xl text-3xl">
-            {category.name}
-          </h1>
-          <p className="mb-2 text-sm text-white/90 text-start text-xl">{category.description}</p>
-          <p className="mt-5 text-base font-medium text-start text-white/88">
-            {formatProductCount(products.length, locale)}
-          </p>
+        <div className="relative z-10 w-full">
+          <div className="mb-3 md:mb-5">
+            <HeroBreadcrumbs
+              locale={locale}
+              items={[
+                { label: breadcrumbCopy.catalog, href: '/catalog' },
+                { label: category.name },
+              ]}
+            />
+          </div>
+          <div className="max-w-3xl">
+            <h1 className="mb-4 font-bold text-white text-start md:text-5xl text-3xl">
+              {category.name}
+            </h1>
+            <p className="mb-2 text-sm text-white/90 text-start text-xl">{category.description}</p>
+          </div>
         </div>
       </div>
 
