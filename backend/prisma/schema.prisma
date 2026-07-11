@@ -41,22 +41,24 @@ model Product {
 }
 
 model Article {
-  id           Int                  @id @default(autoincrement())
-  slug         String?              @unique
-  title        String
-  titleEn      String               @default("")
-  excerpt      String               @default("")
-  excerptEn    String               @default("")
-  content      String
-  contentEn    String               @default("")
-  imageUrl     String
-  publishedAt  DateTime             @default(now())
-  viewCount    Int                  @default(0)
-  coverMediaId String?
-  updatedAt    DateTime             @updatedAt
-  translations ArticleTranslation[]
-  drafts       ArticleDraft[]
-  media        ArticleMedia[]
+  id                  Int                  @id @default(autoincrement())
+  slug                String?              @unique
+  title               String
+  titleEn             String               @default("")
+  excerpt             String               @default("")
+  excerptEn           String               @default("")
+  content             String
+  contentEn           String               @default("")
+  imageUrl            String
+  publishedAt         DateTime             @default(now())
+  viewCount           Int                  @default(0)
+  coverMediaId        String?
+  imageLayoutJson     Json?
+  imageLayoutRevision Int                  @default(0)
+  updatedAt           DateTime             @updatedAt
+  translations        ArticleTranslation[]
+  drafts              ArticleDraft[]
+  media               ArticleMedia[]
 }
 
 model CalendarEntry {
@@ -138,6 +140,7 @@ model ArticleDraft {
   contentSchemaVersion Int            @default(1)
   publishedAt          DateTime       @default(now())
   coverMediaId         String?
+  imageLayoutRevision  Int            @default(0)
   version              Int            @default(0)
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt

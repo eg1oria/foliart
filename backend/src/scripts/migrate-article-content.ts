@@ -17,6 +17,10 @@ import {
   articleJsonToHtml,
 } from '../articles/article-tiptap';
 import { slugifyArticleTitle } from '../articles/article-slug.util';
+import {
+  applyArticleImageLayout,
+  createArticleImageLayout,
+} from '../articles/article-image-layout';
 
 const execFileAsync = promisify(execFile);
 
@@ -333,6 +337,47 @@ async function main() {
             articleId: article.id,
             locale: translation.locale,
             message: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+
+      if (args.apply && !article.imageLayoutJson) {
+        const migratedTranslations = await prisma.articleTranslation.findMany({
+          where: { articleId: article.id },
+          select: { contentJson: true },
+          orderBy: { locale: 'asc' },
+        });
+        const imageLayout = createArticleImageLayout(
+          migratedTranslations.map((translation) =>
+            translation.contentJson
+              ? normalizeArticleDocument(translation.contentJson)
+              : null,
+          ),
+        );
+        await prisma.article.update({
+          where: { id: article.id },
+          data: {
+            imageLayoutJson: imageLayout,
+            imageLayoutRevision: imageLayout.placements.length ? 1 : 0,
+          },
+        });
+
+        const imageLayoutRevision = imageLayout.placements.length ? 1 : 0;
+        const drafts = await prisma.articleDraft.findMany({
+          where: { articleId: article.id },
+          select: { id: true, contentJson: true },
+        });
+        for (const draft of drafts) {
+          await prisma.articleDraft.update({
+            where: { id: draft.id },
+            data: {
+              contentJson: applyArticleImageLayout(
+                normalizeArticleDocument(draft.contentJson),
+                imageLayout,
+              ),
+              imageLayoutRevision,
+              version: { increment: 1 },
+            },
           });
         }
       }

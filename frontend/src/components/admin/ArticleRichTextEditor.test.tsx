@@ -11,6 +11,17 @@ const editorMock = vi.hoisted(() => {
   let nodes: Array<{ type: string; attrs?: Record<string, unknown>; nodeSize: number }> = [];
   const notify = () => options.onUpdate?.({ editor });
   const commands = {
+    setContent: (
+      document: {
+        content?: Array<{ type: string; attrs?: Record<string, unknown> }>;
+      },
+    ) => {
+      nodes = (document.content ?? []).map((node) => ({
+        ...node,
+        nodeSize: 1,
+      }));
+      return true;
+    },
     insertContentAt: (position: number | { from: number; to: number }, content: { type: string; attrs?: Record<string, unknown> }) => {
       if (typeof position === 'object') {
         const index = nodes.findIndex((node) => node.attrs?.uploadId === nodes[position.from]?.attrs?.uploadId);

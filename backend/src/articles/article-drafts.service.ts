@@ -17,6 +17,12 @@ import {
 } from './article-content-json';
 import { slugifyArticleTitle } from './article-slug.util';
 import {
+  applyArticleImageLayout,
+  articleImageLayoutsEqual,
+  createArticleImageLayout,
+  normalizeArticleImageLayout,
+} from './article-image-layout';
+import {
   isSupportedContentLocale,
   normalizeContentLocale,
 } from '../content-locales';
@@ -25,6 +31,7 @@ import { ArticleMediaService } from './article-media.service';
 
 type SaveDraftInput = {
   version: number;
+  imageLayoutRevision?: number;
   title?: unknown;
   excerpt?: unknown;
   contentJson?: unknown;
@@ -99,6 +106,62 @@ export class ArticleDraftsService {
     return draft;
   }
 
+  private mergeCurrentImages(
+    document: JSONContent,
+    imageLayout: unknown,
+    draftMediaIds: Set<string>,
+  ) {
+    const currentLayout = normalizeArticleImageLayout(imageLayout);
+    const draftLayout = createArticleImageLayout([document], {
+      allowPendingUploads: true,
+    });
+    const keys = new Set(
+      currentLayout.placements.map((placement) => placement.key),
+    );
+    for (const placement of draftLayout.placements) {
+      const mediaId =
+        typeof placement.node.attrs?.mediaId === 'string'
+          ? placement.node.attrs.mediaId
+          : '';
+      if (!draftMediaIds.has(mediaId) || keys.has(placement.key)) continue;
+      currentLayout.placements.push(placement);
+      keys.add(placement.key);
+    }
+    return applyArticleImageLayout(document, currentLayout, {
+      allowPendingUploads: true,
+    });
+  }
+
+  private async synchronizeDraftImages(id: string) {
+    const draft = await this.prisma.articleDraft.findUnique({
+      where: { id },
+      include: {
+        article: true,
+        media: { where: { status: 'DRAFT', role: 'CONTENT' } },
+      },
+    });
+    if (
+      !draft?.article ||
+      draft.imageLayoutRevision === draft.article.imageLayoutRevision
+    ) {
+      return;
+    }
+    await this.prisma.articleDraft.updateMany({
+      where: { id, version: draft.version },
+      data: {
+        contentJson: this.mergeCurrentImages(
+          normalizeArticleDocument(draft.contentJson, {
+            allowPendingUploads: true,
+          }),
+          draft.article.imageLayoutJson,
+          new Set(draft.media.map((media) => media.id)),
+        ),
+        imageLayoutRevision: draft.article.imageLayoutRevision,
+        version: { increment: 1 },
+      },
+    });
+  }
+
   async list() {
     return this.prisma.articleDraft.findMany({
       include: { media: { where: { status: 'DRAFT' } } },
@@ -107,6 +170,7 @@ export class ArticleDraftsService {
   }
 
   async get(id: string) {
+    await this.synchronizeDraftImages(id);
     return this.serializeDraft(id);
   }
 
@@ -119,7 +183,7 @@ export class ArticleDraftsService {
       const existing = await this.prisma.articleDraft.findUnique({
         where: { articleId_locale: { articleId, locale } },
       });
-      if (existing) return this.serializeDraft(existing.id);
+      if (existing) return this.get(existing.id);
 
       const article = await this.prisma.article.findUnique({
         where: { id: articleId },
@@ -144,6 +208,16 @@ export class ArticleDraftsService {
           articleHtmlToJson(legacyHtml || '<p></p>'),
         );
       }
+      const imageLayout =
+        article.imageLayoutJson ??
+        createArticleImageLayout(
+          article.translations.map((translation) =>
+            translation.contentJson
+              ? normalizeArticleDocument(translation.contentJson)
+              : null,
+          ),
+        );
+      document = applyArticleImageLayout(document, imageLayout);
       const created = await this.prisma.articleDraft.create({
         data: {
           id: randomUUID(),
@@ -159,6 +233,7 @@ export class ArticleDraftsService {
           contentSchemaVersion: ARTICLE_CONTENT_SCHEMA_VERSION,
           publishedAt: article.publishedAt,
           coverMediaId: article.coverMediaId,
+          imageLayoutRevision: article.imageLayoutRevision,
         },
       });
       return this.serializeDraft(created.id);
@@ -179,11 +254,28 @@ export class ArticleDraftsService {
     if (!Number.isInteger(input.version) || input.version < 0) {
       throw new BadRequestException('Draft version is invalid');
     }
-    const draft = await this.prisma.articleDraft.findUnique({ where: { id } });
+    const draft = await this.prisma.articleDraft.findUnique({
+      where: { id },
+      include: {
+        article: true,
+        media: { where: { status: 'DRAFT', role: 'CONTENT' } },
+      },
+    });
     if (!draft) throw new NotFoundException('Article draft not found');
-    const document = normalizeArticleDocument(input.contentJson, {
+    let document = normalizeArticleDocument(input.contentJson, {
       allowPendingUploads: true,
     });
+    const inputImageLayoutRevision = Number(input.imageLayoutRevision);
+    if (
+      draft.article &&
+      inputImageLayoutRevision !== draft.article.imageLayoutRevision
+    ) {
+      document = this.mergeCurrentImages(
+        document,
+        draft.article.imageLayoutJson,
+        new Set(draft.media.map((media) => media.id)),
+      );
+    }
     const coverMediaId =
       typeof input.coverMediaId === 'string' && input.coverMediaId
         ? input.coverMediaId
@@ -211,6 +303,8 @@ export class ArticleDraftsService {
         title: plainText(input.title, 300),
         excerpt: plainText(input.excerpt, 220),
         contentJson: document,
+        imageLayoutRevision:
+          draft.article?.imageLayoutRevision ?? draft.imageLayoutRevision,
         publishedAt: parsePublishedAt(input.publishedAt, draft.publishedAt),
         coverMediaId,
         version: { increment: 1 },
@@ -249,6 +343,14 @@ export class ArticleDraftsService {
       throw new ConflictException(
         'Article draft was changed in another session',
       );
+    if (
+      draft.article &&
+      draft.imageLayoutRevision !== draft.article.imageLayoutRevision
+    ) {
+      throw new ConflictException(
+        'Article images changed in another language. Reload the draft before publishing.',
+      );
+    }
     const document = normalizeArticleDocument(draft.contentJson);
     if (hasPendingArticleUploads(document))
       throw new BadRequestException('Finish or remove pending image uploads');
@@ -297,6 +399,11 @@ export class ArticleDraftsService {
 
     const excerpt = createExcerpt(draft.excerpt.trim(), canonicalDocument);
     const contentJson = canonicalDocument as Prisma.InputJsonValue;
+    const imageLayout = createArticleImageLayout([canonicalDocument]);
+    const imageLayoutChanged = !articleImageLayoutsEqual(
+      draft.article?.imageLayoutJson,
+      imageLayout,
+    );
     const slug = draft.article?.slug ?? (await this.uniqueSlug(title));
     const attachedIds = new Set([...mediaIds, ...(cover ? [cover.id] : [])]);
     const pendingDeleteIds = draft.media
@@ -314,6 +421,8 @@ export class ArticleDraftsService {
             content: '',
             imageUrl: cover!.storagePath,
             coverMediaId: cover!.id,
+            imageLayoutJson: imageLayout,
+            imageLayoutRevision: imageLayout.placements.length ? 1 : 0,
             publishedAt: draft.publishedAt,
           },
         });
@@ -326,6 +435,12 @@ export class ArticleDraftsService {
             publishedAt: draft.publishedAt,
             ...(cover
               ? { coverMediaId: cover.id, imageUrl: cover.storagePath }
+              : {}),
+            ...(imageLayoutChanged
+              ? {
+                  imageLayoutJson: imageLayout,
+                  imageLayoutRevision: { increment: 1 },
+                }
               : {}),
             ...(draft.locale === 'ru' ? { title, excerpt } : {}),
             ...(draft.locale === 'en'

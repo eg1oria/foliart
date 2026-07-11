@@ -60,6 +60,7 @@ export class ArticleDraftsController {
   ) {
     return this.drafts.save(draftId, {
       version: Number(body.version),
+      imageLayoutRevision: Number(body.imageLayoutRevision),
       title: body.title,
       excerpt: body.excerpt,
       contentJson: body.contentJson,

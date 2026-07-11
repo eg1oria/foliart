@@ -30,6 +30,7 @@ type ArticleDraft = {
   publishedAt: string;
   coverMediaId: string | null;
   version: number;
+  imageLayoutRevision: number;
   updatedAt: string;
   media: DraftMedia[];
 };
@@ -75,6 +76,7 @@ export default function ArticleDraftForm({
   const [cover, setCover] = useState<DraftMedia | null>(null);
   const [editorDocument, setEditorDocument] = useState<ArticleDocument>(EMPTY_ARTICLE_DOCUMENT);
   const documentRef = useRef<ArticleDocument>(EMPTY_ARTICLE_DOCUMENT);
+  const imageLayoutRevisionRef = useRef(0);
   const fieldsRef = useRef({ title: '', excerpt: '', publishedAt: '' });
   const dirtyRef = useRef(false);
   const savingRef = useRef<Promise<ArticleDraft> | null>(null);
@@ -103,6 +105,7 @@ export default function ArticleDraftForm({
     setExcerpt(nextExcerpt);
     setPublishedAt(nextDate);
     documentRef.current = nextDocument;
+    imageLayoutRevisionRef.current = value.imageLayoutRevision;
     setEditorDocument(nextDocument);
     fieldsRef.current = { title: nextTitle, excerpt: nextExcerpt, publishedAt: nextDate };
     setCover(value.media.find((item) => item.id === value.coverMediaId) ?? null);
@@ -182,14 +185,17 @@ export default function ArticleDraftForm({
       if (!dirtyRef.current) break;
       dirtyRef.current = false;
       setStatus('saving');
+      const requestDocument = documentRef.current;
+      const requestImageLayoutRevision = imageLayoutRevisionRef.current;
       const request = readJson<ArticleDraft>(
         await fetch(`/admin-api/article-drafts/${current.id}`, {
           method: 'PATCH',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
             version: current.version,
+            imageLayoutRevision: requestImageLayoutRevision,
             ...fieldsRef.current,
-            contentJson: documentRef.current,
+            contentJson: requestDocument,
             coverMediaId: draftRef.current?.coverMediaId ?? null,
           }),
         }),
@@ -199,6 +205,11 @@ export default function ArticleDraftForm({
         saved = await request;
         draftRef.current = saved;
         setDraft(saved);
+        if (documentRef.current === requestDocument) {
+          documentRef.current = saved.contentJson;
+          imageLayoutRevisionRef.current = saved.imageLayoutRevision;
+          setEditorDocument(saved.contentJson);
+        }
         localStorage.removeItem(storageKey);
         setStatus('saved');
         setMessage('');

@@ -114,7 +114,15 @@ async function main() {
         });
 
         if (!exists) {
-          await target.article.create({ data: article });
+          await target.article.create({
+            data: {
+              ...article,
+              imageLayoutJson:
+                article.imageLayoutJson === null
+                  ? Prisma.DbNull
+                  : article.imageLayoutJson,
+            },
+          });
           created.articles += 1;
         }
       }

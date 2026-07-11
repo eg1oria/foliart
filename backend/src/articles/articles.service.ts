@@ -7,6 +7,11 @@ import {
 } from '../content-locales';
 import { PrismaService } from '../prisma/prisma.service';
 import { slugifyArticleTitle } from './article-slug.util';
+import {
+  applyArticleImageLayout,
+  createArticleImageLayout,
+} from './article-image-layout';
+import { normalizeArticleDocument } from './article-content-json';
 
 type ArticleTranslationFields = {
   title: string;
@@ -224,6 +229,15 @@ export class ArticlesService {
       (item) => item.locale === DEFAULT_CONTENT_LOCALE,
     );
     const contentSource = selected ?? fallback;
+    const imageLayout =
+      article.imageLayoutJson ??
+      createArticleImageLayout(
+        article.translations.map((translation) =>
+          translation.contentJson
+            ? normalizeArticleDocument(translation.contentJson)
+            : null,
+        ),
+      );
     return {
       ...resolved,
       slug: article.slug ?? slugifyArticleTitle(article.title),
@@ -231,7 +245,10 @@ export class ArticlesService {
         ? {
             format: 'tiptap-json' as const,
             schemaVersion: contentSource.contentSchemaVersion ?? 1,
-            document: contentSource.contentJson,
+            document: applyArticleImageLayout(
+              normalizeArticleDocument(contentSource.contentJson),
+              imageLayout,
+            ),
           }
         : {
             format: 'legacy-html' as const,

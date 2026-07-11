@@ -3,7 +3,7 @@
 import FileHandler from '@tiptap/extension-file-handler';
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import type { Editor } from '@tiptap/core';
-import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   FiBold,
   FiImage,
@@ -104,6 +104,12 @@ export default function ArticleRichTextEditor({
     },
     onUpdate: ({ editor: nextEditor }) => changeRef.current(nextEditor.getJSON()),
   });
+
+  useEffect(() => {
+    if (!editor) return;
+    if (JSON.stringify(editor.getJSON()) === JSON.stringify(defaultDocument)) return;
+    editor.commands.setContent(defaultDocument, { emitUpdate: false });
+  }, [defaultDocument, editor]);
 
   const toolbarState =
     useEditorState({
