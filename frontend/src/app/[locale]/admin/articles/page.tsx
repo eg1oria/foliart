@@ -10,20 +10,13 @@ import {
   adminBadgeClassName,
   adminCx,
   adminDangerButtonClassName,
-  adminDetailsClassName,
   adminSecondaryButtonClassName,
-  adminSummaryClassName,
 } from '@/components/admin/adminStyles';
-import ArticleDraftForm from '@/components/admin/ArticleDraftForm';
 import ArticleDraftResumeList from '@/components/admin/ArticleDraftResumeList';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
 import { requireAdminSession } from '@/lib/adminAuthServer';
-import {
-  formatArticleDate,
-  getArticleHref,
-  getArticlesCopy,
-} from '@/lib/articles';
+import { formatArticleDate, getArticleHref, getArticlesCopy } from '@/lib/articles';
 import { getArticles, noStoreApiFetchOptions, type Article } from '@/lib/api';
 import {
   getContentLocaleLabel,
@@ -55,14 +48,18 @@ export default async function AdminArticlesPage({
   const { locale } = await params;
   await requireAdminSession(locale, `/${locale}/admin/articles`);
 
-  const { article, contentLocale: contentLocaleParam, edit, error, manageError, status } =
-    await searchParams;
+  const {
+    contentLocale: contentLocaleParam,
+    edit,
+    error,
+    manageError,
+    status,
+  } = await searchParams;
   const contentLocale = normalizeContentLocale(contentLocaleParam);
   const contentLocaleLabel = getContentLocaleLabel(contentLocale);
   const copy = getArticlesCopy(locale);
   const articles = await getArticles(contentLocale, noStoreApiFetchOptions, contentLocale);
   const editArticleId = parseEntityId(edit ?? '');
-  const statusArticleId = parseEntityId(article ?? '');
   const topLevelError = error && !editArticleId ? error : null;
   const managePanelError = manageError ?? null;
   const deletedStatusMessage =
@@ -133,15 +130,13 @@ export default async function AdminArticlesPage({
       locale={locale}
       shortcuts={shortcuts}
       stats={stats}
-      title={copy.adminTitle}
-    >
+      title={copy.adminTitle}>
       <AdminWorkspace>
         <AdminPanel
           id="create-article"
           badge={createBadge}
           title={copy.adminFormTitle}
-          description={copy.adminFormDescription}
-        >
+          description={copy.adminFormDescription}>
           <div className="space-y-4">
             {topLevelStatus ? <AdminNotice tone="success">{topLevelStatus}</AdminNotice> : null}
             {topLevelError ? <AdminNotice tone="error">{topLevelError}</AdminNotice> : null}
@@ -152,8 +147,7 @@ export default async function AdminArticlesPage({
               <ArticleDraftResumeList contentLocale={contentLocale} locale={locale} />
               <Link
                 href={withContentLocale('/admin/articles/new', contentLocale)}
-                className={adminCx(adminSecondaryButtonClassName, 'mt-5')}
-              >
+                className={adminCx(adminSecondaryButtonClassName, 'mt-5')}>
                 {openEditorLabel}
               </Link>
             </>
@@ -182,8 +176,7 @@ export default async function AdminArticlesPage({
           title={copy.adminExistingTitle}
           description={copy.adminPathHint}
           tone="muted"
-          headerContent={<span className={adminBadgeClassName}>{articles.length}</span>}
-        >
+          headerContent={<span className={adminBadgeClassName}>{articles.length}</span>}>
           {manageStatus ? (
             <div className="mb-5">
               <AdminNotice tone="success">{manageStatus}</AdminNotice>
@@ -204,16 +197,14 @@ export default async function AdminArticlesPage({
             <div className="space-y-5">
               {articles.map((articleItem) => {
                 const imageSrc = resolveMediaUrl(articleItem.imageUrl);
-                const isEditing =
-                  editArticleId === articleItem.id || statusArticleId === articleItem.id;
+
                 const hasContentTranslation = Boolean(articleItem.adminTranslation?.isComplete);
 
                 return (
                   <div
                     key={articleItem.id}
                     id={`article-${articleItem.id}`}
-                    className="scroll-mt-6 rounded-lg border border-[#0b5a45]/10 bg-white p-4 shadow-[0_12px_40px_-30px_rgba(11,62,49,0.8)] sm:p-5"
-                  >
+                    className="scroll-mt-6 rounded-lg border border-[#0b5a45]/10 bg-white p-4 shadow-[0_12px_40px_-30px_rgba(11,62,49,0.8)] sm:p-5">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
                       <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden rounded-md border border-[#0b5a45]/10 bg-[#eef3ef] sm:h-[90px] sm:w-[116px]">
                         <MediaImage
@@ -240,8 +231,7 @@ export default async function AdminArticlesPage({
                                 hasContentTranslation
                                   ? 'bg-emerald-50 text-emerald-700'
                                   : 'bg-amber-50 text-amber-700',
-                              )}
-                            >
+                              )}>
                               {hasContentTranslation
                                 ? `${contentLocaleLabel} ✓`
                                 : locale === 'en'
@@ -256,8 +246,7 @@ export default async function AdminArticlesPage({
                               className={adminCx(
                                 adminSecondaryButtonClassName,
                                 'min-h-8 px-2.5 py-1.5 text-xs',
-                              )}
-                            >
+                              )}>
                               <FiExternalLink />
                             </Link>
                             <Link
@@ -268,15 +257,11 @@ export default async function AdminArticlesPage({
                               className={adminCx(
                                 adminSecondaryButtonClassName,
                                 'min-h-8 px-2.5 py-1.5 text-xs',
-                              )}
-                            >
+                              )}>
                               <FiEdit3 className="mr-1" />
                               {openEditorLabel}
                             </Link>
-                            <form
-                              action={deleteArticleAction}
-                              className="col-span-2 sm:col-span-1"
-                            >
+                            <form action={deleteArticleAction} className="col-span-2 sm:col-span-1">
                               <input type="hidden" name="locale" value={locale} />
                               <input type="hidden" name="contentLocale" value={contentLocale} />
                               <input type="hidden" name="articleId" value={articleItem.id} />
@@ -295,8 +280,7 @@ export default async function AdminArticlesPage({
                                     ? `Delete article "${articleItem.title}"? This cannot be undone.`
                                     : `Удалить статью «${articleItem.title}»? Это действие нельзя отменить.`
                                 }
-                                pendingLabel={deletingLabel}
-                              >
+                                pendingLabel={deletingLabel}>
                                 {deleteLabel}
                               </AdminDeleteButton>
                             </form>
@@ -313,35 +297,6 @@ export default async function AdminArticlesPage({
                         ) : null}
                       </div>
                     </div>
-
-                    <details open={isEditing} className={adminCx('mt-5', adminDetailsClassName)}>
-                      <summary className={adminSummaryClassName}>
-                        <span>{copy.editLabel}</span>
-                        <span className="text-xs font-medium text-[#6a7f76]">
-                          {locale === 'en' ? 'Inline article editor' : 'Встроенный редактор статьи'}
-                        </span>
-                      </summary>
-
-                      <div className="border-t border-[#0b5a45]/10 p-4 sm:p-5">
-                        <div className="space-y-4">
-                          {status === 'updated' && statusArticleId === articleItem.id ? (
-                            <AdminNotice tone="success">{copy.statusUpdated}</AdminNotice>
-                          ) : null}
-
-                          {error && editArticleId === articleItem.id ? (
-                            <AdminNotice tone="error">{error}</AdminNotice>
-                          ) : null}
-                        </div>
-
-                        {isEditing ? (
-                          <ArticleDraftForm
-                            articleId={articleItem.id}
-                            contentLocale={contentLocale}
-                            locale={locale}
-                          />
-                        ) : null}
-                      </div>
-                    </details>
                   </div>
                 );
               })}
