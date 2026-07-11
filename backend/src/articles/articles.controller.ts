@@ -19,7 +19,6 @@ import { Throttle } from '@nestjs/throttler';
 import { diskStorage } from 'multer';
 import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
-import { randomUUID } from 'node:crypto';
 import { AdminApiGuard } from '../admin-api.guard';
 import {
   DEFAULT_CONTENT_LOCALE,
@@ -35,9 +34,9 @@ import {
   sanitizeArticleExcerpt,
 } from './article-content.util';
 import { ArticlesService } from './articles.service';
+import { ArticleMediaService } from './article-media.service';
 
 const articlesImagesDirectory = join(process.cwd(), 'images', 'articles');
-const articleContentImagesDirectory = join(articlesImagesDirectory, 'content');
 
 type StoredUploadFile = StoredImageUploadFile;
 
@@ -162,67 +161,12 @@ function createImageInterceptor() {
   });
 }
 
-function createContentImageInterceptor() {
-  return FileInterceptor('image', {
-    storage: diskStorage({
-      destination: (
-        _req: Request,
-        _file: StoredUploadFile,
-        callback: DestinationCallback,
-      ) => {
-        mkdirSync(articleContentImagesDirectory, { recursive: true });
-        callback(null, articleContentImagesDirectory);
-      },
-      filename: (
-        _req: Request,
-        file: StoredUploadFile,
-        callback: FilenameCallback,
-      ) => {
-        const extension = extname(file.originalname).toLowerCase() || '.jpg';
-        callback(null, `${Date.now()}-${randomUUID()}${extension}`);
-      },
-    }),
-    fileFilter: (
-      _req: Request,
-      file: StoredUploadFile,
-      callback: FileFilterCallback,
-    ) => {
-      if (!allowedImageMimeTypes.has(file.mimetype)) {
-        callback(
-          new BadRequestException(
-            'Only JPG, PNG, and WEBP images are supported',
-          ),
-          false,
-        );
-        return;
-      }
-
-      callback(null, true);
-    },
-    limits: {
-      fileSize: 5 * 1024 * 1024,
-    },
-  });
-}
-
 @Controller('articles')
 export class ArticlesController {
-  constructor(private readonly articlesService: ArticlesService) {}
-
-  @Post('content-images')
-  @UseGuards(AdminApiGuard)
-  @UseInterceptors(createContentImageInterceptor())
-  async uploadContentImage(@UploadedFile() file?: StoredUploadFile) {
-    if (!file?.filename) {
-      throw new BadRequestException('Article content image is required');
-    }
-
-    const imageFile = await optimizeUploadedImage(file);
-
-    return {
-      imageUrl: `articles/content/${imageFile.filename}`,
-    };
-  }
+  constructor(
+    private readonly articlesService: ArticlesService,
+    private readonly articleMedia: ArticleMediaService,
+  ) {}
 
   @Get()
   findAll(
@@ -239,6 +183,11 @@ export class ArticlesController {
     @Query('contentLocale') contentLocale?: string,
   ) {
     return this.articlesService.findOne(id, locale, contentLocale);
+  }
+
+  @Get('by-slug/:slug')
+  findBySlug(@Param('slug') slug: string, @Query('locale') locale?: string) {
+    return this.articlesService.findBySlug(slug, locale);
   }
 
   @Post()
@@ -360,6 +309,10 @@ export class ArticlesController {
     const deletedArticle = await this.articlesService.remove(id);
 
     removeUploadedFile(getStoredArticleImagePath(deletedArticle.imageUrl));
+
+    await this.articleMedia.deleteArticleMedia(
+      deletedArticle.media.map(({ id: mediaId }) => mediaId),
+    );
 
     return { id: deletedArticle.id };
   }

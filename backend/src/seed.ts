@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { PrismaLibSql } from '@prisma/adapter-libsql';
 
 function createPrisma(url: string) {
@@ -182,7 +182,13 @@ async function main() {
 
         if (!exists) {
           await target.articleTranslation.create({
-            data: withoutId(translation),
+            data: {
+              ...withoutId(translation),
+              contentJson:
+                translation.contentJson === null
+                  ? Prisma.DbNull
+                  : translation.contentJson,
+            },
           });
           created.articleTranslations += 1;
         }

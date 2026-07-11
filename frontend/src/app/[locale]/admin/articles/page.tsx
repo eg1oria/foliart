@@ -11,20 +11,11 @@ import {
   adminCx,
   adminDangerButtonClassName,
   adminDetailsClassName,
-  adminFieldClassName,
-  adminFileInputClassName,
-  adminHintClassName,
-  adminInputClassName,
-  adminInputOnWhiteClassName,
-  adminLabelClassName,
-  adminOptionalLabelClassName,
-  adminPrimaryButtonClassName,
   adminSecondaryButtonClassName,
   adminSummaryClassName,
-  adminTextareaClassName,
-  adminTextareaOnWhiteClassName,
 } from '@/components/admin/adminStyles';
-import ArticleRichTextEditor from '@/components/admin/ArticleRichTextEditor';
+import ArticleDraftForm from '@/components/admin/ArticleDraftForm';
+import ArticleDraftResumeList from '@/components/admin/ArticleDraftResumeList';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
 import { requireAdminSession } from '@/lib/adminAuthServer';
@@ -32,7 +23,6 @@ import {
   formatArticleDate,
   getArticleHref,
   getArticlesCopy,
-  toDateInputValue,
 } from '@/lib/articles';
 import { getArticles, noStoreApiFetchOptions, type Article } from '@/lib/api';
 import {
@@ -44,7 +34,7 @@ import { parseEntityId } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
 import { FiEdit3, FiExternalLink } from 'react-icons/fi';
 
-import { createArticleAction, deleteArticleAction, updateArticleAction } from './actions';
+import { deleteArticleAction } from './actions';
 
 type AdminPageSearchParams = {
   article?: string;
@@ -54,156 +44,6 @@ type AdminPageSearchParams = {
   manageError?: string;
   status?: string;
 };
-
-type ArticleFormValues = Pick<
-  Article,
-  'title' | 'titleEn' | 'excerpt' | 'excerptEn' | 'content' | 'contentEn' | 'publishedAt'
->;
-
-function ArticleFormFields({
-  contentLocale,
-  locale,
-  copy,
-  values,
-  imageRequired,
-}: {
-  contentLocale: string;
-  locale: string;
-  copy: ReturnType<typeof getArticlesCopy>;
-  values?: Partial<ArticleFormValues>;
-  imageRequired: boolean;
-}) {
-  const primaryPlaceholder =
-    contentLocale === 'en'
-      ? 'Start with an intro paragraph, then add headings and lists.'
-      : 'Начните с вводного абзаца, затем добавьте подзаголовки и списки.';
-  const translationPlaceholder =
-    locale === 'en'
-      ? 'Add the English version if you want to localize the article.'
-      : 'Добавьте английскую версию, если хотите локализовать статью.';
-
-  return (
-    <div className="space-y-5">
-      <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_220px]">
-        <label className={adminFieldClassName}>
-          <span className={adminLabelClassName}>{copy.titleLabel}</span>
-          <input
-            name="title"
-            type="text"
-            required
-            defaultValue={values?.title ?? ''}
-            className={adminInputClassName}
-          />
-        </label>
-
-        <label className={adminFieldClassName}>
-          <span className={adminLabelClassName}>{copy.publishedAtLabel}</span>
-          <input
-            name="publishedAt"
-            type="date"
-            required
-            defaultValue={toDateInputValue(values?.publishedAt)}
-            className={adminInputClassName}
-          />
-        </label>
-      </div>
-
-      <label className={adminFieldClassName}>
-        <span className={adminLabelClassName}>
-          {copy.imageLabel}
-          {!imageRequired ? (
-            <span className={adminOptionalLabelClassName}> ({copy.optionalLabel})</span>
-          ) : null}
-        </span>
-        <input
-          name="image"
-          type="file"
-          accept="image/png,image/jpeg,image/webp"
-          required={imageRequired}
-          className={adminFileInputClassName}
-        />
-        <span className={adminHintClassName}>
-          {imageRequired ? copy.imageHint : copy.replaceImageHint}
-        </span>
-      </label>
-
-      <label className={adminFieldClassName}>
-        <span className={adminLabelClassName}>
-          {copy.excerptLabel}
-          <span className={adminOptionalLabelClassName}> ({copy.optionalLabel})</span>
-        </span>
-        <textarea
-          name="excerpt"
-          rows={4}
-          defaultValue={values?.excerpt ?? ''}
-          className={adminTextareaClassName}
-        />
-        <span className={adminHintClassName}>{copy.excerptHint}</span>
-      </label>
-
-      <div className="space-y-2">
-        <span className={adminLabelClassName}>{copy.contentLabel}</span>
-        <ArticleRichTextEditor
-          name="content"
-          locale={locale}
-          defaultValue={values?.content ?? ''}
-          placeholder={primaryPlaceholder}
-        />
-        <span className={adminHintClassName}>{copy.contentHint}</span>
-      </div>
-
-      <div className="hidden">
-        <div>
-          <p className={adminBadgeClassName}>
-            {locale === 'en' ? 'English translation' : 'Английская версия'}
-          </p>
-          <p className={adminCx('mt-3', adminHintClassName)}>{copy.translationHint}</p>
-        </div>
-
-        <div className="mt-5 grid gap-5 md:grid-cols-2">
-          <label className={adminFieldClassName}>
-            <span className={adminLabelClassName}>
-              {copy.titleEnLabel}
-              <span className={adminOptionalLabelClassName}> ({copy.optionalLabel})</span>
-            </span>
-            <input
-              name="titleEn"
-              type="text"
-              defaultValue={values?.titleEn ?? ''}
-              className={adminInputOnWhiteClassName}
-            />
-          </label>
-
-          <label className={adminFieldClassName}>
-            <span className={adminLabelClassName}>
-              {copy.excerptEnLabel}
-              <span className={adminOptionalLabelClassName}> ({copy.optionalLabel})</span>
-            </span>
-            <textarea
-              name="excerptEn"
-              rows={4}
-              defaultValue={values?.excerptEn ?? ''}
-              className={adminTextareaOnWhiteClassName}
-            />
-          </label>
-        </div>
-
-        <div className="mt-5 space-y-2">
-          <span className={adminLabelClassName}>
-            {copy.contentEnLabel}
-            <span className={adminOptionalLabelClassName}> ({copy.optionalLabel})</span>
-          </span>
-          <ArticleRichTextEditor
-            name="contentEn"
-            locale={locale}
-            defaultValue={values?.contentEn ?? ''}
-            placeholder={translationPlaceholder}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default async function AdminArticlesPage({
   params,
@@ -308,31 +148,15 @@ export default async function AdminArticlesPage({
           </div>
 
           {contentLocale === 'ru' ? (
-            <form action={createArticleAction} className="mt-6 space-y-6">
-              <input type="hidden" name="locale" value={locale} />
-              <input type="hidden" name="contentLocale" value={contentLocale} />
-
-              <ArticleFormFields
-                contentLocale={contentLocale}
-                locale={locale}
-                copy={copy}
-                imageRequired
-              />
-
-              <div className="flex flex-col gap-3 border-t border-[#0b5a45]/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
-                <button
-                  type="submit"
-                  className={adminCx(adminPrimaryButtonClassName, 'w-full sm:w-auto')}
-                >
-                  {copy.submitLabel}
-                </button>
-                <p className={adminHintClassName}>
-                  {locale === 'en'
-                    ? 'Use the toolbar to add headings, lists, quotes, and links.'
-                    : 'Используйте панель редактора для заголовков, списков, цитат и ссылок.'}
-                </p>
-              </div>
-            </form>
+            <>
+              <ArticleDraftResumeList contentLocale={contentLocale} locale={locale} />
+              <Link
+                href={withContentLocale('/admin/articles/new', contentLocale)}
+                className={adminCx(adminSecondaryButtonClassName, 'mt-5')}
+              >
+                {openEditorLabel}
+              </Link>
+            </>
           ) : (
             <div className="mt-6">
               <AdminEmptyState
@@ -438,7 +262,7 @@ export default async function AdminArticlesPage({
                             </Link>
                             <Link
                               href={withContentLocale(
-                                `/admin/articles?edit=${articleItem.id}#article-${articleItem.id}`,
+                                `/admin/articles/${articleItem.id}`,
                                 contentLocale,
                               )}
                               className={adminCx(
@@ -509,36 +333,13 @@ export default async function AdminArticlesPage({
                           ) : null}
                         </div>
 
-                        <form action={updateArticleAction} className="mt-5 space-y-6">
-                          <input type="hidden" name="locale" value={locale} />
-                          <input type="hidden" name="contentLocale" value={contentLocale} />
-                          <input type="hidden" name="articleId" value={articleItem.id} />
-                          <input
-                            type="hidden"
-                            name="previousTitle"
-                            value={articleItem.slugSourceTitle ?? articleItem.title}
-                          />
-
-                          <ArticleFormFields
+                        {isEditing ? (
+                          <ArticleDraftForm
+                            articleId={articleItem.id}
                             contentLocale={contentLocale}
                             locale={locale}
-                            copy={copy}
-                            values={{
-                              title: articleItem.adminTranslation?.title ?? '',
-                              excerpt: articleItem.adminTranslation?.excerpt ?? '',
-                              content: articleItem.adminTranslation?.content ?? '',
-                              publishedAt: articleItem.publishedAt,
-                            }}
-                            imageRequired={false}
                           />
-
-                          <button
-                            type="submit"
-                            className={adminCx(adminPrimaryButtonClassName, 'w-full sm:w-auto')}
-                          >
-                            {copy.updateLabel}
-                          </button>
-                        </form>
+                        ) : null}
                       </div>
                     </details>
                   </div>

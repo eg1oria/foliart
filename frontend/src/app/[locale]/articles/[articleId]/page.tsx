@@ -3,13 +3,12 @@ import HeroBreadcrumbs, { getBreadcrumbCopy } from '@/components/HeroBreadcrumbs
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
 import {
-  findArticleByParam,
   formatArticleDate,
   getArticleHref,
   getArticleSlug,
   getArticlesCopy,
 } from '@/lib/articles';
-import { getArticles } from '@/lib/api';
+import { getArticle, getArticleBySlug, getArticles, type Article } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
 import {
   buildArticleSchema,
@@ -21,6 +20,17 @@ import {
 import { notFound, redirect } from 'next/navigation';
 import { FiArrowLeft, FiEye } from 'react-icons/fi';
 import ArticleViewCounter from './view-counter';
+import { renderArticleContent } from '@/lib/renderArticleContent';
+
+async function getArticleByRouteParam(value: string, locale: string): Promise<Article | null> {
+  try {
+    return /^\d+$/.test(value)
+      ? await getArticle(Number(value), locale)
+      : await getArticleBySlug(value, locale);
+  } catch {
+    return null;
+  }
+}
 
 export async function generateMetadata({
   params,
@@ -29,8 +39,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, articleId: rawArticleId } = await params;
   const copy = getArticlesCopy(locale);
-  const articles = await getArticles(locale).catch(() => []);
-  const article = findArticleByParam(articles, rawArticleId);
+  const article = await getArticleByRouteParam(rawArticleId, locale);
 
   if (!article) {
     return buildPageMetadata({
@@ -56,11 +65,12 @@ export async function generateMetadata({
     });
   }
 
+  const renderedContent = renderArticleContent(article.contentPayload, article.content ?? '');
   return buildPageMetadata({
     locale,
     path: getArticleHref(article),
     title: article.title,
-    description: article.excerpt || stripHtml(article.content) || copy.detailsEmpty,
+    description: article.excerpt || stripHtml(renderedContent) || copy.detailsEmpty,
     image: resolveMediaUrl(article.imageUrl),
     type: 'article',
   });
@@ -74,8 +84,10 @@ export default async function ArticleDetailsPage({
   const { locale, articleId: rawArticleId } = await params;
   const copy = getArticlesCopy(locale);
   const breadcrumbCopy = getBreadcrumbCopy(locale);
-  const articles = await getArticles(locale);
-  const article = findArticleByParam(articles, rawArticleId);
+  const [article, articles] = await Promise.all([
+    getArticleByRouteParam(rawArticleId, locale),
+    getArticles(locale),
+  ]);
 
   if (!article) {
     notFound();
@@ -86,6 +98,7 @@ export default async function ArticleDetailsPage({
   }
 
   const relatedArticles = articles.filter((item) => item.id !== article.id).slice(0, 2);
+  const renderedContent = renderArticleContent(article.contentPayload, article.content ?? '');
   const imageSrc = resolveMediaUrl(article.imageUrl);
   const breadcrumbSchema = buildBreadcrumbSchema(locale, [
     { name: breadcrumbCopy.home, path: '/' },
@@ -95,7 +108,7 @@ export default async function ArticleDetailsPage({
   const articleSchema = buildArticleSchema({
     locale,
     title: article.title,
-    description: article.excerpt || stripHtml(article.content) || copy.detailsEmpty,
+    description: article.excerpt || stripHtml(renderedContent) || copy.detailsEmpty,
     path: getArticleHref(article),
     image: imageSrc,
     publishedAt: article.publishedAt,
@@ -152,7 +165,7 @@ export default async function ArticleDetailsPage({
             <div
               className="article-content max-w-none"
               dangerouslySetInnerHTML={{
-                __html: article.content || `<p>${copy.detailsEmpty}</p>`,
+                __html: renderedContent || `<p>${copy.detailsEmpty}</p>`,
               }}
             />
           </article>

@@ -1,11 +1,11 @@
 import type { Article } from './api';
 import { parseEntityId, slugify } from './catalog';
 
-export function getArticleSlug(article: Pick<Article, 'title' | 'slugSourceTitle'>) {
-  return slugify(article.slugSourceTitle?.trim() || article.title);
+export function getArticleSlug(article: Pick<Article, 'title' | 'slugSourceTitle' | 'slug'>) {
+  return article.slug?.trim() || slugify(article.slugSourceTitle?.trim() || article.title);
 }
 
-export function getArticleHref(article: Pick<Article, 'title' | 'slugSourceTitle'>) {
+export function getArticleHref(article: Pick<Article, 'title' | 'slugSourceTitle' | 'slug'>) {
   return `/articles/${getArticleSlug(article)}`;
 }
 

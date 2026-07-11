@@ -6,11 +6,13 @@ import {
   normalizeContentLocale,
 } from '../content-locales';
 import { PrismaService } from '../prisma/prisma.service';
+import { slugifyArticleTitle } from './article-slug.util';
 
 type ArticleTranslationFields = {
   title: string;
   excerpt: string;
   content: string;
+  contentJson?: unknown;
 };
 
 type ArticleWithLegacyAndTranslations = ArticleTranslationFields & {
@@ -55,6 +57,7 @@ export class ArticlesService {
         title: article.title,
         excerpt: article.excerpt,
         content: article.content,
+        contentJson: undefined,
         hasTranslation: false,
       };
     }
@@ -64,6 +67,7 @@ export class ArticlesService {
         title: article.titleEn,
         excerpt: article.excerptEn,
         content: article.contentEn,
+        contentJson: undefined,
         hasTranslation: false,
       };
     }
@@ -72,6 +76,7 @@ export class ArticlesService {
       title: '',
       excerpt: '',
       content: '',
+      contentJson: undefined,
       hasTranslation: false,
     };
   }
@@ -116,7 +121,8 @@ export class ArticlesService {
               hasTranslation: adminTranslation.hasTranslation,
               isComplete:
                 Boolean(adminTranslation.title.trim()) &&
-                Boolean(adminTranslation.content.trim()),
+                (Boolean(adminTranslation.content.trim()) ||
+                  Boolean(adminTranslation.contentJson)),
               title: adminTranslation.title,
               excerpt: adminTranslation.excerpt,
               content: adminTranslation.content,
@@ -171,9 +177,27 @@ export class ArticlesService {
       orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
     });
 
-    return articles.map((article) =>
-      this.resolveLocale(article, locale, contentLocale),
-    );
+    return articles.map((article) => {
+      const resolved = this.resolveLocale(article, locale, contentLocale);
+      const {
+        content: _content,
+        contentEn: _contentEn,
+        adminTranslation,
+        ...summary
+      } = resolved;
+      return {
+        ...summary,
+        slug: article.slug ?? slugifyArticleTitle(article.title),
+        ...(adminTranslation
+          ? {
+              adminTranslation: {
+                ...adminTranslation,
+                content: undefined,
+              },
+            }
+          : {}),
+      };
+    });
   }
 
   async findOne(id: number, locale?: string, contentLocale?: string) {
@@ -186,7 +210,50 @@ export class ArticlesService {
       throw new NotFoundException(`Article #${id} not found`);
     }
 
-    return this.resolveLocale(article, locale, contentLocale);
+    const resolved = this.resolveLocale(article, locale, contentLocale);
+    const requestedLocale = normalizeContentLocale(
+      locale ?? DEFAULT_CONTENT_LOCALE,
+    );
+    const selected = article.translations.find(
+      (item) =>
+        item.locale === requestedLocale &&
+        item.title.trim() &&
+        (item.content.trim() || item.contentJson),
+    );
+    const fallback = article.translations.find(
+      (item) => item.locale === DEFAULT_CONTENT_LOCALE,
+    );
+    const contentSource = selected ?? fallback;
+    return {
+      ...resolved,
+      slug: article.slug ?? slugifyArticleTitle(article.title),
+      contentPayload: contentSource?.contentJson
+        ? {
+            format: 'tiptap-json' as const,
+            schemaVersion: contentSource.contentSchemaVersion ?? 1,
+            document: contentSource.contentJson,
+          }
+        : {
+            format: 'legacy-html' as const,
+            html: resolved.content,
+          },
+    };
+  }
+
+  async findBySlug(slug: string, locale?: string) {
+    const exact = await this.prisma.article.findUnique({
+      where: { slug },
+      select: { id: true },
+    });
+    if (exact) return this.findOne(exact.id, locale);
+    const legacy = await this.prisma.article.findMany({
+      select: { id: true, title: true },
+    });
+    const match = legacy.find(
+      (item) => slugifyArticleTitle(item.title) === slug,
+    );
+    if (!match) throw new NotFoundException(`Article "${slug}" not found`);
+    return this.findOne(match.id, locale);
   }
 
   async create(input: CreateArticleInput) {
@@ -258,6 +325,7 @@ export class ArticlesService {
       select: {
         id: true,
         imageUrl: true,
+        media: { select: { id: true } },
       },
     });
 

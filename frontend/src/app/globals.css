@@ -144,7 +144,8 @@ header,
 }
 
 .article-content h2,
-.article-content h3 {
+.article-content h3,
+.article-content h4 {
   color: #0e2438;
   font-weight: 700;
   line-height: 1.2;
@@ -158,6 +159,11 @@ header,
 .article-content h3 {
   margin-top: 2.25rem;
   font-size: clamp(1.2rem, 1.5vw, 1.45rem);
+}
+
+.article-content h4 {
+  margin-top: 2rem;
+  font-size: clamp(1.05rem, 1.25vw, 1.25rem);
 }
 
 .article-content p {
@@ -202,7 +208,8 @@ header,
 }
 
 .admin-rich-text h2,
-.admin-rich-text h3 {
+.admin-rich-text h3,
+.admin-rich-text h4 {
   color: #0e2438;
   font-weight: 700;
   line-height: 1.25;
@@ -214,6 +221,21 @@ header,
 
 .admin-rich-text h3 {
   font-size: 1.15rem;
+}
+
+.admin-rich-text h4 {
+  font-size: 1.05rem;
+}
+
+.article-image-upload-placeholder {
+  display: flex;
+  min-height: 9rem;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed rgba(11, 90, 69, 0.25);
+  border-radius: 0.75rem;
+  background: rgba(238, 244, 239, 0.8);
+  color: #567068;
 }
 
 .admin-rich-text p {

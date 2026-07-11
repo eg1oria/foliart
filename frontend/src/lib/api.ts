@@ -22,8 +22,12 @@ export type ProductAdminTranslation = AdminTranslationBase & {
 export type ArticleAdminTranslation = AdminTranslationBase & {
   title: string;
   excerpt: string;
-  content: string;
+  content?: string;
 };
+
+export type ArticleContentPayload =
+  | { format: 'tiptap-json'; schemaVersion: number; document: import('./articleContent').ArticleDocument }
+  | { format: 'legacy-html'; html: string };
 
 export type CalendarAdminTranslation = AdminTranslationBase & {
   title: string;
@@ -67,12 +71,14 @@ export type Article = {
   titleEn: string;
   excerpt: string;
   excerptEn: string;
-  content: string;
+  content?: string;
   contentEn: string;
   imageUrl: string;
   publishedAt: string;
   viewCount: number;
   slugSourceTitle?: string;
+  slug?: string;
+  contentPayload?: ArticleContentPayload;
   adminTranslation?: ArticleAdminTranslation;
 };
 
@@ -121,6 +127,7 @@ export const noStoreApiFetchOptions: ApiFetchOptions = {
 };
 
 export const calendarsCacheTag = 'calendars';
+export const articlesCacheTag = 'articles';
 
 function resolveFetchOptions(fetchOptions?: ApiFetchOptions): ApiFetchOptions {
   const resolved = fetchOptions ?? publicApiFetchOptions;
@@ -229,7 +236,7 @@ export async function getArticles(
 ): Promise<Article[]> {
   return fetchJson<Article[]>(
     buildLocalizedPath('/api/articles', locale, contentLocale),
-    fetchOptions,
+    withCacheTag(fetchOptions, articlesCacheTag),
   );
 }
 
@@ -241,7 +248,18 @@ export async function getArticle(
 ): Promise<Article> {
   return fetchJson<Article>(
     buildLocalizedPath(`/api/articles/${articleId}`, locale, contentLocale),
-    fetchOptions,
+    withCacheTag(fetchOptions, articlesCacheTag),
+  );
+}
+
+export async function getArticleBySlug(
+  slug: string,
+  locale?: string,
+  fetchOptions?: ApiFetchOptions,
+): Promise<Article> {
+  return fetchJson<Article>(
+    buildLocalizedPath(`/api/articles/by-slug/${encodeURIComponent(slug)}`, locale),
+    withCacheTag(fetchOptions, articlesCacheTag),
   );
 }
 
