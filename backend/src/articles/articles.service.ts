@@ -10,8 +10,10 @@ import { slugifyArticleTitle } from './article-slug.util';
 import {
   applyArticleImageLayout,
   createArticleImageLayout,
+  normalizeArticleImageLayout,
 } from './article-image-layout';
 import { normalizeArticleDocument } from './article-content-json';
+import { sanitizeArticleContent } from './article-content.util';
 
 type ArticleTranslationFields = {
   title: string;
@@ -238,22 +240,52 @@ export class ArticlesService {
             : null,
         ),
       );
+    let contentPayload:
+      | {
+          format: 'tiptap-json';
+          schemaVersion: number;
+          document: ReturnType<typeof normalizeArticleDocument>;
+        }
+      | { format: 'legacy-html'; html: string };
+    if (contentSource?.contentJson) {
+      contentPayload = {
+        format: 'tiptap-json',
+        schemaVersion: contentSource.contentSchemaVersion ?? 1,
+        document: applyArticleImageLayout(
+          normalizeArticleDocument(contentSource.contentJson),
+          imageLayout,
+        ),
+      };
+    } else if (normalizeArticleImageLayout(imageLayout).placements.length) {
+      try {
+        // Legacy HTML stays untouched in the database. Convert it only for the
+        // response so shared article images also appear in un-migrated locales.
+        const { articleHtmlToJson } = await import('./article-tiptap.js');
+        const legacyDocument = normalizeArticleDocument(
+          articleHtmlToJson(
+            sanitizeArticleContent(resolved.content) || '<p></p>',
+          ),
+        );
+        contentPayload = {
+          format: 'tiptap-json',
+          schemaVersion: 1,
+          document: applyArticleImageLayout(legacyDocument, imageLayout),
+        };
+      } catch (error) {
+        console.warn('Legacy article could not use the shared image layout', {
+          articleId: article.id,
+          locale: requestedLocale,
+          message: error instanceof Error ? error.message : String(error),
+        });
+        contentPayload = { format: 'legacy-html', html: resolved.content };
+      }
+    } else {
+      contentPayload = { format: 'legacy-html', html: resolved.content };
+    }
     return {
       ...resolved,
       slug: article.slug ?? slugifyArticleTitle(article.title),
-      contentPayload: contentSource?.contentJson
-        ? {
-            format: 'tiptap-json' as const,
-            schemaVersion: contentSource.contentSchemaVersion ?? 1,
-            document: applyArticleImageLayout(
-              normalizeArticleDocument(contentSource.contentJson),
-              imageLayout,
-            ),
-          }
-        : {
-            format: 'legacy-html' as const,
-            html: resolved.content,
-          },
+      contentPayload,
     };
   }
 
