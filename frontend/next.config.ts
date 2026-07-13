@@ -14,7 +14,8 @@ const createConfig = (): NextConfig => {
     poweredByHeader: false,
     experimental: {
       serverActions: {
-        bodySizeLimit: '5mb',
+        // Two product images can be submitted together, each limited to 5 MB.
+        bodySizeLimit: '11mb',
       },
     },
     async rewrites() {

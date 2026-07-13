@@ -2,28 +2,54 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+
 import { getAdminApiHeaders } from '@/lib/adminApi';
 import { adminApiFetch, getAdminApiErrorMessage } from '@/lib/adminBackend';
+import { isSupportedAdminLocale } from '@/lib/adminAuth';
 import { requireAdminSession } from '@/lib/adminAuthServer';
-import { getCategories, getProducts, noStoreApiFetchOptions } from '@/lib/api';
+import {
+  getCategories,
+  getProduct,
+  getProducts,
+  noStoreApiFetchOptions,
+} from '@/lib/api';
 import { normalizeContentLocale } from '@/lib/contentLocales';
 import { getCategoryHref, getProductHref } from '@/lib/catalog';
+import {
+  hasProductFormErrors,
+  resolveProductUpdateScope,
+  type ProductFormFieldErrors,
+  validateProductForm,
+} from '@/lib/productAdmin';
 
 const catalogLocales = ['ru', 'en', 'fr', 'es'] as const;
 
 type ProductFormPayload = {
-  categoryId: string;
-  name: string;
-  description: string;
-  advantages: string;
-  composition: string;
   application: string;
+  advantages: string;
+  categoryId: string;
+  composition: string;
+  description: string;
+  name: string;
 };
 
-function buildAdminRedirectPath(
+export type ProductActionState = {
+  fieldErrors?: ProductFormFieldErrors;
+  message?: string;
+  status: 'idle' | 'error';
+};
+
+export type CategoryActionState = {
+  fieldErrors?: {
+    name?: string;
+  };
+  message?: string;
+  status: 'idle' | 'error';
+};
+
+function buildAdminListPath(
   locale: string,
   params: Record<string, string | undefined> = {},
-  hash?: string,
 ) {
   const searchParams = new URLSearchParams();
 
@@ -34,15 +60,41 @@ function buildAdminRedirectPath(
   }
 
   const query = searchParams.toString();
-  return `/${locale}/admin/products${query ? `?${query}` : ''}${hash ? `#${hash}` : ''}`;
+  return `/${locale}/admin/products${query ? `?${query}` : ''}`;
+}
+
+function buildProductEditorPath(
+  locale: string,
+  productId: string | number,
+  contentLocale: string,
+  status?: string,
+) {
+  const searchParams = new URLSearchParams({ contentLocale });
+  if (status) searchParams.set('status', status);
+  return `/${locale}/admin/products/${productId}?${searchParams.toString()}`;
+}
+
+function buildCategoryEditorPath(
+  locale: string,
+  categoryId: string | number,
+  contentLocale: string,
+  status?: string,
+) {
+  const searchParams = new URLSearchParams({ contentLocale });
+  if (status) searchParams.set('status', status);
+  return `/${locale}/admin/products/categories/${categoryId}?${searchParams.toString()}`;
 }
 
 function normalizeLocale(value: FormDataEntryValue | null) {
-  return typeof value === 'string' && value ? value : 'ru';
+  return typeof value === 'string' && isSupportedAdminLocale(value) ? value : 'ru';
 }
 
 function normalizeText(value: FormDataEntryValue | null) {
   return typeof value === 'string' ? value.trim() : '';
+}
+
+function getFile(value: FormDataEntryValue | null) {
+  return value instanceof File && value.size > 0 ? value : null;
 }
 
 function getProductFormPayload(formData: FormData): ProductFormPayload {
@@ -70,21 +122,31 @@ function appendProductPayload(
   payload.append('application', values.application);
 }
 
+async function getActionError(response: Response, locale: string, fallback: string) {
+  const message = await getAdminApiErrorMessage(response, locale);
+  return message || fallback;
+}
+
 async function revalidateCatalogPages(args: {
   categoryId: string;
-  productName: string;
   previousCategoryId?: string;
   previousName?: string;
+  productId?: string | number;
+  productName: string;
 }) {
-  const { categoryId, productName, previousCategoryId, previousName } = args;
+  const { categoryId, productName, previousCategoryId, previousName, productId } = args;
   const categories = await getCategories(undefined, noStoreApiFetchOptions).catch(() => []);
 
   for (const locale of catalogLocales) {
     revalidatePath(`/${locale}/catalog`);
     revalidatePath(`/${locale}/admin/products`);
 
+    if (productId) {
+      revalidatePath(`/${locale}/admin/products/${productId}`);
+    }
+
     const nextCategory = categories.find((item) => item.id === Number.parseInt(categoryId, 10));
-    const prevCategory = previousCategoryId
+    const previousCategory = previousCategoryId
       ? categories.find((item) => item.id === Number.parseInt(previousCategoryId, 10))
       : null;
 
@@ -93,11 +155,11 @@ async function revalidateCatalogPages(args: {
       revalidatePath(`/${locale}${getProductHref(nextCategory, { name: productName })}`);
     }
 
-    if (prevCategory) {
-      revalidatePath(`/${locale}${getCategoryHref(prevCategory)}`);
+    if (previousCategory) {
+      revalidatePath(`/${locale}${getCategoryHref(previousCategory)}`);
 
       if (previousName) {
-        revalidatePath(`/${locale}${getProductHref(prevCategory, { name: previousName })}`);
+        revalidatePath(`/${locale}${getProductHref(previousCategory, { name: previousName })}`);
       }
     }
   }
@@ -118,6 +180,8 @@ async function revalidateCategoryPages(categoryId: string) {
   for (const locale of catalogLocales) {
     revalidatePath(`/${locale}/catalog`);
     revalidatePath(`/${locale}/admin/products`);
+    revalidatePath(`/${locale}/admin/products/categories`);
+    revalidatePath(`/${locale}/admin/products/categories/${categoryId}`);
     revalidatePath(`/${locale}${getCategoryHref(category)}`);
 
     for (const product of products) {
@@ -126,53 +190,45 @@ async function revalidateCategoryPages(categoryId: string) {
   }
 }
 
-export async function createProductAction(formData: FormData) {
+export async function createProductAction(
+  _previousState: ProductActionState,
+  formData: FormData,
+): Promise<ProductActionState> {
   const locale = normalizeLocale(formData.get('locale'));
   const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
   await requireAdminSession(locale);
 
   if (contentLocale !== 'ru') {
-    redirect(
-      buildAdminRedirectPath(
-        locale,
-        {
-          contentLocale,
-          error:
-            locale === 'en'
-              ? 'Create the Russian version first, then add translations.'
-              : 'Сначала создайте русскую версию, затем добавьте переводы.',
-        },
-        'create-product',
-      ),
-    );
+    return {
+      status: 'error',
+      message: 'Новые товары создаются только на русском языке.',
+    };
   }
 
   const values = getProductFormPayload(formData);
-  const image = formData.get('image');
-  const imageEn = formData.get('imageEn');
+  const image = getFile(formData.get('image'));
+  const imageEn = getFile(formData.get('imageEn'));
+  const fieldErrors = validateProductForm({
+    categoryId: values.categoryId,
+    contentLocale,
+    image,
+    imageEn,
+    imageRequired: true,
+    name: values.name,
+  });
 
-  if (!values.categoryId || !values.name || !(image instanceof File) || image.size === 0) {
-    redirect(
-      buildAdminRedirectPath(
-        locale,
-        {
-          contentLocale,
-          error:
-            locale === 'en'
-              ? 'Fill in category, product name, and image.'
-              : 'Заполните категорию, название товара и фото.',
-        },
-        'create-product',
-      ),
-    );
+  if (hasProductFormErrors(fieldErrors)) {
+    return {
+      status: 'error',
+      message: 'Проверьте обязательные поля.',
+      fieldErrors,
+    };
   }
 
   const payload = new FormData();
   appendProductPayload(payload, values, contentLocale);
-  payload.append('image', image);
-  if (imageEn instanceof File && imageEn.size > 0) {
-    payload.append('imageEn', imageEn);
-  }
+  payload.append('image', image as File);
+  if (imageEn) payload.append('imageEn', imageEn);
 
   const response = await adminApiFetch('/api/products', {
     method: 'POST',
@@ -181,77 +237,82 @@ export async function createProductAction(formData: FormData) {
   });
 
   if (!response.ok) {
-    const rawMessage = await getAdminApiErrorMessage(response, locale);
-
-    redirect(
-      buildAdminRedirectPath(
-        locale,
-        {
-          contentLocale,
-          error:
-            rawMessage ||
-            (locale === 'en' ? 'Failed to create product.' : 'Не удалось создать товар.'),
-        },
-        'create-product',
-      ),
-    );
+    return {
+      status: 'error',
+      message: await getActionError(response, locale, 'Не удалось создать товар.'),
+    };
   }
 
+  const createdProduct = (await response.json().catch(() => null)) as { id?: number } | null;
   await revalidateCatalogPages({
     categoryId: values.categoryId,
+    productId: createdProduct?.id,
     productName: values.name,
   });
 
-  redirect(
-    buildAdminRedirectPath(
-      locale,
-      {
-        contentLocale,
-        status: 'created',
-      },
-      'create-product',
-    ),
-  );
+  if (createdProduct?.id) {
+    redirect(buildProductEditorPath(locale, createdProduct.id, contentLocale, 'created'));
+  }
+
+  redirect(buildAdminListPath(locale, { contentLocale, status: 'created' }));
 }
 
-export async function updateProductAction(formData: FormData) {
+export async function updateProductAction(
+  _previousState: ProductActionState,
+  formData: FormData,
+): Promise<ProductActionState> {
   const locale = normalizeLocale(formData.get('locale'));
   const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
   await requireAdminSession(locale);
 
   const productId = normalizeText(formData.get('productId'));
-  const previousCategoryId = normalizeText(formData.get('previousCategoryId'));
-  const previousName = normalizeText(formData.get('previousName'));
-  const values = getProductFormPayload(formData);
-  const image = formData.get('image');
-  const imageEn = formData.get('imageEn');
+  if (!/^\d+$/.test(productId)) {
+    return { status: 'error', message: 'Некорректный идентификатор товара.' };
+  }
 
-  if (!productId || !values.categoryId || !values.name) {
-    redirect(
-      buildAdminRedirectPath(
-        locale,
-        {
-          contentLocale,
-          edit: productId,
-          error:
-            locale === 'en'
-              ? 'Fill in category and product name.'
-              : 'Заполните категорию и название товара.',
-        },
-        productId ? `product-${productId}` : 'manage-products',
-      ),
-    );
+  const currentProduct = await getProduct(
+    Number.parseInt(productId, 10),
+    undefined,
+    noStoreApiFetchOptions,
+  ).catch(() => null);
+
+  if (!currentProduct) {
+    return { status: 'error', message: 'Не удалось загрузить текущие данные товара.' };
+  }
+
+  const submittedValues = getProductFormPayload(formData);
+  const updateScope = resolveProductUpdateScope({
+    contentLocale,
+    currentCategoryId: currentProduct.categoryId,
+    submittedCategoryId: submittedValues.categoryId,
+  });
+  const values: ProductFormPayload = {
+    ...submittedValues,
+    categoryId: updateScope.categoryId,
+  };
+  const image = updateScope.allowImageChanges ? getFile(formData.get('image')) : null;
+  const imageEn = updateScope.allowImageChanges ? getFile(formData.get('imageEn')) : null;
+  const fieldErrors = validateProductForm({
+    categoryId: values.categoryId,
+    contentLocale,
+    image,
+    imageEn,
+    imageRequired: false,
+    name: values.name,
+  });
+
+  if (hasProductFormErrors(fieldErrors)) {
+    return {
+      status: 'error',
+      message: 'Проверьте обязательные поля.',
+      fieldErrors,
+    };
   }
 
   const payload = new FormData();
   appendProductPayload(payload, values, contentLocale);
-
-  if (image instanceof File && image.size > 0) {
-    payload.append('image', image);
-  }
-  if (imageEn instanceof File && imageEn.size > 0) {
-    payload.append('imageEn', imageEn);
-  }
+  if (image) payload.append('image', image);
+  if (imageEn) payload.append('imageEn', imageEn);
 
   const response = await adminApiFetch(`/api/products/${productId}`, {
     method: 'PATCH',
@@ -260,42 +321,22 @@ export async function updateProductAction(formData: FormData) {
   });
 
   if (!response.ok) {
-    const rawMessage = await getAdminApiErrorMessage(response, locale);
-
-    redirect(
-      buildAdminRedirectPath(
-        locale,
-        {
-          contentLocale,
-          edit: productId,
-          error:
-            rawMessage ||
-            (locale === 'en' ? 'Failed to update product.' : 'Не удалось обновить товар.'),
-        },
-        productId ? `product-${productId}` : 'manage-products',
-      ),
-    );
+    return {
+      status: 'error',
+      message: await getActionError(response, locale, 'Не удалось сохранить товар.'),
+    };
   }
 
+  const previousName = currentProduct.slugSourceName ?? currentProduct.name;
   await revalidateCatalogPages({
     categoryId: values.categoryId,
-    productName: contentLocale === 'ru' ? values.name : previousName || values.name,
-    previousCategoryId,
+    previousCategoryId: String(currentProduct.categoryId),
     previousName,
+    productId,
+    productName: contentLocale === 'ru' ? values.name : previousName,
   });
 
-  redirect(
-    buildAdminRedirectPath(
-      locale,
-      {
-        contentLocale,
-        status: 'updated',
-        product: productId,
-        edit: productId,
-      },
-      `product-${productId}`,
-    ),
-  );
+  redirect(buildProductEditorPath(locale, productId, contentLocale, 'updated'));
 }
 
 export async function deleteProductAction(formData: FormData) {
@@ -304,21 +345,23 @@ export async function deleteProductAction(formData: FormData) {
   await requireAdminSession(locale);
 
   const productId = normalizeText(formData.get('productId'));
-  const categoryId = normalizeText(formData.get('categoryId'));
-  const productName = normalizeText(formData.get('productName'));
+  const fallbackCategoryId = normalizeText(formData.get('categoryId'));
+  const fallbackProductName = normalizeText(formData.get('productName'));
 
-  if (!productId || !categoryId || !productName) {
-    redirect(
-      buildAdminRedirectPath(
-        locale,
-        {
-          contentLocale,
-          manageError:
-            locale === 'en' ? 'Select a product to delete.' : 'Выберите товар для удаления.',
-        },
-        'manage-products',
-      ),
-    );
+  if (!/^\d+$/.test(productId)) {
+    redirect(buildAdminListPath(locale, { contentLocale, error: 'Выберите товар для удаления.' }));
+  }
+
+  const currentProduct = await getProduct(
+    Number.parseInt(productId, 10),
+    undefined,
+    noStoreApiFetchOptions,
+  ).catch(() => null);
+  const categoryId = currentProduct ? String(currentProduct.categoryId) : fallbackCategoryId;
+  const productName = currentProduct?.slugSourceName ?? currentProduct?.name ?? fallbackProductName;
+
+  if (!categoryId || !productName) {
+    redirect(buildAdminListPath(locale, { contentLocale, error: 'Товар не найден.' }));
   }
 
   const response = await adminApiFetch(`/api/products/${productId}`, {
@@ -327,40 +370,22 @@ export async function deleteProductAction(formData: FormData) {
   });
 
   if (!response.ok) {
-    const rawMessage = await getAdminApiErrorMessage(response, locale);
-
     redirect(
-      buildAdminRedirectPath(
-        locale,
-        {
-          contentLocale,
-          manageError:
-            rawMessage ||
-            (locale === 'en' ? 'Failed to delete product.' : 'Не удалось удалить товар.'),
-        },
-        'manage-products',
-      ),
+      buildAdminListPath(locale, {
+        contentLocale,
+        error: await getActionError(response, locale, 'Не удалось удалить товар.'),
+      }),
     );
   }
 
-  await revalidateCatalogPages({
-    categoryId,
-    productName,
-  });
-
-  redirect(
-    buildAdminRedirectPath(
-      locale,
-      {
-        contentLocale,
-        status: 'deleted',
-      },
-      'manage-products',
-    ),
-  );
+  await revalidateCatalogPages({ categoryId, productName, productId });
+  redirect(buildAdminListPath(locale, { contentLocale, status: 'deleted' }));
 }
 
-export async function updateCategoryTranslationAction(formData: FormData) {
+export async function updateCategoryTranslationAction(
+  _previousState: CategoryActionState,
+  formData: FormData,
+): Promise<CategoryActionState> {
   const locale = normalizeLocale(formData.get('locale'));
   const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
   await requireAdminSession(locale);
@@ -369,18 +394,16 @@ export async function updateCategoryTranslationAction(formData: FormData) {
   const name = normalizeText(formData.get('name'));
   const description = normalizeText(formData.get('description'));
 
-  if (!categoryId) {
-    redirect(
-      buildAdminRedirectPath(
-        locale,
-        {
-          contentLocale,
-          categoryError:
-            locale === 'en' ? 'Select a category.' : 'Выберите категорию для перевода.',
-        },
-        'manage-products',
-      ),
-    );
+  if (!/^\d+$/.test(categoryId)) {
+    return { status: 'error', message: 'Некорректный идентификатор категории.' };
+  }
+
+  if (contentLocale === 'ru' && !name) {
+    return {
+      status: 'error',
+      message: 'Проверьте обязательные поля.',
+      fieldErrors: { name: 'Введите название категории.' },
+    };
   }
 
   const response = await adminApiFetch(`/api/categories/${categoryId}`, {
@@ -389,44 +412,16 @@ export async function updateCategoryTranslationAction(formData: FormData) {
       ...getAdminApiHeaders(),
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      contentLocale,
-      name,
-      description,
-    }),
+    body: JSON.stringify({ contentLocale, name, description }),
   });
 
   if (!response.ok) {
-    const rawMessage = await getAdminApiErrorMessage(response, locale);
-
-    redirect(
-      buildAdminRedirectPath(
-        locale,
-        {
-          contentLocale,
-          category: categoryId,
-          categoryError:
-            rawMessage ||
-            (locale === 'en'
-              ? 'Failed to update category translation.'
-              : 'Не удалось обновить перевод категории.'),
-        },
-        `category-${categoryId}`,
-      ),
-    );
+    return {
+      status: 'error',
+      message: await getActionError(response, locale, 'Не удалось сохранить категорию.'),
+    };
   }
 
   await revalidateCategoryPages(categoryId);
-
-  redirect(
-    buildAdminRedirectPath(
-      locale,
-      {
-        contentLocale,
-        category: categoryId,
-        categoryStatus: 'updated',
-      },
-      `category-${categoryId}`,
-    ),
-  );
+  redirect(buildCategoryEditorPath(locale, categoryId, contentLocale, 'updated'));
 }

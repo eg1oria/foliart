@@ -7,16 +7,16 @@ import { useEffect, useState } from 'react';
 import { adminCx } from './adminStyles';
 
 export function AdminLocaleSwitcherFloating({
-  activeTab,
   contentLocale,
+  contentLocaleHref,
   contentLocales,
   getContentLocaleLabel,
   headerRef,
   hint,
   title,
 }: {
-  activeTab: string;
   contentLocale: string;
+  contentLocaleHref: string;
   contentLocales: readonly string[];
   getContentLocaleLabel: (locale: string) => string;
   headerRef: React.RefObject<HTMLElement | null>;
@@ -24,8 +24,6 @@ export function AdminLocaleSwitcherFloating({
   title: string;
 }) {
   const [visible, setVisible] = useState(false);
-  const currentAdminHref = `/admin/${activeTab}`;
-
   useEffect(() => {
     const header = headerRef.current;
     if (!header) return;
@@ -61,7 +59,8 @@ export function AdminLocaleSwitcherFloating({
           return (
             <Link
               key={item}
-              href={withContentLocale(currentAdminHref, item)}
+              href={withContentLocale(contentLocaleHref, item)}
+              data-admin-locale-link
               scroll={false}
               aria-current={isActive ? 'true' : undefined}
               className={adminCx(

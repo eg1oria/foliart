@@ -58,6 +58,7 @@ export function AdminShell({
   backLabel,
   children,
   contentLocale,
+  contentLocaleHref,
   description,
   locale,
   title,
@@ -67,6 +68,7 @@ export function AdminShell({
   backLabel: string;
   children: ReactNode;
   contentLocale: string;
+  contentLocaleHref?: string;
   description: string;
   locale: string;
   shortcuts?: AdminShortcut[];
@@ -74,7 +76,7 @@ export function AdminShell({
   title: string;
 }) {
   const safeContentLocale = normalizeContentLocale(contentLocale);
-  const currentAdminHref = `/admin/${activeTab}`;
+  const currentAdminHref = contentLocaleHref ?? `/admin/${activeTab}`;
   const headerRef = useRef<HTMLElement>(null);
 
   return (
@@ -135,6 +137,7 @@ export function AdminShell({
                       <Link
                         key={item}
                         href={withContentLocale(currentAdminHref, item)}
+                        data-admin-locale-link
                         scroll={false}
                         aria-current={isActive ? 'true' : undefined}
                         className={adminCx(
@@ -162,7 +165,7 @@ export function AdminShell({
       </div>
 
       <AdminLocaleSwitcherFloating
-        activeTab={activeTab}
+        contentLocaleHref={currentAdminHref}
         contentLocale={safeContentLocale}
         contentLocales={contentLocales}
         getContentLocaleLabel={getContentLocaleLabel}

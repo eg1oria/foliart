@@ -1,367 +1,43 @@
+import { redirect } from 'next/navigation';
+import { FiFolder, FiPlus } from 'react-icons/fi';
+
 import {
   AdminEmptyState,
   AdminNotice,
   AdminPanel,
   AdminShell,
-  AdminWorkspace,
 } from '@/components/admin/AdminShell';
-import AdminDeleteButton from '@/components/admin/AdminDeleteButton';
+import ProductAdminList from '@/components/admin/products/ProductAdminList';
 import {
-  adminBadgeClassName,
   adminCx,
-  adminDangerButtonClassName,
-  adminDetailsClassName,
-  adminFieldClassName,
-  adminFileInputClassName,
-  adminHintClassName,
-  adminInputClassName,
-  adminInputOnWhiteClassName,
-  adminLabelClassName,
-  adminOptionalLabelClassName,
   adminPrimaryButtonClassName,
   adminSecondaryButtonClassName,
-  adminSummaryClassName,
-  adminTextareaClassName,
-  adminTextareaOnWhiteClassName,
 } from '@/components/admin/adminStyles';
-import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
 import { requireAdminSession } from '@/lib/adminAuthServer';
-import { getCategories, getProducts, noStoreApiFetchOptions, type Product } from '@/lib/api';
+import { getCategories, getProducts, noStoreApiFetchOptions } from '@/lib/api';
+import { normalizeContentLocale, withContentLocale } from '@/lib/contentLocales';
+import { parseEntityId } from '@/lib/catalog';
 import {
-  getContentLocaleLabel,
-  normalizeContentLocale,
-  withContentLocale,
-} from '@/lib/contentLocales';
-import {
-  formatProductCount,
-  getCatalogAdminCopy,
-  getCatalogCopy,
-  getCategoryHref,
-  getProductHref,
-  parseEntityId,
-} from '@/lib/catalog';
-import { resolveMediaUrl } from '@/lib/media';
-import { FiEdit3, FiExternalLink, FiGlobe } from 'react-icons/fi';
+  normalizeProductCategoryFilter,
+  normalizeProductTranslationFilter,
+} from '@/lib/productAdmin';
 
-import {
-  createProductAction,
-  deleteProductAction,
-  updateCategoryTranslationAction,
-  updateProductAction,
-} from './actions';
-
-type AdminPageSearchParams = {
+type AdminProductsSearchParams = {
   category?: string;
-  categoryError?: string;
-  categoryStatus?: string;
+  categoryFilter?: string;
   contentLocale?: string;
   edit?: string;
   error?: string;
-  manageError?: string;
-  product?: string;
+  q?: string;
   status?: string;
+  translation?: string;
 };
 
-type ProductFormValues = Pick<
-  Product,
-  | 'categoryId'
-  | 'name'
-  | 'nameEn'
-  | 'description'
-  | 'descriptionEn'
-  | 'advantages'
-  | 'advantagesEn'
-  | 'composition'
-  | 'compositionEn'
-  | 'application'
-  | 'applicationEn'
->;
-
-function getCatalogDataLoadError(locale: string) {
-  return locale === 'en'
-    ? 'Could not load catalog data. Check that the backend API is running and try again.'
-    : 'Не удалось загрузить данные каталога. Проверьте, что backend API запущен, и обновите страницу.';
-}
-
-function ProductFormFields({
-  contentLocale,
-  locale,
-  adminCopy,
-  categories,
-  values,
-  imageRequired,
-}: {
-  contentLocale: string;
-  locale: string;
-  adminCopy: ReturnType<typeof getCatalogAdminCopy>;
-  categories: Awaited<ReturnType<typeof getCategories>>;
-  values?: Partial<ProductFormValues>;
-  imageRequired: boolean;
-}) {
-  const translationSectionTitle = locale === 'en' ? 'English translation' : 'Английская версия';
-  const translationSectionHint =
-    locale === 'en'
-      ? 'Leave fields empty if you want the English catalog to fall back to Russian.'
-      : 'Оставьте поля пустыми, если в английской версии каталога должен использоваться русский текст.';
-  const nameEnLabel = locale === 'en' ? 'Product name in English' : 'Название товара на английском';
-  const descriptionEnLabel = locale === 'en' ? 'Description in English' : 'Описание на английском';
-  const compositionEnLabel = locale === 'en' ? 'Composition in English' : 'Состав на английском';
-  const compositionEnHint =
-    locale === 'en'
-      ? 'One component per line in English.'
-      : 'По одному компоненту в строке на английском языке.';
-  const advantagesEnLabel =
-    locale === 'en' ? 'Advantages in English' : 'Преимущества на английском';
-  const advantagesEnHint =
-    locale === 'en'
-      ? 'These values are shown on the English product page.'
-      : 'Эти значения будут показаны в английской версии карточки товара.';
-  const applicationEnLabel =
-    locale === 'en' ? 'Application guide in English' : 'Регламент применения на английском';
-  const applicationEnHint =
-    locale === 'en'
-      ? 'Separate cards with an empty line. First line is the title.'
-      : 'Разделяйте карточки пустой строкой. Первая строка — заголовок.';
-
-  return (
-    <div className="space-y-5">
-      <div className="grid gap-5 md:grid-cols-2">
-        <label className={adminFieldClassName}>
-          <span className={adminLabelClassName}>{adminCopy.categoryLabel}</span>
-          <select
-            name="categoryId"
-            required
-            defaultValue={values?.categoryId ? String(values.categoryId) : ''}
-            className={adminCx(adminInputClassName, 'appearance-none')}
-          >
-            <option value="">{locale === 'en' ? 'Select category' : 'Выберите категорию'}</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className={adminFieldClassName}>
-          <span className={adminLabelClassName}>{adminCopy.nameLabel}</span>
-          <input
-            name="name"
-            type="text"
-            required
-            defaultValue={values?.name ?? ''}
-            placeholder={contentLocale === 'en' ? 'For example, Copper-88' : 'Например, Медь-88'}
-            className={adminInputClassName}
-          />
-        </label>
-      </div>
-
-      <div className="grid gap-5 md:grid-cols-2">
-        <label className={adminFieldClassName}>
-          <span className={adminLabelClassName}>
-            {locale === 'en' ? 'Image for Russian' : 'Фото для русской версии'}
-            {!imageRequired ? (
-              <span className={adminOptionalLabelClassName}> ({adminCopy.optionalLabel})</span>
-            ) : null}
-          </span>
-          <input
-            name="image"
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            required={imageRequired}
-            className={adminFileInputClassName}
-          />
-          <span className={adminHintClassName}>
-            {imageRequired ? adminCopy.imageHint : adminCopy.replaceImageHint}
-          </span>
-        </label>
-
-        <label className={adminFieldClassName}>
-          <span className={adminLabelClassName}>
-            {locale === 'en'
-              ? 'Image for English, French, Spanish'
-              : 'Фото для английской, французской и испанской версий'}
-            <span className={adminOptionalLabelClassName}> ({adminCopy.optionalLabel})</span>
-          </span>
-          <input
-            name="imageEn"
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            className={adminFileInputClassName}
-          />
-          <span className={adminHintClassName}>
-            {imageRequired
-              ? locale === 'en'
-                ? 'If omitted, the Russian image is used.'
-                : 'Если не загружать, будет использовано русское фото.'
-              : adminCopy.replaceImageHint}
-          </span>
-        </label>
-      </div>
-
-      <label className={adminFieldClassName}>
-        <span className={adminLabelClassName}>
-          {adminCopy.descriptionLabel}
-          <span className={adminOptionalLabelClassName}> ({adminCopy.optionalLabel})</span>
-        </span>
-        <textarea
-          name="description"
-          rows={4}
-          defaultValue={values?.description ?? ''}
-          className={adminTextareaClassName}
-        />
-      </label>
-
-      <div className="hidden">
-        <div>
-          <p className={adminBadgeClassName}>{translationSectionTitle}</p>
-          <p className={adminCx('mt-3', adminHintClassName)}>{translationSectionHint}</p>
-        </div>
-
-        <div className="mt-5 grid gap-5 md:grid-cols-2">
-          <label className={adminFieldClassName}>
-            <span className={adminLabelClassName}>
-              {nameEnLabel}
-              <span className={adminOptionalLabelClassName}> ({adminCopy.optionalLabel})</span>
-            </span>
-            <input
-              name="nameEn"
-              type="text"
-              defaultValue={values?.nameEn ?? ''}
-              placeholder={locale === 'en' ? 'For example, Copper-88' : 'Например, Copper-88'}
-              className={adminInputOnWhiteClassName}
-            />
-          </label>
-
-          <label className={adminFieldClassName}>
-            <span className={adminLabelClassName}>
-              {descriptionEnLabel}
-              <span className={adminOptionalLabelClassName}> ({adminCopy.optionalLabel})</span>
-            </span>
-            <textarea
-              name="descriptionEn"
-              rows={4}
-              defaultValue={values?.descriptionEn ?? ''}
-              className={adminTextareaOnWhiteClassName}
-            />
-          </label>
-        </div>
-      </div>
-
-      <div className="grid gap-5 xl:grid-cols-2">
-        <label className={adminFieldClassName}>
-          <span className={adminLabelClassName}>
-            {adminCopy.compositionLabel}
-            <span className={adminOptionalLabelClassName}> ({adminCopy.optionalLabel})</span>
-          </span>
-          <textarea
-            name="composition"
-            rows={5}
-            defaultValue={values?.composition ?? ''}
-            placeholder={
-              contentLocale === 'en'
-                ? 'Nitrogen | 20 g/l\nPhosphorus | 60 g/l\nPotassium | 60 g/l'
-                : 'Азот | 20 г/л\nФосфор | 60 г/л\nКалий | 60 г/л'
-            }
-            className={adminTextareaClassName}
-          />
-          <span className={adminHintClassName}>{adminCopy.compositionHint}</span>
-        </label>
-
-        <label className="hidden">
-          <span className={adminLabelClassName}>
-            {compositionEnLabel}
-            <span className={adminOptionalLabelClassName}> ({adminCopy.optionalLabel})</span>
-          </span>
-          <textarea
-            name="compositionEn"
-            rows={5}
-            defaultValue={values?.compositionEn ?? ''}
-            placeholder={'Nitrogen | 20 g/l\nPhosphorus | 60 g/l\nPotassium | 60 g/l'}
-            className={adminTextareaClassName}
-          />
-          <span className={adminHintClassName}>{compositionEnHint}</span>
-        </label>
-      </div>
-
-      <div className="grid gap-5 xl:grid-cols-2">
-        <label className={adminFieldClassName}>
-          <span className={adminLabelClassName}>
-            {adminCopy.advantagesLabel}
-            <span className={adminOptionalLabelClassName}> ({adminCopy.optionalLabel})</span>
-          </span>
-          <textarea
-            name="advantages"
-            rows={5}
-            defaultValue={values?.advantages ?? ''}
-            placeholder={
-              contentLocale === 'en' ? 'One advantage per line' : 'По одному преимуществу в строке'
-            }
-            className={adminTextareaClassName}
-          />
-          <span className={adminHintClassName}>
-            {locale === 'en'
-              ? 'Write each advantage on a new line. Commas inside the sentence are preserved.'
-              : 'Пишите каждое преимущество с новой строки. Запятые внутри фразы сохраняются.'}
-          </span>
-        </label>
-
-        <label className="hidden">
-          <span className={adminLabelClassName}>
-            {advantagesEnLabel}
-            <span className={adminOptionalLabelClassName}> ({adminCopy.optionalLabel})</span>
-          </span>
-          <textarea
-            name="advantagesEn"
-            rows={5}
-            defaultValue={values?.advantagesEn ?? ''}
-            placeholder={locale === 'en' ? 'One advantage per line' : 'По одному пункту в строке'}
-            className={adminTextareaClassName}
-          />
-          <span className={adminHintClassName}>{advantagesEnHint}</span>
-        </label>
-      </div>
-
-      <div className="grid gap-5 xl:grid-cols-2">
-        <label className={adminFieldClassName}>
-          <span className={adminLabelClassName}>
-            {adminCopy.applicationLabel}
-            <span className={adminOptionalLabelClassName}> ({adminCopy.optionalLabel})</span>
-          </span>
-          <textarea
-            name="application"
-            rows={8}
-            defaultValue={values?.application ?? ''}
-            placeholder={
-              contentLocale === 'en'
-                ? 'Grapes, apple, pear:\n1 l/ha for spray volume up to 600 l/ha\n1.5 l/ha for 700-1000 l/ha\n\nBerries:\n1 l/ha for spray volume up to 500 l/ha'
-                : 'Виноград, яблоня, груша:\n1 л/га при объеме рабочей жидкости до 600 л/га\n1,5 л/га при объеме рабочей жидкости 700-1000 л/га\n\nЯгодники:\n1 л/га при объеме рабочей жидкости до 500 л/га'
-            }
-            className={adminTextareaClassName}
-          />
-          <span className={adminHintClassName}>{adminCopy.applicationHint}</span>
-        </label>
-
-        <label className="hidden">
-          <span className={adminLabelClassName}>
-            {applicationEnLabel}
-            <span className={adminOptionalLabelClassName}> ({adminCopy.optionalLabel})</span>
-          </span>
-          <textarea
-            name="applicationEn"
-            rows={8}
-            defaultValue={values?.applicationEn ?? ''}
-            placeholder={
-              'Grapes, apple, pear:\n1 l/ha for spray volume up to 600 l/ha\n1.5 l/ha for 700-1000 l/ha\n\nBerries:\n1 l/ha for spray volume up to 500 l/ha'
-            }
-            className={adminTextareaClassName}
-          />
-          <span className={adminHintClassName}>{applicationEnHint}</span>
-        </label>
-      </div>
-    </div>
-  );
+function getStatusMessage(status?: string) {
+  if (status === 'deleted') return 'Товар успешно удалён.';
+  if (status === 'created') return 'Товар успешно создан.';
+  return null;
 }
 
 export default async function AdminProductsPage({
@@ -369,573 +45,136 @@ export default async function AdminProductsPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<AdminPageSearchParams>;
+  searchParams: Promise<AdminProductsSearchParams>;
 }) {
   const { locale } = await params;
   await requireAdminSession(locale, `/${locale}/admin/products`);
 
-  const {
-    category,
-    categoryError,
-    categoryStatus,
-    contentLocale: contentLocaleParam,
-    edit,
-    error,
-    manageError,
-    product,
-    status,
-  } = await searchParams;
-  const contentLocale = normalizeContentLocale(contentLocaleParam);
-  const contentLocaleLabel = getContentLocaleLabel(contentLocale);
-  const adminCopy = getCatalogAdminCopy(locale);
-  const catalogCopy = getCatalogCopy(locale);
+  const query = await searchParams;
+  const contentLocale = normalizeContentLocale(query.contentLocale);
+  const legacyProductId = parseEntityId(query.edit ?? '');
+  const legacyCategoryId = parseEntityId(query.category ?? '');
+
+  if (legacyProductId) {
+    redirect(
+      `/${locale}/admin/products/${legacyProductId}?contentLocale=${contentLocale}`,
+    );
+  }
+
+  if (legacyCategoryId) {
+    redirect(
+      `/${locale}/admin/products/categories/${legacyCategoryId}?contentLocale=${contentLocale}`,
+    );
+  }
+
   const [categoriesResult, productsResult] = await Promise.allSettled([
     getCategories(contentLocale, noStoreApiFetchOptions, contentLocale),
     getProducts(undefined, contentLocale, noStoreApiFetchOptions, contentLocale),
   ]);
   const categories = categoriesResult.status === 'fulfilled' ? categoriesResult.value : [];
   const products = productsResult.status === 'fulfilled' ? productsResult.value : [];
-  const dataLoadError =
-    categoriesResult.status === 'rejected' || productsResult.status === 'rejected'
-      ? getCatalogDataLoadError(locale)
-      : null;
-  const activeCategoryId = parseEntityId(category ?? '');
-  const editProductId = parseEntityId(edit ?? '');
-  const statusProductId = parseEntityId(product ?? '');
-  const topLevelError = error && !editProductId ? error : null;
-  const managePanelError = manageError ?? null;
-  const deletedStatusMessage =
-    locale === 'en' ? 'Product deleted successfully.' : 'Товар успешно удален.';
-  const topLevelStatus = status === 'created' ? adminCopy.statusCreated : null;
-  const manageStatus = status === 'deleted' ? deletedStatusMessage : null;
-  const untranslatedCategories = categories.filter(
-    (categoryItem) => !categoryItem.adminTranslation?.isComplete,
+  const dataAvailable =
+    categoriesResult.status === 'fulfilled' && productsResult.status === 'fulfilled';
+  const missingTranslations = products.filter(
+    (product) => !product.adminTranslation?.isComplete,
   ).length;
-  const untranslatedProducts = products.filter(
-    (productItem) => !productItem.adminTranslation?.isComplete,
-  ).length;
-  const categoryTranslationTitle =
-    locale === 'en'
-      ? `${contentLocaleLabel} category content`
-      : `${contentLocaleLabel}: контент категории`;
-  const categoryNameEnLabel =
-    locale === 'en'
-      ? `Category name (${contentLocaleLabel})`
-      : `Название категории (${contentLocaleLabel})`;
-  const categoryDescriptionEnLabel =
-    locale === 'en'
-      ? `Category description (${contentLocaleLabel})`
-      : `Описание категории (${contentLocaleLabel})`;
-  const saveCategoryTranslationLabel =
-    locale === 'en' ? 'Save category content' : 'Сохранить контент категории';
-  const categoryStatusMessage =
-    categoryStatus === 'updated'
-      ? locale === 'en'
-        ? 'Category translation updated successfully.'
-        : 'Перевод категории успешно обновлен.'
-      : null;
-  const createBadge = locale === 'en' ? 'Create' : 'Создание';
-  const manageBadge = locale === 'en' ? 'Manage' : 'Управление';
-  const emptyManageTitle =
-    locale === 'en' ? 'Categories will appear here' : 'Категории появятся здесь';
-  const openEditorLabel = locale === 'en' ? 'Open editor' : 'Открыть редактор';
-  const deleteLabel = locale === 'en' ? 'Delete' : 'Удалить';
-  const deletingLabel = locale === 'en' ? 'Deleting...' : 'Удаление...';
-  const editCategoryLabel = locale === 'en' ? 'Open translation form' : 'Открыть форму перевода';
-  const stats = [
-    {
-      label: locale === 'en' ? 'Categories' : 'Категории',
-      value: String(categories.length),
-      hint:
-        locale === 'en'
-          ? 'Catalog sections available for products.'
-          : 'Разделы каталога, доступные для товаров.',
-    },
-    {
-      label: locale === 'en' ? 'Products' : 'Товары',
-      value: String(products.length),
-      hint:
-        locale === 'en'
-          ? 'All product cards currently in the catalog.'
-          : 'Все карточки товаров, которые уже есть в каталоге.',
-    },
-    {
-      label: locale === 'en' ? `Need ${contentLocaleLabel}` : `Нужен ${contentLocaleLabel}`,
-      value: String(untranslatedProducts),
-      hint:
-        locale === 'en'
-          ? 'Products still using Russian fallback in English.'
-          : 'Товары, которые еще используют русский fallback в английской версии.',
-    },
-    {
-      label: locale === 'en' ? `Category ${contentLocaleLabel}` : `${contentLocaleLabel} категорий`,
-      value: String(untranslatedCategories),
-      hint:
-        locale === 'en'
-          ? 'Categories still missing English data.'
-          : 'Категории, в которых еще не хватает английских полей.',
-    },
-  ];
-  const shortcuts = [
-    {
-      href: '#create-product',
-      label: locale === 'en' ? 'Add product' : 'Добавить товар',
-    },
-    {
-      href: '#manage-products',
-      label: locale === 'en' ? 'Browse products' : 'Список товаров',
-    },
-  ];
+  const statusMessage = getStatusMessage(query.status);
 
   return (
     <AdminShell
       activeTab="products"
       backHref="/catalog"
-      backLabel={adminCopy.backToCatalog}
-      description={adminCopy.subtitle}
+      backLabel="Открыть каталог"
       contentLocale={contentLocale}
+      description="Быстро находите товары, контролируйте переводы и открывайте отдельный редактор без перегруженных форм."
       locale={locale}
-      shortcuts={shortcuts}
-      stats={stats}
-      title={adminCopy.title}
+      title="Управление товарами"
     >
-      <AdminWorkspace>
-        <AdminPanel
-          id="create-product"
-          badge={createBadge}
-          title={adminCopy.formTitle}
-          description={adminCopy.formDescription}
-        >
-          <div className="space-y-4">
-            {topLevelStatus ? <AdminNotice tone="success">{topLevelStatus}</AdminNotice> : null}
-            {dataLoadError ? <AdminNotice tone="error">{dataLoadError}</AdminNotice> : null}
-            {topLevelError ? <AdminNotice tone="error">{topLevelError}</AdminNotice> : null}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-lg border border-[#0b5a45]/10 bg-white px-4 py-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6a7f76]">
+            Всего товаров
+          </p>
+          <p className="mt-1 text-2xl font-semibold text-[#0b3e31]">{products.length}</p>
+        </div>
+        <div className="rounded-lg border border-[#0b5a45]/10 bg-white px-4 py-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6a7f76]">
+            Категорий
+          </p>
+          <p className="mt-1 text-2xl font-semibold text-[#0b3e31]">{categories.length}</p>
+        </div>
+        <div className="rounded-lg border border-[#0b5a45]/10 bg-white px-4 py-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6a7f76]">
+            Нужно заполнить {contentLocale.toUpperCase()}
+          </p>
+          <p className="mt-1 text-2xl font-semibold text-[#0b3e31]">{missingTranslations}</p>
+        </div>
+      </div>
+
+      <AdminPanel
+        className="mt-5"
+        badge="Каталог"
+        title="Товары"
+        description="Поиск и фильтры работают мгновенно и не запрашивают каталог повторно."
+        headerContent={
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Link
+              href={withContentLocale('/admin/products/categories', contentLocale)}
+              className={adminCx(adminSecondaryButtonClassName, 'gap-2')}
+            >
+              <FiFolder aria-hidden="true" />
+              Переводы категорий
+            </Link>
+            <Link
+              href={withContentLocale('/admin/products/new', 'ru')}
+              className={adminCx(adminPrimaryButtonClassName, 'gap-2')}
+            >
+              <FiPlus aria-hidden="true" />
+              Добавить товар
+            </Link>
           </div>
-
-          {contentLocale === 'ru' ? (
-            <form action={createProductAction} className="mt-6 space-y-6">
-              <input type="hidden" name="locale" value={locale} />
-              <input type="hidden" name="contentLocale" value={contentLocale} />
-
-              <ProductFormFields
-                contentLocale={contentLocale}
-                locale={locale}
-                adminCopy={adminCopy}
-                categories={categories}
-                imageRequired
-              />
-
-              <div className="flex flex-col gap-3 border-t border-[#0b5a45]/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
-                <button
-                  type="submit"
-                  className={adminCx(adminPrimaryButtonClassName, 'w-full sm:w-auto')}
-                >
-                  {adminCopy.submitLabel}
-                </button>
-                <p className={adminHintClassName}>
-                  {locale === 'en'
-                    ? 'The uploaded image will be stored in backend/images/products.'
-                    : 'Загруженное изображение будет сохранено в backend/images/products.'}
-                </p>
-              </div>
-            </form>
-          ) : (
-            <div className="mt-6">
-              <AdminEmptyState
-                badge={contentLocaleLabel}
-                title={
-                  locale === 'en'
-                    ? 'Create the Russian product first'
-                    : 'Сначала создайте товар на русском языке'
-                }
-                description={
-                  locale === 'en'
-                    ? 'Switch to RU to create the base product, then return here to add its translation.'
-                    : 'Переключитесь на RU, создайте основной товар, затем вернитесь сюда и добавьте перевод.'
-                }
-              />
-            </div>
-          )}
-        </AdminPanel>
-
-        <AdminPanel
-          id="manage-products"
-          badge={manageBadge}
-          title={adminCopy.existingTitle}
-          description={adminCopy.adminPathHint}
-          tone="muted"
-          headerContent={
-            <span className={adminBadgeClassName}>
-              {products.length} {adminCopy.productCountLabel}
-            </span>
-          }
-        >
-          {manageStatus ? (
-            <div className="mb-5">
-              <AdminNotice tone="success">{manageStatus}</AdminNotice>
-            </div>
+        }
+      >
+        <div className="space-y-4">
+          {statusMessage ? <AdminNotice tone="success">{statusMessage}</AdminNotice> : null}
+          {query.error ? <AdminNotice tone="error">{query.error}</AdminNotice> : null}
+          {!dataAvailable ? (
+            <AdminNotice tone="error">
+              Не удалось загрузить каталог. Проверьте backend API и повторите попытку.
+            </AdminNotice>
           ) : null}
-          {managePanelError ? (
-            <div className="mb-5">
-              <AdminNotice tone="error">{managePanelError}</AdminNotice>
-            </div>
-          ) : null}
-          {dataLoadError ? (
-            <div className="mb-5">
-              <AdminNotice tone="error">{dataLoadError}</AdminNotice>
-            </div>
-          ) : null}
-          {categories.length === 0 ? (
+        </div>
+
+        {!dataAvailable ? (
+          <div className="mt-5">
             <AdminEmptyState
-              badge={manageBadge}
-              title={emptyManageTitle}
-              description={adminCopy.emptyState}
+              badge="Ошибка загрузки"
+              title="Каталог временно недоступен"
+              description="Обновите страницу после восстановления соединения с backend API."
             />
-          ) : (
-            <div className="space-y-5">
-              {categories.map((categoryItem) => {
-                const categoryProducts = products.filter(
-                  (productItem) => productItem.categoryId === categoryItem.id,
-                );
-                const isCategoryEditing = activeCategoryId === categoryItem.id;
-                const hasTranslation = Boolean(categoryItem.adminTranslation?.isComplete);
-
-                return (
-                  <div
-                    key={categoryItem.id}
-                    id={`category-${categoryItem.id}`}
-                    className="scroll-mt-6 rounded-lg border border-[#0b5a45]/10 bg-white p-4 shadow-[0_12px_40px_-30px_rgba(11,62,49,0.8)] sm:p-5"
-                  >
-                    <div className="flex flex-col gap-3">
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="text-base font-semibold text-[#0b3e31] sm:text-lg">
-                              {categoryItem.name}
-                            </h3>
-                            <span className={adminBadgeClassName}>
-                              {formatProductCount(categoryProducts.length, locale)}
-                            </span>
-                            <span
-                              className={adminCx(
-                                'inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.18em]',
-                                hasTranslation
-                                  ? 'bg-emerald-50 text-emerald-700'
-                                  : 'bg-amber-50 text-amber-700',
-                              )}
-                            >
-                              {hasTranslation
-                                ? locale === 'en'
-                                  ? `${contentLocaleLabel} ✓`
-                                  : `${contentLocaleLabel} ✓`
-                                : locale === 'en'
-                                  ? `Needs ${contentLocaleLabel}`
-                                  : `Нужен ${contentLocaleLabel}`}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:flex sm:shrink-0">
-                          <Link
-                            href={getCategoryHref(categoryItem)}
-                            className={adminCx(
-                              adminSecondaryButtonClassName,
-                              'min-h-9 p-2 text-xs',
-                            )}
-                          >
-                            <FiExternalLink className="mr-1.5" />
-                            <span className="hidden sm:inline">{catalogCopy.openCategory}</span>
-                          </Link>
-                          <Link
-                            href={withContentLocale(
-                              `/admin/products?category=${categoryItem.id}#category-${categoryItem.id}`,
-                              contentLocale,
-                            )}
-                            className={adminCx(
-                              adminSecondaryButtonClassName,
-                              'min-h-9 p-2 text-xs',
-                            )}
-                          >
-                            <FiGlobe className="mr-1.5" />
-                            {editCategoryLabel}
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-
-                    <details
-                      open={isCategoryEditing}
-                      className={adminCx('mt-5', adminDetailsClassName)}
-                    >
-                      <summary className={adminSummaryClassName}>
-                        <span>{categoryTranslationTitle}</span>
-                        <span className="text-xs font-medium text-[#6a7f76]">
-                          {locale === 'en'
-                            ? 'English catalog fields'
-                            : 'Поля для английского каталога'}
-                        </span>
-                      </summary>
-
-                      <div className="border-t border-[#0b5a45]/10 p-4 sm:p-5">
-                        <div className="space-y-4">
-                          {categoryStatusMessage && isCategoryEditing ? (
-                            <AdminNotice tone="success">{categoryStatusMessage}</AdminNotice>
-                          ) : null}
-
-                          {categoryError && isCategoryEditing ? (
-                            <AdminNotice tone="error">{categoryError}</AdminNotice>
-                          ) : null}
-                        </div>
-
-                        <form action={updateCategoryTranslationAction} className="mt-5 space-y-5">
-                          <input type="hidden" name="locale" value={locale} />
-                          <input type="hidden" name="contentLocale" value={contentLocale} />
-                          <input type="hidden" name="categoryId" value={categoryItem.id} />
-
-                          <div className="grid gap-5 md:grid-cols-2">
-                            <label className={adminFieldClassName}>
-                              <span className={adminLabelClassName}>{categoryNameEnLabel}</span>
-                              <input
-                                name="name"
-                                type="text"
-                                defaultValue={categoryItem.adminTranslation?.name ?? ''}
-                                className={adminInputOnWhiteClassName}
-                              />
-                            </label>
-
-                            <label className={adminFieldClassName}>
-                              <span className={adminLabelClassName}>
-                                {categoryDescriptionEnLabel}
-                              </span>
-                              <textarea
-                                name="description"
-                                rows={3}
-                                defaultValue={categoryItem.adminTranslation?.description ?? ''}
-                                className={adminTextareaOnWhiteClassName}
-                              />
-                            </label>
-                          </div>
-
-                          <button
-                            type="submit"
-                            className={adminCx(adminPrimaryButtonClassName, 'w-full sm:w-auto')}
-                          >
-                            {saveCategoryTranslationLabel}
-                          </button>
-                        </form>
-                      </div>
-                    </details>
-
-                    {categoryProducts.length === 0 ? (
-                      <div className="mt-5 rounded-lg border border-dashed border-[#0b5a45]/16 bg-[#f8f7f2] px-4 py-5 text-sm text-[#6a7f76]">
-                        {adminCopy.emptyState}
-                      </div>
-                    ) : (
-                      <div className="mt-5 space-y-3">
-                        {categoryProducts.map((productItem) => {
-                          const imageSrc = resolveMediaUrl(productItem.imageUrl);
-                          const isEditing =
-                            editProductId === productItem.id || statusProductId === productItem.id;
-
-                          return (
-                            <div
-                              key={productItem.id}
-                              id={`product-${productItem.id}`}
-                              className="scroll-mt-6 rounded-lg border border-[#0b5a45]/10 bg-[#f8f7f2] p-3 sm:p-4"
-                            >
-                              <div className="flex items-start gap-3">
-                                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md border border-[#0b5a45]/10 bg-white sm:h-[72px] sm:w-[72px]">
-                                  <MediaImage
-                                    src={imageSrc}
-                                    alt={productItem.name}
-                                    fill
-                                    sizes="72px"
-                                    className="object-contain p-1.5"
-                                    emptyState={
-                                      <div className="flex h-full w-full items-center justify-center text-[10px] text-[#6a7f76]">
-                                        IMG
-                                      </div>
-                                    }
-                                  />
-                                </div>
-
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex flex-wrap items-start justify-between gap-2">
-                                    <div className="min-w-0">
-                                      <p className="text-sm font-semibold text-[#0b3e31] sm:text-base">
-                                        {productItem.name}
-                                      </p>
-                                      {!productItem.adminTranslation?.isComplete ? (
-                                        <span className="mt-1 inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-700">
-                                          {locale === 'en'
-                                            ? `Needs ${contentLocaleLabel}`
-                                            : `Нужен ${contentLocaleLabel}`}
-                                        </span>
-                                      ) : null}
-                                    </div>
-
-                                    <div className="grid w-full grid-cols-[2.5rem_minmax(0,1fr)] gap-1.5 sm:w-auto sm:flex sm:shrink-0">
-                                      <Link
-                                        href={getProductHref(categoryItem, productItem)}
-                                        className={adminCx(
-                                          adminSecondaryButtonClassName,
-                                          'min-h-8 px-2.5 py-1.5 text-xs',
-                                        )}
-                                      >
-                                        <FiExternalLink />
-                                      </Link>
-                                      <Link
-                                        href={withContentLocale(
-                                          `/admin/products?edit=${productItem.id}#product-${productItem.id}`,
-                                          contentLocale,
-                                        )}
-                                        className={adminCx(
-                                          adminSecondaryButtonClassName,
-                                          'min-h-8 px-2.5 py-1.5 text-xs',
-                                        )}
-                                      >
-                                        <FiEdit3 className="mr-1" />
-                                        {openEditorLabel}
-                                      </Link>
-                                      <form
-                                        action={deleteProductAction}
-                                        className="col-span-2 sm:col-span-1"
-                                      >
-                                        <input type="hidden" name="locale" value={locale} />
-                                        <input
-                                          type="hidden"
-                                          name="contentLocale"
-                                          value={contentLocale}
-                                        />
-                                        <input
-                                          type="hidden"
-                                          name="productId"
-                                          value={productItem.id}
-                                        />
-                                        <input
-                                          type="hidden"
-                                          name="categoryId"
-                                          value={productItem.categoryId}
-                                        />
-                                        <input
-                                          type="hidden"
-                                          name="productName"
-                                          value={productItem.slugSourceName ?? productItem.name}
-                                        />
-                                        <AdminDeleteButton
-                                          className={adminCx(
-                                            adminDangerButtonClassName,
-                                            'min-h-8 w-full px-2.5 py-1.5 text-xs sm:w-auto',
-                                          )}
-                                          confirmMessage={
-                                            locale === 'en'
-                                              ? `Delete product "${productItem.name}"? This cannot be undone.`
-                                              : `Удалить товар «${productItem.name}»? Это действие нельзя отменить.`
-                                          }
-                                          pendingLabel={deletingLabel}
-                                        >
-                                          {deleteLabel}
-                                        </AdminDeleteButton>
-                                      </form>
-                                    </div>
-                                  </div>
-
-                                  {productItem.description ? (
-                                    <p className="mt-1.5 line-clamp-1 text-xs leading-5 text-[#567068]">
-                                      {productItem.description}
-                                    </p>
-                                  ) : null}
-                                </div>
-                              </div>
-
-                              <details
-                                open={isEditing}
-                                className={adminCx('mt-4', adminDetailsClassName)}
-                              >
-                                <summary className={adminSummaryClassName}>
-                                  <span>{adminCopy.editLabel}</span>
-                                  <span className="text-xs font-medium text-[#6a7f76]">
-                                    {locale === 'en'
-                                      ? 'Inline product editor'
-                                      : 'Встроенный редактор товара'}
-                                  </span>
-                                </summary>
-
-                                <div className="border-t border-[#0b5a45]/10 p-4 sm:p-5">
-                                  <div className="space-y-4">
-                                    {status === 'updated' && statusProductId === productItem.id ? (
-                                      <AdminNotice tone="success">
-                                        {adminCopy.statusUpdated}
-                                      </AdminNotice>
-                                    ) : null}
-
-                                    {error && editProductId === productItem.id ? (
-                                      <AdminNotice tone="error">{error}</AdminNotice>
-                                    ) : null}
-                                  </div>
-
-                                  <form action={updateProductAction} className="mt-5 space-y-6">
-                                    <input type="hidden" name="locale" value={locale} />
-                                    <input
-                                      type="hidden"
-                                      name="contentLocale"
-                                      value={contentLocale}
-                                    />
-                                    <input type="hidden" name="productId" value={productItem.id} />
-                                    <input
-                                      type="hidden"
-                                      name="previousCategoryId"
-                                      value={productItem.categoryId}
-                                    />
-                                    <input
-                                      type="hidden"
-                                      name="previousName"
-                                      value={productItem.slugSourceName ?? productItem.name}
-                                    />
-
-                                    <ProductFormFields
-                                      contentLocale={contentLocale}
-                                      locale={locale}
-                                      adminCopy={adminCopy}
-                                      categories={categories}
-                                      values={{
-                                        categoryId: productItem.categoryId,
-                                        name: productItem.adminTranslation?.name ?? '',
-                                        description:
-                                          productItem.adminTranslation?.description ?? '',
-                                        advantages: productItem.adminTranslation?.advantages ?? '',
-                                        composition:
-                                          productItem.adminTranslation?.composition ?? '',
-                                        application:
-                                          productItem.adminTranslation?.application ?? '',
-                                      }}
-                                      imageRequired={false}
-                                    />
-
-                                    <button
-                                      type="submit"
-                                      className={adminCx(
-                                        adminPrimaryButtonClassName,
-                                        'w-full sm:w-auto',
-                                      )}
-                                    >
-                                      {adminCopy.updateLabel}
-                                    </button>
-                                  </form>
-                                </div>
-                              </details>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </AdminPanel>
-      </AdminWorkspace>
+          </div>
+        ) : products.length === 0 ? (
+          <div className="mt-5">
+            <AdminEmptyState
+              badge="Пустой каталог"
+              title="Товаров пока нет"
+              description="Создайте первый товар на русском языке, затем добавьте переводы."
+            />
+          </div>
+        ) : (
+          <div className="mt-5">
+            <ProductAdminList
+              categories={categories}
+              contentLocale={contentLocale}
+              initialCategoryId={normalizeProductCategoryFilter(query.categoryFilter)}
+              initialQuery={query.q ?? ''}
+              initialTranslation={normalizeProductTranslationFilter(query.translation)}
+              locale={locale}
+              products={products}
+            />
+          </div>
+        )}
+      </AdminPanel>
     </AdminShell>
   );
 }
