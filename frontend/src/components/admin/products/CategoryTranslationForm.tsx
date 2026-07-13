@@ -8,6 +8,7 @@ import {
   updateCategoryTranslationAction,
 } from '../../../app/[locale]/admin/products/actions';
 import { Link } from '@/i18n/routing';
+import RichDescriptionEditor from '@/components/admin/RichDescriptionEditor';
 import type { Category } from '@/lib/api';
 import { getContentLocaleLabel, withContentLocale } from '@/lib/contentLocales';
 
@@ -19,7 +20,6 @@ import {
   adminLabelClassName,
   adminPrimaryButtonClassName,
   adminSecondaryButtonClassName,
-  adminTextareaClassName,
 } from '../adminStyles';
 
 const initialState: CategoryActionState = { status: 'idle' };
@@ -133,20 +133,20 @@ export default function CategoryTranslationForm({
             ) : null}
           </label>
 
-          <label className={adminFieldClassName}>
+          <div className={adminFieldClassName}>
             <span className={adminLabelClassName}>Описание категории</span>
-            <textarea
-              name="description"
-              rows={8}
+            <RichDescriptionEditor
               defaultValue={defaultDescription}
-              className={adminTextareaClassName}
+              label="Описание категории"
+              onContentChange={() => setDirty(true)}
+              placeholder="Введите описание категории"
             />
             {!isBaseLocale ? (
               <span className={adminHintClassName}>
                 Перевод считается заполненным, когда указаны название и описание.
               </span>
             ) : null}
-          </label>
+          </div>
         </div>
       </section>
 

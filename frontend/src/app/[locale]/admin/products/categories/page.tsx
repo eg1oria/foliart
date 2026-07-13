@@ -10,6 +10,7 @@ import { requireAdminSession } from '@/lib/adminAuthServer';
 import { getCategories, noStoreApiFetchOptions } from '@/lib/api';
 import { normalizeContentLocale, withContentLocale } from '@/lib/contentLocales';
 import { getCategoryHref } from '@/lib/catalog';
+import { richDescriptionToPlainText } from '@/lib/richDescription';
 
 export default async function ProductCategoriesPage({
   params,
@@ -97,7 +98,8 @@ export default async function ProductCategoriesPage({
                       <div className="min-w-0">
                         <h2 className="font-semibold text-[#0b3e31]">{category.name}</h2>
                         <p className="mt-1 line-clamp-1 text-xs text-[#6a7f76]">
-                          {category.description || 'Описание не заполнено'}
+                          {richDescriptionToPlainText(category.description) ||
+                            'Описание не заполнено'}
                         </p>
                       </div>
                       <p className="text-sm text-[#567068]">{category.productCount}</p>

@@ -14,6 +14,7 @@ import {
   noStoreApiFetchOptions,
 } from '@/lib/api';
 import { normalizeContentLocale } from '@/lib/contentLocales';
+import { sanitizeRichDescription } from '@/lib/renderRichDescription';
 import { getCategoryHref, getProductHref } from '@/lib/catalog';
 import {
   hasProductFormErrors,
@@ -101,7 +102,7 @@ function getProductFormPayload(formData: FormData): ProductFormPayload {
   return {
     categoryId: normalizeText(formData.get('categoryId')),
     name: normalizeText(formData.get('name')),
-    description: normalizeText(formData.get('description')),
+    description: sanitizeRichDescription(normalizeText(formData.get('description'))),
     advantages: normalizeText(formData.get('advantages')),
     composition: normalizeText(formData.get('composition')),
     application: normalizeText(formData.get('application')),
@@ -392,7 +393,7 @@ export async function updateCategoryTranslationAction(
 
   const categoryId = normalizeText(formData.get('categoryId'));
   const name = normalizeText(formData.get('name'));
-  const description = normalizeText(formData.get('description'));
+  const description = sanitizeRichDescription(normalizeText(formData.get('description')));
 
   if (!/^\d+$/.test(categoryId)) {
     return { status: 'error', message: 'Некорректный идентификатор категории.' };

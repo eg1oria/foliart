@@ -10,6 +10,7 @@ import type { Category, Product } from '../../../lib/api';
 import { withContentLocale } from '../../../lib/contentLocales';
 import { getProductHref } from '../../../lib/catalog';
 import { resolveMediaUrl } from '../../../lib/media';
+import { richDescriptionToPlainText } from '../../../lib/richDescription';
 import {
   filterAdminProducts,
   type ProductTranslationFilter,
@@ -351,7 +352,7 @@ export default function ProductAdminList({
                             <p className="truncate font-semibold text-[#0b3e31]">{product.name}</p>
                             {product.description ? (
                               <p className="mt-0.5 truncate text-xs text-[#6a7f76]">
-                                {product.description}
+                                {richDescriptionToPlainText(product.description)}
                               </p>
                             ) : (
                               <p className="mt-0.5 text-xs text-[#8a9a93]">Описание не заполнено</p>

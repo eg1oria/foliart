@@ -8,6 +8,7 @@ import { requireAdminSession } from '@/lib/adminAuthServer';
 import { calendarsCacheTag } from '@/lib/api';
 import { getCalendarHref } from '@/lib/calendars';
 import { normalizeContentLocale } from '@/lib/contentLocales';
+import { sanitizeRichDescription } from '@/lib/renderRichDescription';
 
 const calendarLocales = ['ru', 'en', 'fr', 'es'] as const;
 const imageFieldNames = ['image1', 'image2', 'image3', 'image4'] as const;
@@ -46,7 +47,7 @@ function normalizeText(value: FormDataEntryValue | null) {
 function getCalendarFormPayload(formData: FormData): CalendarFormPayload {
   return {
     title: normalizeText(formData.get('title')),
-    description: normalizeText(formData.get('description')),
+    description: sanitizeRichDescription(normalizeText(formData.get('description'))),
   };
 }
 

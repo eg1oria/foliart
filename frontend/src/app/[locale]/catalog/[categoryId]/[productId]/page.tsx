@@ -20,6 +20,8 @@ import {
   parseComposition,
 } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
+import { renderRichDescription } from '@/lib/renderRichDescription';
+import { richDescriptionToPlainText } from '@/lib/richDescription';
 import {
   buildBreadcrumbSchema,
   buildPageMetadata,
@@ -49,13 +51,6 @@ async function getProductPageData(categoryParam: string, productParam: string, l
   return { category, product };
 }
 
-function getTextBlocks(value: string): string[] {
-  return value
-    .split(/\r?\n+/)
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
 export async function generateMetadata({
   params,
 }: {
@@ -71,7 +66,10 @@ export async function generateMetadata({
       locale,
       path: getProductHref(category, product),
       title: product.name,
-      description: product.description || category.description || copy.detailsFallback,
+      description:
+        richDescriptionToPlainText(product.description) ||
+        richDescriptionToPlainText(category.description) ||
+        copy.detailsFallback,
       image: resolveMediaUrl(product.imageUrl),
     });
   } catch {
@@ -118,11 +116,9 @@ export default async function ProductDetailsPage({
   const compositionItems = parseComposition(product.composition);
   const advantages = parseAdvantages(product.advantages);
   const applicationItems = parseApplication(product.application);
-  const productText = product.description.trim();
-  const categoryText = category.description.trim();
-  const overviewText = productText || categoryText || copy.detailsFallback;
-  const [leadDescriptionBlock, ...descriptionRestBlocks] = getTextBlocks(overviewText);
-  const descriptionText = descriptionRestBlocks.join('\n');
+  const overviewSource = product.description || category.description || copy.detailsFallback;
+  const overviewHtml = renderRichDescription(overviewSource);
+  const overviewText = richDescriptionToPlainText(overviewHtml);
   const pageCopy =
     locale === 'ru'
       ? {
@@ -315,12 +311,10 @@ export default async function ProductDetailsPage({
           <div
             id="description"
             className="order-2 min-[1000px]:max-w-full  scroll-mt-32 lg:order-3">
-            <div className="text-base leading-6 text-[#243238]">
-              {leadDescriptionBlock ? (
-                <p className={descriptionText ? 'mb-3' : undefined}>{leadDescriptionBlock}</p>
-              ) : null}
-              {descriptionText ? <p className="whitespace-pre-line">{descriptionText}</p> : null}
-            </div>
+            <div
+              className="rich-description text-base leading-6 text-[#243238]"
+              dangerouslySetInnerHTML={{ __html: overviewHtml }}
+            />
             <a
               href="#composition"
               className="mt-6 inline-flex items-center gap-2 text-sm text-[#3b76f6] transition hover:text-[#0b5a45]">

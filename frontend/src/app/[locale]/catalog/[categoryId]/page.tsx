@@ -12,6 +12,8 @@ import {
   getCategorySlug,
 } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
+import { renderRichDescription } from '@/lib/renderRichDescription';
+import { richDescriptionToPlainText } from '@/lib/richDescription';
 import { buildBreadcrumbSchema, buildPageMetadata, stringifyJsonLd } from '@/lib/seo';
 import { notFound, redirect } from 'next/navigation';
 import { FiInfo } from 'react-icons/fi';
@@ -46,7 +48,7 @@ export async function generateMetadata({
       locale,
       path: getCategoryHref(category),
       title: category.name,
-      description: category.description || copy.emptyProducts,
+      description: richDescriptionToPlainText(category.description) || copy.emptyProducts,
       image: resolveMediaUrl(category.imageUrl),
     });
   } catch {
@@ -97,6 +99,7 @@ export default async function CategoryProductsPage({
     rawCategoryId,
     locale,
   );
+  const categoryDescriptionHtml = renderRichDescription(category.description);
 
   if (rawCategoryId !== getCategorySlug(category)) {
     redirect(`/${locale}${getCategoryHref(category)}`);
@@ -158,7 +161,12 @@ export default async function CategoryProductsPage({
             <h1 className="mb-4 font-bold text-white text-start md:text-5xl text-3xl">
               {category.name}
             </h1>
-            <p className="mb-2 text-sm text-white/90 text-start text-xl">{category.description}</p>
+            {categoryDescriptionHtml ? (
+              <div
+                className="rich-description mb-2 text-start text-xl text-white/90"
+                dangerouslySetInnerHTML={{ __html: categoryDescriptionHtml }}
+              />
+            ) : null}
           </div>
         </div>
       </div>

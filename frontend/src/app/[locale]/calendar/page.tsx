@@ -4,6 +4,7 @@ import { Link } from '@/i18n/routing';
 import { getCalendars } from '@/lib/api';
 import { getCalendarHref, getCalendarsCopy, getCalendarImages } from '@/lib/calendars';
 import { resolveMediaUrl } from '@/lib/media';
+import { richDescriptionToPlainText } from '@/lib/richDescription';
 import { buildPageMetadata } from '@/lib/seo';
 import Image from 'next/image';
 
@@ -91,7 +92,7 @@ export default async function CalendarPage({ params }: { params: Promise<{ local
                       {calendar.title}
                     </h2>
                     <p className="mt-4 line-clamp-3 text-[0.95rem] leading-7 text-[#53646b]">
-                      {calendar.description || copy.detailsEmpty}
+                      {richDescriptionToPlainText(calendar.description) || copy.detailsEmpty}
                     </p>
                     <span className="mt-6 inline-flex text-[1rem] font-medium text-[#0b5a45]">
                       {copy.openEntry}

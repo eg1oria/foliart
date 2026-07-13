@@ -9,6 +9,7 @@ import {
   updateProductAction,
 } from '../../../app/[locale]/admin/products/actions';
 import MediaImage from '@/components/catalog/MediaImage';
+import RichDescriptionEditor from '@/components/admin/RichDescriptionEditor';
 import { Link } from '@/i18n/routing';
 import type { Category, Product } from '@/lib/api';
 import { getContentLocaleLabel, withContentLocale } from '@/lib/contentLocales';
@@ -321,15 +322,15 @@ export default function ProductAdminForm({
           Контент карточки
         </p>
         <div className="mt-5 space-y-5">
-          <label className={adminFieldClassName}>
+          <div className={adminFieldClassName}>
             <span className={adminLabelClassName}>Короткое описание</span>
-            <textarea
-              name="description"
-              rows={4}
+            <RichDescriptionEditor
               defaultValue={defaultDescription}
-              className={adminTextareaClassName}
+              label="Короткое описание"
+              onContentChange={() => setDirty(true)}
+              placeholder="Введите описание товара"
             />
-          </label>
+          </div>
 
           <div className="grid gap-5 xl:grid-cols-2">
             <label className={adminFieldClassName}>

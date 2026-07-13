@@ -6,6 +6,7 @@ import {
   AdminWorkspace,
 } from '@/components/admin/AdminShell';
 import AdminDeleteButton from '@/components/admin/AdminDeleteButton';
+import RichDescriptionEditor from '@/components/admin/RichDescriptionEditor';
 import {
   adminBadgeClassName,
   adminCx,
@@ -21,7 +22,6 @@ import {
   adminPrimaryButtonClassName,
   adminSecondaryButtonClassName,
   adminSummaryClassName,
-  adminTextareaClassName,
   adminTextareaOnWhiteClassName,
 } from '@/components/admin/adminStyles';
 import MediaImage from '@/components/catalog/MediaImage';
@@ -36,6 +36,7 @@ import {
 } from '@/lib/contentLocales';
 import { parseEntityId } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
+import { richDescriptionToPlainText } from '@/lib/richDescription';
 import { FiEdit3, FiExternalLink } from 'react-icons/fi';
 
 import { createCalendarAction, deleteCalendarAction, updateCalendarAction } from './actions';
@@ -228,16 +229,15 @@ function CalendarFormFields({
         </p>
       </div>
 
-      <label className={adminFieldClassName}>
+      <div className={adminFieldClassName}>
         <span className={adminLabelClassName}>{copy.descriptionLabel}</span>
-        <textarea
-          name="description"
-          rows={6}
-          required
+        <RichDescriptionEditor
           defaultValue={values?.description ?? ''}
-          className={adminTextareaClassName}
+          label={copy.descriptionLabel}
+          placeholder={copy.descriptionLabel}
+          required
         />
-      </label>
+      </div>
 
       <div className="hidden">
         <div>
@@ -589,7 +589,7 @@ export default async function AdminCalendarsPage({
 
                       <div className="min-w-0 flex-1">
                         <p className="line-clamp-3 text-sm leading-6 text-[#567068]">
-                          {calendarItem.description}
+                          {richDescriptionToPlainText(calendarItem.description)}
                         </p>
                       </div>
                     </div>

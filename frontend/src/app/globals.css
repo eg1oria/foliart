@@ -275,6 +275,16 @@ header,
   outline-offset: 3px;
 }
 
+.admin-description-editor p,
+.rich-description p {
+  margin: 0;
+}
+
+.admin-description-editor > * + *,
+.rich-description > * + * {
+  margin-top: 0.75rem;
+}
+
 .article-card-wrapper {
   position: relative;
 }

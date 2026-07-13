@@ -9,6 +9,8 @@ import {
   getCalendarSlug,
 } from '@/lib/calendars';
 import { resolveMediaUrl } from '@/lib/media';
+import { renderRichDescription } from '@/lib/renderRichDescription';
+import { richDescriptionToPlainText } from '@/lib/richDescription';
 import { buildBreadcrumbSchema, buildPageMetadata, stringifyJsonLd } from '@/lib/seo';
 import { notFound, redirect } from 'next/navigation';
 
@@ -43,7 +45,7 @@ export async function generateMetadata({
     locale,
     path: getCalendarHref(calendar),
     title: calendar.title,
-    description: calendar.description || copy.detailsEmpty,
+    description: richDescriptionToPlainText(calendar.description) || copy.detailsEmpty,
     image: resolveMediaUrl(getCalendarImageSlots(calendar).heroImage),
   });
 }
@@ -76,6 +78,7 @@ export default async function CalendarDetailsPage({
   const detailsImage = resolveMediaUrl(detailsImagePath);
   const showcaseImage = resolveMediaUrl(showcaseImagePath);
   const showcaseBackgroundImage = resolveMediaUrl(showcaseBackgroundImagePath);
+  const descriptionHtml = renderRichDescription(calendar.description || copy.detailsEmpty);
   const viewCalendarLabel =
     locale === 'ru'
       ? 'Смотреть календарь'
@@ -155,9 +158,10 @@ export default async function CalendarDetailsPage({
               />
             </div>
 
-            <p className="order-1 whitespace-pre-line leading-6 text-[#556970] lg:order-2">
-              {calendar.description || copy.detailsEmpty}
-            </p>
+            <div
+              className="rich-description order-1 leading-6 text-[#556970] lg:order-2"
+              dangerouslySetInnerHTML={{ __html: descriptionHtml }}
+            />
           </div>
         </article>
       </section>
