@@ -261,7 +261,8 @@ export default async function ProductDetailsPage({
       </div>
 
       <section className="site-gutter py-2 md:py-12">
-        <div className="grid gap-6 md:gap-x-12 gap-y-16 lg:grid-cols-[230px_minmax(340px,1fr)_minmax(280px,360px)]">
+        <div className="grid gap-6 gap-y-16 md:gap-x-20 lg:grid-cols-[230px_minmax(360px,1.1fr)_minmax(320px,1.1fr)]">
+          {' '}
           <aside className="hidden order-3 min-[1000px]:block lg:order-1 lg:row-span-2 lg:self-stretch">
             <div className="lg:h-full">
               <nav
@@ -289,8 +290,7 @@ export default async function ProductDetailsPage({
               </nav>
             </div>
           </aside>
-
-          <div className="order-1 relative flex min-h-[420px] items-center justify-center lg:order-2 lg:min-h-[520px]">
+          <div className="order-1 relative flex min-h-[420px] items-start justify-center lg:order-2 lg:min-h-[520px]">
             <div className="absolute bottom-9 h-10 w-[58%] rounded-full bg-black/10 blur-2xl" />
             <div className="relative aspect-[4/5] w-full max-w-[430px]">
               <ProductImageLightbox
@@ -307,12 +307,11 @@ export default async function ProductDetailsPage({
               />
             </div>
           </div>
-
           <div
             id="description"
             className="order-2 min-[1000px]:max-w-full  scroll-mt-32 lg:order-3">
             <div
-              className="rich-description text-base leading-6 text-[#243238]"
+              className="rich-description text-base leading-5 text-[#243238]"
               dangerouslySetInnerHTML={{ __html: overviewHtml }}
             />
             <a
@@ -332,7 +331,6 @@ export default async function ProductDetailsPage({
               <p className="text-[0.90rem] leading-6 text-[#a8a49b] italic">{compatibilityNote}</p>
             </div>
           </div>
-
           <div className="order-4 flex flex-col gap-14 lg:col-[2/4]">
             <article id="composition" className="scroll-mt-32 pt-10">
               <div className="flex items-center gap-5">

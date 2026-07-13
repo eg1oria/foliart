@@ -1,11 +1,56 @@
 'use client';
 
-import StarterKit from '@tiptap/starter-kit';
+import { Extension } from '@tiptap/core';
+import { Fragment, Slice, type Node as ProseMirrorNode } from '@tiptap/pm/model';
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
 import { useEffect, useMemo, useRef } from 'react';
 import { FiBold } from 'react-icons/fi';
 
 import { prepareRichDescriptionHtml } from '@/lib/richDescription';
+
+const DescriptionEnterBehavior = Extension.create({
+  name: 'descriptionEnterBehavior',
+  priority: 1_000,
+  addKeyboardShortcuts() {
+    return {
+      Enter: () => {
+        const { $from } = this.editor.state.selection;
+        const previousNode = $from.nodeBefore;
+
+        if (previousNode?.type.name === 'hardBreak') {
+          return this.editor
+            .chain()
+            .deleteRange({ from: $from.pos - previousNode.nodeSize, to: $from.pos })
+            .splitBlock()
+            .run();
+        }
+
+        return this.editor.commands.setHardBreak();
+      },
+    };
+  },
+});
+
+function createPlainTextSlice(text: string, schema: Parameters<typeof Slice.fromJSON>[0]) {
+  const paragraph = schema.nodes.paragraph;
+  const hardBreak = schema.nodes.hardBreak;
+  if (!paragraph || !hardBreak) return null;
+
+  const blocks = text.replace(/\r\n?/g, '\n').split(/\n{2,}/);
+  const paragraphs = blocks.map((block) => {
+    const content: ProseMirrorNode[] = [];
+
+    block.split('\n').forEach((line, index) => {
+      if (index > 0) content.push(hardBreak.create());
+      if (line) content.push(schema.text(line));
+    });
+
+    return paragraph.create(null, content);
+  });
+
+  return new Slice(Fragment.fromArray(paragraphs), 0, 0);
+}
 
 export default function RichDescriptionEditor({
   defaultValue,
@@ -27,6 +72,7 @@ export default function RichDescriptionEditor({
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
+      DescriptionEnterBehavior,
       StarterKit.configure({
         blockquote: false,
         bulletList: false,
@@ -55,6 +101,17 @@ export default function RichDescriptionEditor({
         class:
           'admin-description-editor min-h-[132px] px-3.5 py-3 text-sm leading-6 text-[#0b3e31] outline-none',
         role: 'textbox',
+      },
+      handlePaste: (view, event) => {
+        const text = event.clipboardData?.getData('text/plain') ?? '';
+        if (!/[\r\n]/.test(text)) return false;
+
+        const slice = createPlainTextSlice(text, view.state.schema);
+        if (!slice) return false;
+
+        event.preventDefault();
+        view.dispatch(view.state.tr.replaceSelection(slice).scrollIntoView());
+        return true;
       },
     },
     onUpdate: ({ editor: nextEditor }) => {
