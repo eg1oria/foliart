@@ -1,13 +1,13 @@
 'use client';
 
-import { Extension } from '@tiptap/core';
+import { Extension, type Editor } from '@tiptap/core';
 import { Fragment, Slice, type Node as ProseMirrorNode } from '@tiptap/pm/model';
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { useEffect, useMemo, useRef } from 'react';
-import { FiBold } from 'react-icons/fi';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { FiBold, FiType } from 'react-icons/fi';
 
-import { prepareRichDescriptionHtml } from '@/lib/richDescription';
+import { prepareRichDescriptionHtml } from '../../lib/richDescription';
 
 const DescriptionEnterBehavior = Extension.create({
   name: 'descriptionEnterBehavior',
@@ -52,6 +52,38 @@ function createPlainTextSlice(text: string, schema: Parameters<typeof Slice.from
   return new Slice(Fragment.fromArray(paragraphs), 0, 0);
 }
 
+function boldLineLabels(editor: Editor) {
+  const ranges: Array<{ from: number; to: number }> = [];
+
+  editor.state.doc.descendants((node, position) => {
+    if (node.type.name !== 'paragraph') return true;
+
+    const text = node.textBetween(0, node.content.size, '\n', '\n');
+    const labelPattern = /(?:^|\n)([^\s:\n][^:\n]{0,58}:)(?=\s|$)/g;
+    let match: RegExpExecArray | null;
+
+    while ((match = labelPattern.exec(text))) {
+      const lineOffset = match.index + (match[0].startsWith('\n') ? 1 : 0);
+      const from = position + 1 + lineOffset;
+      ranges.push({ from, to: from + match[1].length });
+    }
+
+    return false;
+  });
+
+  if (ranges.length === 0) return false;
+
+  const previousSelection = {
+    from: editor.state.selection.from,
+    to: editor.state.selection.to,
+  };
+  const chain = editor.chain();
+
+  ranges.forEach((range) => chain.setTextSelection(range).setBold());
+  chain.setTextSelection(previousSelection).focus().run();
+  return true;
+}
+
 export default function RichDescriptionEditor({
   defaultValue,
   label,
@@ -68,7 +100,12 @@ export default function RichDescriptionEditor({
   required?: boolean;
 }) {
   const initialContent = useMemo(() => prepareRichDescriptionHtml(defaultValue), [defaultValue]);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [value, setValue] = useState(defaultValue.trim() ? initialContent : '');
+  const selectionRef = useRef<{ from: number; to: number } | null>(null);
+  const syncEditorValue = (nextEditor: Editor, html = nextEditor.getHTML()) => {
+    setValue(nextEditor.isEmpty ? '' : html);
+    onContentChange?.();
+  };
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -99,7 +136,7 @@ export default function RichDescriptionEditor({
         'aria-multiline': 'true',
         'aria-required': String(required),
         class:
-          'admin-description-editor min-h-[132px] px-3.5 py-3 text-sm leading-6 text-[#0b3e31] outline-none',
+          'admin-description-editor min-h-[132px] cursor-text select-text px-3.5 py-3 text-sm leading-6 text-[#0b3e31] outline-none',
         role: 'textbox',
       },
       handlePaste: (view, event) => {
@@ -115,10 +152,11 @@ export default function RichDescriptionEditor({
       },
     },
     onUpdate: ({ editor: nextEditor }) => {
-      if (inputRef.current) {
-        inputRef.current.value = nextEditor.isEmpty ? '' : nextEditor.getHTML();
-      }
-      onContentChange?.();
+      syncEditorValue(nextEditor);
+    },
+    onSelectionUpdate: ({ editor: nextEditor }) => {
+      const { from, to } = nextEditor.state.selection;
+      if (from !== to) selectionRef.current = { from, to };
     },
   });
   const editorState =
@@ -132,20 +170,24 @@ export default function RichDescriptionEditor({
 
   useEffect(() => {
     if (!editor || editor.getHTML() === initialContent) return;
-    editor.commands.setContent(initialContent, { emitUpdate: false });
-    if (inputRef.current) {
-      inputRef.current.value = editor.isEmpty ? '' : editor.getHTML();
-    }
+    editor.commands.setContent(initialContent, { emitUpdate: true });
   }, [editor, initialContent]);
+
+  const toggleBold = () => {
+    if (!editor) return;
+
+    const { from, to } = editor.state.selection;
+    const savedSelection = from === to && !editor.isFocused ? selectionRef.current : null;
+    const chain = editor.chain().focus();
+
+    if (savedSelection) chain.setTextSelection(savedSelection);
+    chain.toggleBold().run();
+    syncEditorValue(editor, editor.view.dom.innerHTML);
+  };
 
   return (
     <div className="overflow-hidden rounded-lg border border-[#0b5a45]/15 bg-[#f8f7f2] focus-within:border-[#0b5a45]/35 focus-within:ring-2 focus-within:ring-[#0b5a45]/10">
-      <input
-        ref={inputRef}
-        type="hidden"
-        name={name}
-        defaultValue={defaultValue.trim() ? initialContent : ''}
-      />
+      <input type="hidden" name={name} value={value} />
       <div
         role="toolbar"
         aria-label={`${label}: форматирование`}
@@ -157,10 +199,8 @@ export default function RichDescriptionEditor({
           aria-label="Жирный"
           aria-pressed={editorState.boldActive}
           disabled={!editor}
-          onMouseDown={(event) => {
-            event.preventDefault();
-            editor?.chain().focus().toggleBold().run();
-          }}
+          onPointerDown={(event) => event.preventDefault()}
+          onClick={toggleBold}
           className={`inline-flex h-9 items-center gap-2 rounded-md border px-3 text-sm font-medium transition ${
             editorState.boldActive
               ? 'border-[#0b5a45] bg-[#0b5a45] text-white'
@@ -170,8 +210,24 @@ export default function RichDescriptionEditor({
           <FiBold aria-hidden="true" />
           Жирный
         </button>
+        <button
+          type="button"
+          title="Сделать жирными подписи перед двоеточием"
+          aria-label="Подписи жирным"
+          disabled={!editor}
+          onPointerDown={(event) => event.preventDefault()}
+          onClick={() => {
+            if (editor && boldLineLabels(editor)) {
+              syncEditorValue(editor, editor.view.dom.innerHTML);
+            }
+          }}
+          className="inline-flex h-9 items-center gap-2 rounded-md border border-[#0b5a45]/15 bg-white px-3 text-sm font-medium text-[#0b3e31] transition hover:bg-[#eef4ef]"
+        >
+          <FiType aria-hidden="true" />
+          Подписи жирным
+        </button>
         <span className="text-xs leading-5 text-[#6a7f76]">
-          Выделите текст или абзац и нажмите кнопку
+          Выделите текст или оформите все подписи перед двоеточием
         </span>
       </div>
       <div className="relative">
