@@ -3,9 +3,11 @@ import { join } from 'node:path';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import type { NextFunction, Request, Response } from 'express';
+import { getAdminApiSecret } from './admin-api.guard';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
+  getAdminApiSecret();
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.set('trust proxy', 1);
   app.set('x-powered-by', false);

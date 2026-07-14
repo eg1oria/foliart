@@ -54,9 +54,6 @@ services:
   backend:
     build:
       context: ./backend
-      args:
-        DATABASE_URL: ${DATABASE_URL:-file:/app/data/prod.db}
-        ADMIN_API_SECRET: ${ADMIN_API_SECRET:?Set ADMIN_API_SECRET in .env}
     expose:
       - '5000'
     ports:
@@ -98,10 +95,6 @@ services:
         BACKEND_URL: http://backend:5000
         SITE_URL: ${SITE_URL:-https://foliart.me}
         NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://foliart.me}
-        ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
-        ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
-        ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET:?Set ADMIN_SESSION_SECRET in .env}
-        ADMIN_API_SECRET: ${ADMIN_API_SECRET:?Set ADMIN_API_SECRET in .env}
     expose:
       - '3000'
     ports:

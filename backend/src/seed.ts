@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient, type ArticleMedia } from '@prisma/client';
 import { PrismaLibSql } from '@prisma/adapter-libsql';
 
 function createPrisma(url: string) {
@@ -11,6 +11,42 @@ function createPrisma(url: string) {
 function withoutId<T extends { id: number }>(record: T) {
   const { id: _id, ...data } = record;
   return data;
+}
+
+async function seedAttachedArticleMedia(
+  target: PrismaClient,
+  mediaItems: ArticleMedia[],
+) {
+  let created = 0;
+  let skippedWithoutArticle = 0;
+
+  for (const media of mediaItems) {
+    if (media.articleId === null) continue;
+    const articleExists = await target.article.findUnique({
+      where: { id: media.articleId },
+      select: { id: true },
+    });
+    if (!articleExists) {
+      skippedWithoutArticle += 1;
+      continue;
+    }
+    const exists = await target.articleMedia.findUnique({
+      where: { id: media.id },
+      select: { id: true },
+    });
+
+    if (!exists) {
+      await target.articleMedia.create({
+        data: {
+          ...media,
+          draftId: null,
+        },
+      });
+      created += 1;
+    }
+  }
+
+  return { created, skippedWithoutArticle };
 }
 
 async function main() {
@@ -43,6 +79,7 @@ async function main() {
         products,
         productTranslations,
         articles,
+        articleMedia,
         articleTranslations,
         calendarEntries,
         calendarEntryTranslations,
@@ -52,6 +89,10 @@ async function main() {
         source.product.findMany({ orderBy: { id: 'asc' } }),
         source.productTranslation.findMany({ orderBy: { id: 'asc' } }),
         source.article.findMany({ orderBy: { id: 'asc' } }),
+        source.articleMedia.findMany({
+          where: { articleId: { not: null }, status: 'ATTACHED' },
+          orderBy: { createdAt: 'asc' },
+        }),
         source.articleTranslation.findMany({ orderBy: { id: 'asc' } }),
         source.calendarEntry.findMany({ orderBy: { id: 'asc' } }),
         source.calendarEntryTranslation.findMany({ orderBy: { id: 'asc' } }),
@@ -63,6 +104,7 @@ async function main() {
         products.length +
         productTranslations.length +
         articles.length +
+        articleMedia.length +
         articleTranslations.length +
         calendarEntries.length +
         calendarEntryTranslations.length;
@@ -72,12 +114,28 @@ async function main() {
         return;
       }
 
+      if (process.env.SEED_ARTICLE_MEDIA_ONLY === '1') {
+        const mediaResult = await seedAttachedArticleMedia(
+          target,
+          articleMedia,
+        );
+        console.log(
+          [
+            'Seeded missing article media from bundled snapshot:',
+            `${mediaResult.created}/${articleMedia.length} article media`,
+            `${mediaResult.skippedWithoutArticle} skipped because their articles do not exist`,
+          ].join(' '),
+        );
+        return;
+      }
+
       const created = {
         categories: 0,
         categoryTranslations: 0,
         products: 0,
         productTranslations: 0,
         articles: 0,
+        articleMedia: 0,
         articleTranslations: 0,
         calendarEntries: 0,
         calendarEntryTranslations: 0,
@@ -126,6 +184,9 @@ async function main() {
           created.articles += 1;
         }
       }
+
+      const mediaResult = await seedAttachedArticleMedia(target, articleMedia);
+      created.articleMedia = mediaResult.created;
 
       for (const entry of calendarEntries) {
         const exists = await target.calendarEntry.findUnique({
@@ -229,6 +290,7 @@ async function main() {
           `${created.products}/${products.length} products`,
           `${created.productTranslations}/${productTranslations.length} product translations`,
           `${created.articles}/${articles.length} articles`,
+          `${created.articleMedia}/${articleMedia.length} article media`,
           `${created.articleTranslations}/${articleTranslations.length} article translations`,
           `${created.calendarEntries}/${calendarEntries.length} calendar entries`,
           `${created.calendarEntryTranslations}/${calendarEntryTranslations.length} calendar entry translations`,

@@ -7,14 +7,14 @@ import {
 import type { Request } from 'express';
 import { timingSafeEqual } from 'node:crypto';
 
-const DEFAULT_ADMIN_API_SECRET = 'foliart-admin-api-secret-2026';
+export function getAdminApiSecret() {
+  const secret = process.env.ADMIN_API_SECRET;
 
-function getExpectedSecret() {
-  return (
-    process.env.ADMIN_API_SECRET ??
-    process.env.ADMIN_PASSWORD ??
-    DEFAULT_ADMIN_API_SECRET
-  );
+  if (!secret) {
+    throw new Error('ADMIN_API_SECRET must be set');
+  }
+
+  return secret;
 }
 
 function getHeaderValue(request: Request, name: string) {
@@ -46,7 +46,7 @@ export class AdminApiGuard implements CanActivate {
 
     if (
       typeof providedSecret === 'string' &&
-      safeEqual(providedSecret, getExpectedSecret())
+      safeEqual(providedSecret, getAdminApiSecret())
     ) {
       return true;
     }

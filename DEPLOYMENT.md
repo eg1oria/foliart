@@ -103,20 +103,25 @@ openssl rand -hex 32
 ## 7. Первый запуск Docker
 
 ```bash
-docker compose up -d --build backend frontend
+docker compose up -d --build backend
+docker compose exec backend npx prisma db seed
+docker compose up -d --build frontend
 docker compose ps
 curl -I http://127.0.0.1:3000/ru/catalog
 curl -I http://127.0.0.1:5000/api
 ```
 
-При старте backend автоматически применяет миграции и дозаполняет отсутствующий контент из bundled `backend/dev.db`.
-Если в уже поднятой production-базе не хватает статей, календарей или переводов, seed можно запустить вручную:
+При старте backend автоматически применяет только миграции. Seed запускается явно один раз при первичном заполнении чистой базы и переносит из bundled `backend/dev.db` весь исходный контент, включая записи медиа статей. Не добавляй seed в команду запуска и не запускай его при обычном обновлении: он предназначен для восстановления отсутствующих snapshot-записей.
+
+Если база была создана старой версией seed и в ней отсутствуют записи `ArticleMedia`, после обновления кода однократно запусти:
 
 ```bash
-docker compose exec backend npx prisma db seed
+docker compose exec -e SEED_ARTICLE_MEDIA_ONLY=1 backend npx prisma db seed
 docker compose exec -u root frontend sh -lc 'rm -rf /app/.next/cache/* && chown -R nextjs:nodejs /app/.next/cache'
 docker compose restart frontend
 ```
+
+Этот режим добавляет только медиа для существующих статей и не восстанавливает удалённые товары, категории, статьи или календари.
 
 ## 8. Временный Nginx для выдачи SSL
 
@@ -176,7 +181,6 @@ curl -I https://foliart.me/api/
 cd /opt/foliart
 git pull
 docker compose up -d --build backend frontend
-docker compose exec backend npx prisma db seed
 docker compose exec -u root frontend sh -lc 'rm -rf /app/.next/cache/* && chown -R nextjs:nodejs /app/.next/cache'
 docker compose restart frontend
 docker compose ps

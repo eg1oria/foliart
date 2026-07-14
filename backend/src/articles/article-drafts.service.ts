@@ -23,6 +23,7 @@ import {
   normalizeArticleImageLayout,
 } from './article-image-layout';
 import {
+  DEFAULT_CONTENT_LOCALE,
   isSupportedContentLocale,
   normalizeContentLocale,
 } from '../content-locales';
@@ -178,6 +179,11 @@ export class ArticleDraftsService {
     const locale = normalizeContentLocale(requestedLocale);
     if (!isSupportedContentLocale(locale))
       throw new BadRequestException('Unsupported content locale');
+    if (articleId === undefined && locale !== DEFAULT_CONTENT_LOCALE) {
+      throw new BadRequestException(
+        'Articles must be created in Russian first',
+      );
+    }
 
     if (articleId) {
       const existing = await this.prisma.articleDraft.findUnique({
@@ -343,6 +349,11 @@ export class ArticleDraftsService {
       throw new ConflictException(
         'Article draft was changed in another session',
       );
+    if (draft.articleId === null && draft.locale !== DEFAULT_CONTENT_LOCALE) {
+      throw new BadRequestException(
+        'Articles must be created in Russian first',
+      );
+    }
     if (
       draft.article &&
       draft.imageLayoutRevision !== draft.article.imageLayoutRevision

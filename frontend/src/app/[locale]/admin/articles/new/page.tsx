@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation';
 import { AdminPanel, AdminShell, AdminWorkspace } from '@/components/admin/AdminShell';
 import ArticleDraftForm from '@/components/admin/ArticleDraftForm';
 import { requireAdminSession } from '@/lib/adminAuthServer';
@@ -15,6 +16,9 @@ export default async function NewArticlePage({
   await requireAdminSession(locale, `/${locale}/admin/articles/new`);
   const { contentLocale: requestedLocale, draft } = await searchParams;
   const contentLocale = normalizeContentLocale(requestedLocale);
+  if (contentLocale !== 'ru') {
+    redirect(`/${locale}/admin/articles/new`);
+  }
   const copy = getArticlesCopy(locale);
 
   return (

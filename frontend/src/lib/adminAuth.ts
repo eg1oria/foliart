@@ -2,8 +2,6 @@ export const ADMIN_SESSION_COOKIE = 'foliart_admin_session';
 export const ADMIN_SESSION_MAX_AGE_SECONDS = 60 * 60 * 12;
 
 const DEFAULT_ADMIN_USERNAME = 'admin';
-const DEFAULT_ADMIN_PASSWORD = 'Foliart2026!';
-const DEFAULT_ADMIN_SESSION_SECRET = 'foliart-admin-session-secret-2026';
 const SUPPORTED_ADMIN_LOCALES = ['ru'] as const;
 
 type AdminLocale = (typeof SUPPORTED_ADMIN_LOCALES)[number];
@@ -21,13 +19,23 @@ function getAdminUsername() {
 }
 
 function getAdminPassword() {
-  return process.env.ADMIN_PASSWORD ?? DEFAULT_ADMIN_PASSWORD;
+  const password = process.env.ADMIN_PASSWORD;
+
+  if (!password) {
+    throw new Error('ADMIN_PASSWORD must be set');
+  }
+
+  return password;
 }
 
 function getAdminSessionSecret() {
-  return (
-    process.env.ADMIN_SESSION_SECRET ?? process.env.ADMIN_PASSWORD ?? DEFAULT_ADMIN_SESSION_SECRET
-  );
+  const secret = process.env.ADMIN_SESSION_SECRET;
+
+  if (!secret) {
+    throw new Error('ADMIN_SESSION_SECRET must be set');
+  }
+
+  return secret;
 }
 
 function bytesToBase64Url(bytes: Uint8Array) {

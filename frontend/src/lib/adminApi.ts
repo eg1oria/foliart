@@ -1,10 +1,11 @@
-const DEFAULT_ADMIN_API_SECRET = 'foliart-admin-api-secret-2026';
-
 export function getAdminApiHeaders() {
+  const secret = process.env.ADMIN_API_SECRET;
+
+  if (!secret) {
+    throw new Error('ADMIN_API_SECRET must be set');
+  }
+
   return {
-    'x-admin-secret':
-      process.env.ADMIN_API_SECRET ??
-      process.env.ADMIN_PASSWORD ??
-      DEFAULT_ADMIN_API_SECRET,
+    'x-admin-secret': secret,
   };
 }

@@ -69,8 +69,11 @@ describe('AppController (e2e)', () => {
   articleJsonIt(
     'autosaves with optimistic locking and rejects spoofed uploads',
     async () => {
+      const adminApiSecret = process.env.ADMIN_API_SECRET;
+      if (!adminApiSecret)
+        throw new Error('ADMIN_API_SECRET is required for article JSON e2e');
       const adminHeaders = {
-        'x-admin-secret': 'foliart-admin-api-secret-2026',
+        'x-admin-secret': adminApiSecret,
       };
       const created = await request(app.getHttpServer())
         .post('/articles/drafts')
