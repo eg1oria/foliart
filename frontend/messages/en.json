@@ -58,8 +58,8 @@
   },
   "Complexs": {
     "title": "Organo-mineral complexes \"Foliart\"",
-    "desc1": "The consumption of nutrients is a complex chain of sequential processes. If even one of its links is damaged, the whole chain is destroyed.",
-    "desc2": "A healthy cell is an example of an impeccable balance of all processes and components. The substances contained in it are in perfect harmony. Therefore, the main task in developing technologies for fertilizers and feeding is not to disrupt the natural order. Not a single nutrient, no hormone or amino acid is absorbed by plants just because they are available."
+    "desc1": "The consumption of nutrients is a complex chain of sequential processes. If even one of it's links is damaged, the whole chain is destroyed.",
+    "desc2": "A healthy cell is an example of an impeccable balance of all processes and components. The substances contained in it are in perfect harmony. Therefore, the main task in developing technologies for fertilizers and nutrition is not to disrupt the natural order. Not a single nutrient, no hormone or amino acid is absorbed by plants just because they are available."
   },
   "Advantages": {
     "title": "Advantages of \"Foliart\"",
@@ -74,11 +74,11 @@
       },
       "item3": {
         "title": "No phytotoxic breakdown products of drugs are formed inside plant cells",
-        "desc": "in contrast to the use of salt forms of fertilizing."
+        "desc": "in contrast to the use of salt forms of fertilization."
       },
       "item4": {
         "title": "Laboratory support of the farm",
-        "desc": "Presence of specialized specialists on staff: phytopathologist, plant physiologist, agrochemist, entomologist."
+        "desc": "Presence of experts on staff: phytopathologist, plant physiologist, agrochemist, entomologist."
       },
       "item5": {
         "title": "No specific product has magical properties. Therefore, we do not sell fertilizers, we sell working systems that allow achieving results"
@@ -219,7 +219,7 @@
   "Footer": {
     "callOrder": "Request a call",
     "slogan": "FOLIART - THE ART OF FERTILIZATION",
-    "seoText": "Organo-mineral fertilizers, plant nutrition systems, foliar feeding, micronutrient fertilizers and agronomy support for farms.",
+    "seoText": "Organo-mineral fertilizers, plant nutrition systems, foliar nutrition, micronutrient fertilizers and agronomy support for farms.",
     "privacy": "Personal data processing",
     "copyright": "© LLC \"ASTORIA\", 2026"
   }
