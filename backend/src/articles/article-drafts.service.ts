@@ -417,9 +417,19 @@ export class ArticleDraftsService {
     );
     const slug = draft.article?.slug ?? (await this.uniqueSlug(title));
     const attachedIds = new Set([...mediaIds, ...(cover ? [cover.id] : [])]);
-    const pendingDeleteIds = draft.media
-      .filter((item) => !attachedIds.has(item.id))
-      .map((item) => item.id);
+    const previouslyAttachedMedia = draft.articleId
+      ? await this.prisma.articleMedia.findMany({
+          where: { articleId: draft.articleId, status: 'ATTACHED' },
+          select: { id: true },
+        })
+      : [];
+    const pendingDeleteIds = [
+      ...new Set(
+        [...draft.media, ...previouslyAttachedMedia]
+          .filter((item) => !attachedIds.has(item.id))
+          .map((item) => item.id),
+      ),
+    ];
 
     const article = await this.prisma.$transaction(async (tx) => {
       let articleId = draft.articleId;
@@ -490,7 +500,11 @@ export class ArticleDraftsService {
       if (pendingDeleteIds.length) {
         await tx.articleMedia.updateMany({
           where: { id: { in: pendingDeleteIds } },
-          data: { draftId: null, status: 'PENDING_DELETE' },
+          data: {
+            articleId: null,
+            draftId: null,
+            status: 'PENDING_DELETE',
+          },
         });
       }
       await tx.articleDraft.delete({ where: { id } });

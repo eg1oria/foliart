@@ -29,4 +29,28 @@ describe('CategoriesService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
+
+  it('returns the persisted canonical slug', async () => {
+    prismaServiceMock.category.findMany.mockResolvedValue([
+      {
+        id: 1,
+        slug: 'monoprodukty',
+        name: 'Монопродукты',
+        nameEn: 'Single products',
+        description: '',
+        descriptionEn: '',
+        imageUrl: '',
+        productCount: 0,
+        translations: [],
+      },
+    ]);
+
+    await expect(service.findAll('en')).resolves.toEqual([
+      expect.objectContaining({
+        id: 1,
+        slug: 'monoprodukty',
+        name: 'Single products',
+      }),
+    ]);
+  });
 });

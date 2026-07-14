@@ -78,29 +78,46 @@ export function slugify(value: string): string {
   return normalized || 'item';
 }
 
-function getSlugSourceName<T extends { name: string; slugSourceName?: string | null }>(item: T) {
+type NamedPublicEntity = {
+  name: string;
+  slug?: string | null;
+  slugSourceName?: string | null;
+};
+
+function getSlugSourceName<T extends NamedPublicEntity>(item: T) {
   return item.slugSourceName?.trim() || item.name;
 }
 
-function getSlugCandidates<T extends { name: string; slugSourceName?: string | null }>(item: T) {
+function getSlugCandidates<T extends NamedPublicEntity>(item: T) {
+  const storedSlug = item.slug?.trim();
+  if (storedSlug) {
+    return [storedSlug];
+  }
+
   return Array.from(new Set([getSlugSourceName(item), item.name].map((value) => slugify(value))));
 }
 
-export function getCategorySlug(category: Pick<Category, 'name' | 'slugSourceName'>): string {
-  return slugify(getSlugSourceName(category));
+export function getCategorySlug(
+  category: Pick<Category, 'name' | 'slug' | 'slugSourceName'>,
+): string {
+  return category.slug?.trim() || slugify(getSlugSourceName(category));
 }
 
-export function getProductSlug(product: Pick<Product, 'name' | 'slugSourceName'>): string {
-  return slugify(getSlugSourceName(product));
+export function getProductSlug(
+  product: Pick<Product, 'name' | 'slug' | 'slugSourceName'>,
+): string {
+  return product.slug?.trim() || slugify(getSlugSourceName(product));
 }
 
-export function getCategoryHref(category: Pick<Category, 'name' | 'slugSourceName'>): string {
+export function getCategoryHref(
+  category: Pick<Category, 'name' | 'slug' | 'slugSourceName'>,
+): string {
   return `/catalog/${getCategorySlug(category)}`;
 }
 
 export function getProductHref(
-  category: Pick<Category, 'name' | 'slugSourceName'>,
-  product: Pick<Product, 'name' | 'slugSourceName'>,
+  category: Pick<Category, 'name' | 'slug' | 'slugSourceName'>,
+  product: Pick<Product, 'name' | 'slug' | 'slugSourceName'>,
 ): string {
   return `${getCategoryHref(category)}/${getProductSlug(product)}`;
 }

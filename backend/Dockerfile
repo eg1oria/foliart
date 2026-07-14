@@ -18,9 +18,17 @@ COPY package*.json prisma.config.ts ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dev.db ./dev.db
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/images ./images
+COPY --from=builder /app/images ./bundled-images
 COPY prisma ./prisma
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+
+RUN mkdir -p /app/data /app/images \
+    && chown node:node /app/data /app/images \
+    && chmod 0755 /usr/local/bin/docker-entrypoint.sh
+
+USER node
 
 EXPOSE 5000
 
-CMD ["sh", "-c", "npx prisma migrate deploy && exec node dist/src/main.js"]
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && exec node dist/src/main.js"]

@@ -12,6 +12,7 @@ describe('ProductsService', () => {
     count: jest.fn(),
     create: jest.fn(),
     delete: jest.fn(),
+    findFirst: jest.fn(),
     findMany: jest.fn(),
     findUnique: jest.fn(),
     update: jest.fn(),
@@ -238,10 +239,43 @@ describe('ProductsService', () => {
 
     expect(prismaServiceMock.$transaction).toHaveBeenCalledTimes(1);
     expect(prismaServiceMock.product.create).toHaveBeenCalledTimes(1);
+    type ProductCreateCall = { data: { slug: string } };
+    const createCalls = prismaServiceMock.product.create.mock
+      .calls as unknown as Array<[ProductCreateCall]>;
+    expect(createCalls[0]?.[0].data.slug).toBe('riza');
     expect(prismaServiceMock.category.update).toHaveBeenCalledWith({
       where: { id: 1 },
       data: { productCount: 1 },
     });
+  });
+
+  it('adds a suffix when a product slug is already occupied', async () => {
+    prismaServiceMock.category.findUnique.mockResolvedValue({ id: 1 });
+    prismaServiceMock.product.findFirst
+      .mockResolvedValueOnce({ id: 3 })
+      .mockResolvedValueOnce(null);
+    prismaServiceMock.product.create.mockResolvedValue({
+      ...baseProduct,
+      id: 4,
+      slug: 'riza-2',
+    });
+    prismaServiceMock.product.count.mockResolvedValue(2);
+
+    await service.create({
+      categoryId: 1,
+      contentLocale: 'ru',
+      name: 'Риза',
+      description: 'Описание',
+      advantages: '',
+      composition: '',
+      application: '',
+      imageUrl: 'products/riza-2.webp',
+    });
+
+    type ProductCreateCall = { data: { slug: string } };
+    const createCalls = prismaServiceMock.product.create.mock
+      .calls as unknown as Array<[ProductCreateCall]>;
+    expect(createCalls[0]?.[0].data.slug).toBe('riza-2');
   });
 
   it('updates both category counts when a product moves categories', async () => {

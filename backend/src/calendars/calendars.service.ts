@@ -6,6 +6,7 @@ import {
   normalizeContentLocale,
 } from '../content-locales';
 import { PrismaService } from '../prisma/prisma.service';
+import { createUniquePublicSlug } from '../public-slug.util';
 
 type CalendarTranslationFields = {
   title: string;
@@ -198,9 +199,18 @@ export class CalendarsService {
 
   async create(input: CreateCalendarEntryInput) {
     const contentLocale = normalizeContentLocale(input.contentLocale);
+    const slug = await createUniquePublicSlug(input.title, async (candidate) =>
+      Boolean(
+        await this.prisma.calendarEntry.findFirst({
+          where: { slug: candidate },
+          select: { id: true },
+        }),
+      ),
+    );
 
     return this.prisma.calendarEntry.create({
       data: {
+        slug,
         ...this.getCreateLegacyFields(contentLocale, input),
         imageUrl1: input.imageUrl1,
         imageUrl2: input.imageUrl2,

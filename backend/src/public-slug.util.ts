@@ -1,0 +1,71 @@
+const cyrillicToLatinMap: Record<string, string> = {
+  а: 'a',
+  б: 'b',
+  в: 'v',
+  г: 'g',
+  д: 'd',
+  е: 'e',
+  ё: 'yo',
+  ж: 'zh',
+  з: 'z',
+  и: 'i',
+  й: 'y',
+  к: 'k',
+  л: 'l',
+  м: 'm',
+  н: 'n',
+  о: 'o',
+  п: 'p',
+  р: 'r',
+  с: 's',
+  т: 't',
+  у: 'u',
+  ф: 'f',
+  х: 'h',
+  ц: 'ts',
+  ч: 'ch',
+  ш: 'sh',
+  щ: 'sch',
+  ъ: '',
+  ы: 'y',
+  ь: '',
+  э: 'e',
+  ю: 'yu',
+  я: 'ya',
+  і: 'i',
+  ї: 'yi',
+  є: 'ye',
+  ґ: 'g',
+};
+
+export function slugifyPublicName(value: string, fallback = 'item') {
+  const slug = value
+    .trim()
+    .toLowerCase()
+    .split('')
+    .map((char) => cyrillicToLatinMap[char] ?? char)
+    .join('')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s-]+/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  return slug || fallback;
+}
+
+export async function createUniquePublicSlug(
+  value: string,
+  exists: (candidate: string) => Promise<boolean>,
+) {
+  const base = slugifyPublicName(value);
+  let candidate = base;
+  let suffix = 2;
+
+  while (await exists(candidate)) {
+    candidate = `${base}-${suffix}`;
+    suffix += 1;
+  }
+
+  return candidate;
+}

@@ -36,6 +36,7 @@ export type CalendarAdminTranslation = AdminTranslationBase & {
 
 export type Category = {
   id: number;
+  slug?: string;
   name: string;
   nameEn: string;
   description: string;
@@ -48,6 +49,7 @@ export type Category = {
 
 export type Product = {
   id: number;
+  slug?: string;
   categoryId: number;
   name: string;
   nameEn: string;
@@ -84,6 +86,7 @@ export type Article = {
 
 export type CalendarEntry = {
   id: number;
+  slug?: string;
   title: string;
   titleEn: string;
   description: string;

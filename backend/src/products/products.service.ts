@@ -7,6 +7,7 @@ import {
   normalizeContentLocale,
 } from '../content-locales';
 import { PrismaService } from '../prisma/prisma.service';
+import { createUniquePublicSlug } from '../public-slug.util';
 
 type ProductTranslationFields = {
   name: string;
@@ -278,8 +279,18 @@ export class ProductsService {
         throw new NotFoundException(`Category #${input.categoryId} not found`);
       }
 
+      const slug = await createUniquePublicSlug(input.name, async (candidate) =>
+        Boolean(
+          await tx.product.findFirst({
+            where: { slug: candidate },
+            select: { id: true },
+          }),
+        ),
+      );
+
       const product = await tx.product.create({
         data: {
+          slug,
           categoryId: input.categoryId,
           ...this.getCreateLegacyFields(contentLocale, input),
           imageUrl: input.imageUrl,

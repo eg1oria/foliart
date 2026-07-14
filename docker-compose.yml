@@ -51,6 +51,27 @@ services:
     networks:
       - dev
 
+  backend-storage-init:
+    image: alpine:3.22
+    user: '0:0'
+    command:
+      - sh
+      - -c
+      - chown -R 1000:1000 /app/data /app/images
+    volumes:
+      - backend_data:/app/data
+      - backend_images:/app/images
+    network_mode: none
+    read_only: true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+    security_opt:
+      - no-new-privileges:true
+    restart: 'no'
+
   backend:
     build:
       context: ./backend
@@ -70,11 +91,21 @@ services:
       - SMTP_SECURE=${SMTP_SECURE:-false}
       - SMTP_USER=${SMTP_USER:-}
       - SMTP_PASS=${SMTP_PASS:-}
+    depends_on:
+      backend-storage-init:
+        condition: service_completed_successfully
     volumes:
       - backend_data:/app/data
-      - ./backend/images:/app/images
+      - backend_images:/app/images
     networks:
       - dev
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     healthcheck:
       test:
         - CMD
@@ -128,8 +159,8 @@ services:
     restart: unless-stopped
 
 volumes:
-  # backend_uploads:
   # postgres_data:
   backend_data:
+  backend_images:
   frontend_next_cache:
   certbot_www:

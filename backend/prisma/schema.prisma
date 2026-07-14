@@ -11,6 +11,7 @@ datasource db {
 
 model Category {
   id            Int                   @id @default(autoincrement())
+  slug          String                @unique
   name          String
   nameEn        String                @default("")
   description   String
@@ -23,6 +24,7 @@ model Category {
 
 model Product {
   id            Int                  @id @default(autoincrement())
+  slug          String               @unique
   categoryId    Int
   category      Category             @relation(fields: [categoryId], references: [id])
   name          String
@@ -63,6 +65,7 @@ model Article {
 
 model CalendarEntry {
   id            Int                        @id @default(autoincrement())
+  slug          String                     @unique
   title         String
   titleEn       String                     @default("")
   description   String

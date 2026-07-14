@@ -25,6 +25,7 @@ import {
 } from '../content-locales';
 import {
   allowedImageMimeTypes,
+  maxImageUploadBytes,
   optimizeUploadedImage,
   type StoredImageUploadFile,
 } from '../images/image-upload.util';
@@ -154,7 +155,7 @@ function createImagesInterceptor() {
         callback(null, true);
       },
       limits: {
-        fileSize: 5 * 1024 * 1024,
+        fileSize: maxImageUploadBytes,
         files: calendarImageFields.length,
       },
     },

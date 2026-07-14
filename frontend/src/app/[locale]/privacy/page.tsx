@@ -73,9 +73,9 @@ export default function PrivacyPage() {
         </a>
       ),
       privacy: (chunks) => (
-        <a href="https://foliart.me/privacy" className={linkClassName}>
+        <Link href="/privacy" className={linkClassName}>
           {chunks}
-        </a>
+        </Link>
       ),
     });
 

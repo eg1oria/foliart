@@ -49,7 +49,7 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export class ContactService {
   private readonly logger = new Logger(ContactService.name);
 
-  async sendContactRequest(body: ContactRequestBody) {
+  async sendContactRequest(body: unknown) {
     const payload = this.normalizePayload(body);
     const config = this.getMailConfig();
 
@@ -78,26 +78,31 @@ export class ContactService {
     return { ok: true };
   }
 
-  private normalizePayload(body: ContactRequestBody): ContactPayload {
-    const formType = this.normalizeFormType(body.formType);
-    const name = this.normalizeString(body.name, 'Name', {
+  private normalizePayload(body: unknown): ContactPayload {
+    if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+      throw new BadRequestException('Request body must be a JSON object');
+    }
+
+    const requestBody = body as ContactRequestBody;
+    const formType = this.normalizeFormType(requestBody.formType);
+    const name = this.normalizeString(requestBody.name, 'Name', {
       required: true,
       maxLength: 120,
     });
-    const phone = this.normalizePhone(body.phone, {
+    const phone = this.normalizePhone(requestBody.phone, {
       required: formType === 'callback' || formType === 'question',
     });
-    const email = this.normalizeEmail(body.email);
-    const comment = this.normalizeString(body.comment, 'Comment', {
+    const email = this.normalizeEmail(requestBody.email);
+    const comment = this.normalizeString(requestBody.comment, 'Comment', {
       required: false,
       maxLength: 3000,
     });
-    const pageUrl = this.normalizeString(body.pageUrl, 'Page URL', {
+    const pageUrl = this.normalizeString(requestBody.pageUrl, 'Page URL', {
       required: false,
       maxLength: 500,
     });
 
-    if (!this.hasConsent(body.consent)) {
+    if (!this.hasConsent(requestBody.consent)) {
       throw new BadRequestException('Personal data consent is required');
     }
 

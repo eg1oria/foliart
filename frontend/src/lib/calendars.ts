@@ -1,19 +1,34 @@
 import type { CalendarEntry } from './api';
 import { parseEntityId, slugify } from './catalog';
 
-function getSlugSourceTitle<T extends { title: string; slugSourceTitle?: string | null }>(item: T) {
+type TitledPublicEntity = {
+  title: string;
+  slug?: string | null;
+  slugSourceTitle?: string | null;
+};
+
+function getSlugSourceTitle<T extends TitledPublicEntity>(item: T) {
   return item.slugSourceTitle?.trim() || item.title;
 }
 
-function getSlugCandidates<T extends { title: string; slugSourceTitle?: string | null }>(item: T) {
+function getSlugCandidates<T extends TitledPublicEntity>(item: T) {
+  const storedSlug = item.slug?.trim();
+  if (storedSlug) {
+    return [storedSlug];
+  }
+
   return Array.from(new Set([getSlugSourceTitle(item), item.title].map((value) => slugify(value))));
 }
 
-export function getCalendarSlug(entry: Pick<CalendarEntry, 'title' | 'slugSourceTitle'>) {
-  return slugify(getSlugSourceTitle(entry));
+export function getCalendarSlug(
+  entry: Pick<CalendarEntry, 'title' | 'slug' | 'slugSourceTitle'>,
+) {
+  return entry.slug?.trim() || slugify(getSlugSourceTitle(entry));
 }
 
-export function getCalendarHref(entry: Pick<CalendarEntry, 'title' | 'slugSourceTitle'>) {
+export function getCalendarHref(
+  entry: Pick<CalendarEntry, 'title' | 'slug' | 'slugSourceTitle'>,
+) {
   return `/calendar/${getCalendarSlug(entry)}`;
 }
 

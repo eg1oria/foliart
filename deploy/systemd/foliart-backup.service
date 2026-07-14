@@ -1,0 +1,13 @@
+[Unit]
+Description=Foliart database and images backup
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/foliart
+ExecStart=/opt/foliart/scripts/backup.sh
+Environment=BACKUP_DIR=/var/backups/foliart
+Environment=RETENTION_DAYS=30
+UMask=0077
+TimeoutStartSec=30min
