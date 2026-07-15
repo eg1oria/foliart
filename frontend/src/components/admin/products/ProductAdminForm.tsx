@@ -353,10 +353,13 @@ export default function ProductAdminForm({
                 name="advantages"
                 rows={7}
                 defaultValue={defaultAdvantages}
-                placeholder="Одно преимущество на строку"
+                placeholder="Обычный текст без маркера&#10;• Преимущество с точкой"
                 className={adminTextareaClassName}
               />
-              <span className={adminHintClassName}>Каждое преимущество начинайте с новой строки.</span>
+              <span className={adminHintClassName}>
+                Каждую запись начинайте с новой строки. Для точки в начале используйте «•», «-» или
+                «*»; обычный текст оставляйте без маркера.
+              </span>
             </label>
           </div>
 

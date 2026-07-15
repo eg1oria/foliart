@@ -15,7 +15,7 @@ import {
   getCategorySlug,
   getProductHref,
   getProductSlug,
-  parseAdvantages,
+  parseAdvantageItems,
   parseApplication,
   parseComposition,
 } from '@/lib/catalog';
@@ -114,7 +114,7 @@ export default async function ProductDetailsPage({
           ? 'Certificado de conformidad'
           : 'Certificate of conformity';
   const compositionItems = parseComposition(product.composition);
-  const advantages = parseAdvantages(product.advantages);
+  const advantages = parseAdvantageItems(product.advantages);
   const applicationItems = parseApplication(product.application);
   const overviewSource = product.description || category.description || copy.detailsFallback;
   const overviewHtml = renderRichDescription(overviewSource);
@@ -367,10 +367,10 @@ export default async function ProductDetailsPage({
                     <li
                       key={`${product.id}-advantage-${index}`}
                       className="flex gap-3 text-lg leading-8 text-[#243238]">
-                      {index !== 0 && (
+                      {advantage.hasMarker && (
                         <span className="mt-3 h-1 w-1 shrink-0 rounded-full bg-[#0b5a45]" />
                       )}
-                      <span className="text-sm">{advantage}</span>
+                      <span className="text-sm">{advantage.text}</span>
                     </li>
                   ))}
                 </ul>

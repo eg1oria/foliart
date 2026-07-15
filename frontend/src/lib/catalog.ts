@@ -144,7 +144,22 @@ export function findProductByParam(products: Product[], value: string): Product 
   return products.find((product) => getSlugCandidates(product).includes(slug)) ?? null;
 }
 
-export function parseAdvantages(value: string): string[] {
+export type AdvantageItem = {
+  text: string;
+  hasMarker: boolean;
+};
+
+const advantageMarkerPattern = /^[\u2022\u25CF\u00B7\u25AA*\-]+\s*/;
+
+function parseAdvantageItem(value: unknown): AdvantageItem | null {
+  const normalized = String(value).trim();
+  const hasMarker = advantageMarkerPattern.test(normalized);
+  const text = normalized.replace(advantageMarkerPattern, '').trim();
+
+  return text ? { text, hasMarker } : null;
+}
+
+export function parseAdvantageItems(value: string): AdvantageItem[] {
   const normalized = value.trim();
   if (!normalized) {
     return [];
@@ -153,7 +168,9 @@ export function parseAdvantages(value: string): string[] {
   try {
     const parsed = JSON.parse(normalized);
     if (Array.isArray(parsed)) {
-      return parsed.map((item) => String(item).trim()).filter(Boolean);
+      return parsed
+        .map(parseAdvantageItem)
+        .filter((item): item is AdvantageItem => item !== null);
     }
   } catch {
     // Fall back to plain-text parsing below.
@@ -161,8 +178,12 @@ export function parseAdvantages(value: string): string[] {
 
   return normalized
     .split(/\r?\n+/)
-    .map((item) => item.trim().replace(/^[\u2022\u25CF\u00B7\u25AA*\-]+\s*/, ''))
-    .filter(Boolean);
+    .map(parseAdvantageItem)
+    .filter((item): item is AdvantageItem => item !== null);
+}
+
+export function parseAdvantages(value: string): string[] {
+  return parseAdvantageItems(value).map((item) => item.text);
 }
 
 export type CompositionItem = {
