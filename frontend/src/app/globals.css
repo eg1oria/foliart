@@ -176,6 +176,32 @@ header,
   padding-left: 1.4rem;
 }
 
+.article-content ul {
+  list-style-type: disc;
+}
+
+.article-content ol {
+  list-style-type: decimal;
+}
+
+.article-content ul ul {
+  list-style-type: circle;
+}
+
+.article-content ul ul ul {
+  list-style-type: square;
+}
+
+.article-content li::marker {
+  color: #0b5a45;
+  font-weight: 600;
+}
+
+.article-content li > ul,
+.article-content li > ol {
+  margin-top: 0.65rem;
+}
+
 .article-content li + li {
   margin-top: 0.65rem;
 }
@@ -246,6 +272,32 @@ header,
 .admin-rich-text ol {
   margin: 0;
   padding-left: 1.3rem;
+}
+
+.admin-rich-text ul {
+  list-style-type: disc;
+}
+
+.admin-rich-text ol {
+  list-style-type: decimal;
+}
+
+.admin-rich-text ul ul {
+  list-style-type: circle;
+}
+
+.admin-rich-text ul ul ul {
+  list-style-type: square;
+}
+
+.admin-rich-text li::marker {
+  color: #0b5a45;
+  font-weight: 600;
+}
+
+.admin-rich-text li > ul,
+.admin-rich-text li > ol {
+  margin-top: 0.5rem;
 }
 
 .admin-rich-text blockquote {
