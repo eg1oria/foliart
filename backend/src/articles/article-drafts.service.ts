@@ -96,15 +96,69 @@ export class ArticleDraftsService {
     private readonly articleMedia: ArticleMediaService,
   ) {}
 
+  private isOwnedDraftCover(media: ArticleMedia | null, draftId: string) {
+    return Boolean(
+      media &&
+      media.role === 'COVER' &&
+      media.status === 'DRAFT' &&
+      media.draftId === draftId,
+    );
+  }
+
+  private presentDraft<
+    T extends {
+      id: string;
+      articleId: number | null;
+      coverMediaId: string | null;
+      media: ArticleMedia[];
+      article?: {
+        coverMediaId: string | null;
+        media: ArticleMedia[];
+      } | null;
+    },
+  >(draft: T) {
+    const draftCover = draft.media.find(
+      (media) =>
+        media.id === draft.coverMediaId &&
+        this.isOwnedDraftCover(media, draft.id),
+    );
+    const sharedCover = draft.article?.media.find(
+      (media) => media.id === draft.article?.coverMediaId,
+    );
+    const effectiveCover = draftCover ?? sharedCover;
+    const media =
+      effectiveCover &&
+      !draft.media.some((item) => item.id === effectiveCover.id)
+        ? [...draft.media, effectiveCover]
+        : draft.media;
+    const { article: _article, ...presented } = draft;
+
+    return {
+      ...presented,
+      coverMediaId:
+        effectiveCover?.id ??
+        (draft.articleId
+          ? (draft.article?.coverMediaId ?? null)
+          : draft.coverMediaId),
+      media,
+    };
+  }
+
   private async serializeDraft(id: string) {
     const draft = await this.prisma.articleDraft.findUnique({
       where: { id },
       include: {
         media: { where: { status: 'DRAFT' }, orderBy: { createdAt: 'asc' } },
+        article: {
+          select: {
+            coverMediaId: true,
+            media: { where: { role: 'COVER', status: 'ATTACHED' } },
+          },
+        },
       },
     });
     if (!draft) throw new NotFoundException('Article draft not found');
-    return draft;
+    return this.presentDraft(draft);
   }
 
   private mergeCurrentImages(
@@ -164,10 +218,19 @@ export class ArticleDraftsService {
   }
 
   async list() {
-    return this.prisma.articleDraft.findMany({
-      include: { media: { where: { status: 'DRAFT' } } },
+    const drafts = await this.prisma.articleDraft.findMany({
+      include: {
+        media: { where: { status: 'DRAFT' } },
+        article: {
+          select: {
+            coverMediaId: true,
+            media: { where: { role: 'COVER', status: 'ATTACHED' } },
+          },
+        },
+      },
       orderBy: { updatedAt: 'desc' },
     });
+    return drafts.map((draft) => this.presentDraft(draft));
   }
 
   async get(id: string) {
@@ -282,21 +345,30 @@ export class ArticleDraftsService {
         new Set(draft.media.map((media) => media.id)),
       );
     }
-    const coverMediaId =
+    const requestedCoverMediaId =
       typeof input.coverMediaId === 'string' && input.coverMediaId
         ? input.coverMediaId
         : input.coverMediaId === null
           ? null
           : draft.coverMediaId;
-    if (coverMediaId) {
+    let coverMediaId = draft.article?.coverMediaId ?? requestedCoverMediaId;
+    if (requestedCoverMediaId) {
       const cover = await this.prisma.articleMedia.findUnique({
-        where: { id: coverMediaId },
+        where: { id: requestedCoverMediaId },
       });
-      if (
-        !cover ||
-        cover.role !== 'COVER' ||
-        (cover.draftId !== id && cover.articleId !== draft.articleId)
+      if (this.isOwnedDraftCover(cover, id)) {
+        coverMediaId = requestedCoverMediaId;
+      } else if (
+        draft.article &&
+        ((cover?.role === 'COVER' &&
+          cover.status === 'ATTACHED' &&
+          cover.articleId === draft.articleId) ||
+          requestedCoverMediaId === draft.coverMediaId)
       ) {
+        // An older locale draft can still reference a cover that another
+        // locale has already replaced. The article is the source of truth.
+        coverMediaId = draft.article.coverMediaId;
+      } else {
         throw new BadRequestException(
           'Cover image does not belong to this draft',
         );
@@ -391,18 +463,34 @@ export class ArticleDraftsService {
       document,
       new Map(media.map((item) => [item.id, item])),
     );
-    const cover = draft.coverMediaId
+    const requestedCover = draft.coverMediaId
       ? await this.prisma.articleMedia.findUnique({
           where: { id: draft.coverMediaId },
         })
       : null;
-    if (
-      !draft.articleId &&
-      (!cover || cover.role !== 'COVER' || cover.draftId !== id)
-    ) {
+    let cover = this.isOwnedDraftCover(requestedCover, id)
+      ? requestedCover
+      : null;
+    if (!cover && draft.article?.coverMediaId) {
+      cover =
+        requestedCover?.id === draft.article.coverMediaId
+          ? requestedCover
+          : await this.prisma.articleMedia.findUnique({
+              where: { id: draft.article.coverMediaId },
+            });
+    }
+    if (!draft.articleId && !this.isOwnedDraftCover(cover, id)) {
       throw new BadRequestException('Cover image is required');
     }
-    if (cover && cover.draftId !== id && cover.articleId !== draft.articleId) {
+    const isSharedArticleCover = Boolean(
+      cover &&
+      draft.articleId &&
+      cover.id === draft.article?.coverMediaId &&
+      cover.role === 'COVER' &&
+      cover.status === 'ATTACHED' &&
+      cover.articleId === draft.articleId,
+    );
+    if (cover && !this.isOwnedDraftCover(cover, id) && !isSharedArticleCover) {
       throw new BadRequestException(
         'Cover image does not belong to this draft',
       );

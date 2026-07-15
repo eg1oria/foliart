@@ -9,6 +9,7 @@ describe('ArticleDraftsService base article locale', () => {
     const prisma = {
       articleDraft: {
         create: jest.fn(),
+        findMany: jest.fn(),
         findUnique: jest.fn(),
       },
       $transaction: jest.fn(),
@@ -46,6 +47,129 @@ describe('ArticleDraftsService base article locale', () => {
       locale: 'ru',
     });
     expect(prisma.articleDraft.create).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns the current shared cover for every locale draft', async () => {
+    const { prisma, service } = createService();
+    const currentCover = {
+      id: '00000000-0000-4000-8000-000000000010',
+      role: 'COVER',
+      status: 'ATTACHED',
+      articleId: 10,
+      draftId: null,
+      publicUrl: '/media/articles/media/current/original.webp',
+      previewUrl: '/media/articles/media/current/preview.webp',
+      width: 1200,
+      height: 800,
+    };
+    prisma.articleDraft.findMany.mockResolvedValue([
+      {
+        id: 'english-draft',
+        articleId: 10,
+        locale: 'en',
+        coverMediaId: '00000000-0000-4000-8000-000000000011',
+        media: [],
+        article: {
+          coverMediaId: currentCover.id,
+          media: [currentCover],
+        },
+      },
+    ]);
+
+    await expect(service.list()).resolves.toEqual([
+      expect.objectContaining({
+        id: 'english-draft',
+        coverMediaId: currentCover.id,
+        media: [currentCover],
+      }),
+    ]);
+  });
+
+  it('normalizes a stale locale cover while saving the draft', async () => {
+    const staleCoverId = '00000000-0000-4000-8000-000000000012';
+    const currentCoverId = '00000000-0000-4000-8000-000000000013';
+    const contentJson: JSONContent = {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'English article text' }],
+        },
+      ],
+    };
+    const currentCover = {
+      id: currentCoverId,
+      role: 'COVER',
+      status: 'ATTACHED',
+      articleId: 10,
+      draftId: null,
+      publicUrl: '/media/articles/media/current/original.webp',
+      previewUrl: '/media/articles/media/current/preview.webp',
+      width: 1200,
+      height: 800,
+    };
+    const draft = {
+      id: 'english-draft',
+      articleId: 10,
+      locale: 'en',
+      title: 'English article',
+      excerpt: '',
+      contentJson,
+      publishedAt: new Date('2026-07-14T00:00:00.000Z'),
+      coverMediaId: staleCoverId,
+      imageLayoutRevision: 0,
+      version: 2,
+      media: [],
+    };
+    const prisma = {
+      articleDraft: {
+        findUnique: jest
+          .fn()
+          .mockResolvedValueOnce({
+            ...draft,
+            article: {
+              id: 10,
+              coverMediaId: currentCoverId,
+              imageLayoutJson: null,
+              imageLayoutRevision: 0,
+            },
+          })
+          .mockResolvedValueOnce({
+            ...draft,
+            coverMediaId: currentCoverId,
+            version: 3,
+            article: {
+              coverMediaId: currentCoverId,
+              media: [currentCover],
+            },
+          }),
+        updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+      },
+      articleMedia: { findUnique: jest.fn().mockResolvedValue(null) },
+    };
+    const service = new ArticleDraftsService(
+      prisma as unknown as PrismaService,
+      {} as ArticleMediaService,
+    );
+
+    await expect(
+      service.save('english-draft', {
+        version: 2,
+        imageLayoutRevision: 0,
+        title: draft.title,
+        excerpt: draft.excerpt,
+        contentJson,
+        publishedAt: '2026-07-14',
+        coverMediaId: staleCoverId,
+      }),
+    ).resolves.toMatchObject({
+      coverMediaId: currentCoverId,
+      media: [currentCover],
+    });
+
+    const [updateInput] = prisma.articleDraft.updateMany.mock
+      .calls[0] as unknown as [{ data: { coverMediaId?: string } }];
+    expect(updateInput.data.coverMediaId).toBe(currentCoverId);
   });
 
   it('rejects publication of an existing orphaned non-Russian draft', async () => {
@@ -123,6 +247,7 @@ describe('ArticleDraftsService base article locale', () => {
           article: {
             id: 10,
             slug: 'published-article',
+            coverMediaId: oldCoverId,
             imageLayoutJson: null,
             imageLayoutRevision: 0,
           },
@@ -174,5 +299,98 @@ describe('ArticleDraftsService base article locale', () => {
     expect(articleMedia.deletePendingMedia).toHaveBeenCalledTimes(2);
     expect(articleMedia.deletePendingMedia).toHaveBeenCalledWith(oldCoverId);
     expect(articleMedia.deletePendingMedia).toHaveBeenCalledWith(oldContentId);
+  });
+
+  it('does not restore a stale cover when another locale is published', async () => {
+    const staleCoverId = '00000000-0000-4000-8000-000000000020';
+    const currentCoverId = '00000000-0000-4000-8000-000000000021';
+    const currentCover = {
+      id: currentCoverId,
+      role: 'COVER',
+      status: 'ATTACHED',
+      draftId: null,
+      articleId: 10,
+      storagePath: 'articles/media/current-cover/original.webp',
+    };
+    const tx = {
+      article: {
+        update: jest.fn().mockResolvedValue({ id: 10 }),
+        findUniqueOrThrow: jest.fn().mockResolvedValue({ id: 10 }),
+      },
+      articleTranslation: { upsert: jest.fn().mockResolvedValue({}) },
+      articleMedia: { updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
+      articleDraft: { delete: jest.fn().mockResolvedValue({}) },
+    };
+    const prisma = {
+      articleDraft: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: 'english-draft',
+          articleId: 10,
+          article: {
+            id: 10,
+            slug: 'published-article',
+            coverMediaId: currentCoverId,
+            imageLayoutJson: null,
+            imageLayoutRevision: 0,
+          },
+          locale: 'en',
+          title: 'Published article',
+          excerpt: '',
+          contentJson: {
+            type: 'doc',
+            content: [
+              {
+                type: 'paragraph',
+                content: [{ type: 'text', text: 'Published article text' }],
+              },
+            ],
+          },
+          publishedAt: new Date('2026-07-14T00:00:00.000Z'),
+          coverMediaId: staleCoverId,
+          imageLayoutRevision: 0,
+          version: 3,
+          media: [],
+        }),
+      },
+      articleMedia: {
+        findMany: jest.fn().mockResolvedValue([currentCover]),
+        findUnique: jest
+          .fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(currentCover),
+      },
+      $transaction: jest.fn(
+        async (operation: (client: typeof tx) => Promise<unknown>) =>
+          operation(tx),
+      ),
+    };
+    const articleMedia = {
+      deletePendingMedia: jest.fn().mockResolvedValue(undefined),
+    };
+    const service = new ArticleDraftsService(
+      prisma as unknown as PrismaService,
+      articleMedia as unknown as ArticleMediaService,
+    );
+
+    await service.publish('english-draft', 3);
+
+    expect(prisma.articleMedia.findUnique).toHaveBeenNthCalledWith(2, {
+      where: { id: currentCoverId },
+    });
+    expect(tx.article.update).toHaveBeenCalledTimes(1);
+    const [updateInput] = tx.article.update.mock.calls[0] as unknown as [
+      {
+        where: { id: number };
+        data: { coverMediaId?: string; imageUrl?: string };
+      },
+    ];
+    expect(updateInput).toMatchObject({
+      where: { id: 10 },
+      data: {
+        coverMediaId: currentCoverId,
+        imageUrl: currentCover.storagePath,
+      },
+    });
+    expect(articleMedia.deletePendingMedia).not.toHaveBeenCalled();
   });
 });

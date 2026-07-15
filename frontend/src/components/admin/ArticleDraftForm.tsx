@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import ArticleRichTextEditor, {
   type UploadedArticleMedia,
@@ -20,7 +21,10 @@ import {
   adminTextareaClassName,
 } from './adminStyles';
 
-type DraftMedia = UploadedArticleMedia & { role: 'COVER' | 'CONTENT' };
+type DraftMedia = UploadedArticleMedia & {
+  role: 'COVER' | 'CONTENT';
+  status: 'DRAFT' | 'ATTACHED';
+};
 type ArticleDraft = {
   id: string;
   articleId: number | null;
@@ -434,7 +438,18 @@ export default function ArticleDraftForm({
       </div>
 
       <label className="block space-y-2">
-        <span className={adminLabelClassName}>{locale === 'ru' ? 'Обложка' : 'Cover image'}</span>
+        <span className={adminLabelClassName}>
+          {locale === 'ru' ? 'Общая обложка' : 'Shared cover image'}
+        </span>
+        {cover ? (
+          <Image
+            className="max-h-64 w-auto max-w-full rounded-lg border border-[#0b5a45]/10 object-contain"
+            src={cover.previewUrl || cover.publicUrl}
+            alt={locale === 'ru' ? 'Текущая обложка статьи' : 'Current article cover'}
+            width={cover.width}
+            height={cover.height}
+          />
+        ) : null}
         <input
           className={adminFileInputClassName}
           type="file"
@@ -469,16 +484,20 @@ export default function ArticleDraftForm({
         />
         <span className={adminHintClassName}>
           {cover
-            ? locale === 'ru'
-              ? 'Новая обложка загружена.'
-              : 'New cover uploaded.'
+            ? cover.status === 'DRAFT'
+              ? locale === 'ru'
+                ? 'Новая обложка будет общей для всех языков после публикации.'
+                : 'The new cover will be shared by every language after publishing.'
+              : locale === 'ru'
+                ? 'Эта обложка используется во всех языках статьи.'
+                : 'This cover is used by every article language.'
             : articleId
               ? locale === 'ru'
-                ? 'Оставьте пустым, чтобы сохранить текущую обложку.'
-                : 'Leave empty to keep the current cover.'
+                ? 'Обложка общая для всех языков. Обновите страницу, если она не появилась.'
+                : 'The cover is shared by every language. Refresh if it is not shown.'
               : locale === 'ru'
-                ? 'Обложка обязательна перед публикацией.'
-                : 'A cover is required before publishing.'}
+                ? 'Обложка обязательна и будет общей для всех языков.'
+                : 'A cover is required and will be shared by every language.'}
         </span>
       </label>
 
