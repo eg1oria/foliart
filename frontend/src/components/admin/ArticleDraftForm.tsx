@@ -274,15 +274,23 @@ export default function ArticleDraftForm({
     };
   }, [persistLocal, saveNow]);
 
-  const uploadMedia = useCallback(async (file: File, uploadId: string, role: 'COVER' | 'CONTENT') => {
-    const current = draftRef.current;
-    if (!current) throw new Error('Draft is not ready');
+  const uploadMedia = useCallback(async (
+    file: File,
+    uploadId: string,
+    role: 'COVER' | 'CONTENT',
+    expectedDraftId?: string,
+  ) => {
+    const draftIdForUpload = expectedDraftId ?? draftRef.current?.id;
+    if (!draftIdForUpload) throw new Error('Draft is not ready');
     const payload = new FormData();
     payload.append('image', file);
     payload.append('uploadId', uploadId);
     payload.append('role', role);
     return readJson<DraftMedia>(
-      await fetch(`/admin-api/article-drafts/${current.id}/media`, { method: 'POST', body: payload }),
+      await fetch(`/admin-api/article-drafts/${draftIdForUpload}/media`, {
+        method: 'POST',
+        body: payload,
+      }),
     );
   }, []);
 
@@ -374,9 +382,18 @@ export default function ArticleDraftForm({
             event.currentTarget.value = '';
             if (!file) return;
             void (async () => {
+              const expectedDraftId = draftRef.current?.id;
+              if (!expectedDraftId) return;
               try {
                 await saveNow();
-                const media = await uploadMedia(file, crypto.randomUUID(), 'COVER');
+                if (draftRef.current?.id !== expectedDraftId) return;
+                const media = await uploadMedia(
+                  file,
+                  crypto.randomUUID(),
+                  'COVER',
+                  expectedDraftId,
+                );
+                if (draftRef.current?.id !== expectedDraftId) return;
                 setCover(media);
                 if (draftRef.current) draftRef.current = { ...draftRef.current, coverMediaId: media.id };
                 markDirty();

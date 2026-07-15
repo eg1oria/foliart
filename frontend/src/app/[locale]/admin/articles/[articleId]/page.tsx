@@ -40,6 +40,7 @@ export default async function EditArticlePage({
           description={copy.adminFormDescription}
         >
           <ArticleDraftForm
+            key={`${articleId}:${contentLocale}`}
             articleId={articleId}
             contentLocale={contentLocale}
             locale={locale}
