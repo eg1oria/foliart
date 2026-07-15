@@ -384,32 +384,25 @@ export default function ProductAdminForm({
           Изображения
         </p>
         {isBaseLocale ? (
-          <div className="mt-5 grid gap-5 xl:grid-cols-2">
+          <div className="mt-5 max-w-2xl">
             <ProductImageInput
               name="image"
-              label="Изображение для RU"
+              label="Изображение товара для всех языков"
               required={mode === 'create'}
               initialSrc={resolveMediaUrl(product?.imageUrl)}
               error={fieldErrors.image}
-            />
-            <ProductImageInput
-              name="imageEn"
-              label="Международное изображение для EN / FR / ES"
-              initialSrc={resolveMediaUrl(product?.imageUrlEn)}
-              error={fieldErrors.imageEn}
             />
           </div>
         ) : (
           <div className="mt-5">
             <p className="text-sm leading-6 text-[#567068]">
-              Изображения общие для языковых версий и изменяются только в RU-редакторе. Это защищает
-              базовые файлы от случайной замены при работе с переводом.
+              Во всех языках используется изображение из русской версии. Изменить его можно только
+              в RU-редакторе.
             </p>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <ReadonlyImage label="RU" src={resolveMediaUrl(product?.imageUrl)} />
+            <div className="mt-4 max-w-sm">
               <ReadonlyImage
-                label="EN / FR / ES"
-                src={resolveMediaUrl(product?.imageUrlEn) ?? resolveMediaUrl(product?.imageUrl)}
+                label="Общее изображение (RU)"
+                src={resolveMediaUrl(product?.imageUrl)}
               />
             </div>
           </div>

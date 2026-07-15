@@ -106,12 +106,12 @@ describe('ProductsService', () => {
       advantages: 'English advantage',
       composition: 'Nitrogen | 20 g/l',
       application: 'English guide',
-      imageUrl: 'products/riza-international.webp',
+      imageUrl: 'products/riza.webp',
       slugSourceName: 'Риза',
     });
   });
 
-  it('keeps the Russian image for Russian and falls back to it without an international image', async () => {
+  it('uses the Russian image for every locale when no international image exists', async () => {
     prismaServiceMock.product.findMany.mockResolvedValue([
       { ...baseProduct, imageUrlEn: '' },
     ]);
@@ -123,14 +123,14 @@ describe('ProductsService', () => {
     expect(frenchProducts[0].imageUrl).toBe('products/riza.webp');
   });
 
-  it.each(['en', 'fr', 'es'])(
-    'uses the international image for the %s catalog',
+  it.each(['ru', 'en', 'fr', 'es'])(
+    'uses the Russian image for the %s catalog even when an international image exists',
     async (locale) => {
       prismaServiceMock.product.findMany.mockResolvedValue([baseProduct]);
 
       const products = await service.findAll(locale);
 
-      expect(products[0].imageUrl).toBe('products/riza-international.webp');
+      expect(products[0].imageUrl).toBe('products/riza.webp');
     },
   );
 

@@ -139,10 +139,9 @@ export class ProductsService {
         fallback.application,
         product.application,
       ),
-      imageUrl:
-        locale && !isDefaultContentLocale(locale) && product.imageUrlEn
-          ? product.imageUrlEn
-          : product.imageUrl,
+      // Product images are shared by every locale for now. Keep imageUrlEn in
+      // storage so the separate international image can be restored later.
+      imageUrl: product.imageUrl,
       slugSourceName: product.name,
       ...(adminTranslation && adminLocale
         ? {
