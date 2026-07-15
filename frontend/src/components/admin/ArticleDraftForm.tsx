@@ -79,7 +79,10 @@ export default function ArticleDraftForm({
   const imageLayoutRevisionRef = useRef(0);
   const fieldsRef = useRef({ title: '', excerpt: '', publishedAt: '' });
   const dirtyRef = useRef(false);
+  const localPersistTimerRef = useRef<number | null>(null);
   const savingRef = useRef<Promise<ArticleDraft> | null>(null);
+  const publishingRef = useRef(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const [status, setStatus] = useState<'loading' | 'saved' | 'saving' | 'error' | 'conflict'>('loading');
   const [message, setMessage] = useState('');
 
@@ -149,7 +152,15 @@ export default function ArticleDraftForm({
     };
   }, [applyDraft, articleId, contentLocale, draftId, storageKey]);
 
+  const clearLocalPersistTimer = useCallback(() => {
+    if (localPersistTimerRef.current !== null) {
+      window.clearTimeout(localPersistTimerRef.current);
+      localPersistTimerRef.current = null;
+    }
+  }, []);
+
   const persistLocal = useCallback(() => {
+    clearLocalPersistTimer();
     localStorage.setItem(
       storageKey,
       JSON.stringify({
@@ -158,17 +169,27 @@ export default function ArticleDraftForm({
         savedAt: Date.now(),
       }),
     );
-  }, [storageKey]);
+  }, [clearLocalPersistTimer, storageKey]);
+
+  const scheduleLocalPersist = useCallback(() => {
+    clearLocalPersistTimer();
+    localPersistTimerRef.current = window.setTimeout(() => {
+      localPersistTimerRef.current = null;
+      persistLocal();
+    }, 400);
+  }, [clearLocalPersistTimer, persistLocal]);
 
   const markDirty = useCallback(() => {
     dirtyRef.current = true;
-    persistLocal();
-  }, [persistLocal]);
+    scheduleLocalPersist();
+  }, [scheduleLocalPersist]);
 
   useEffect(() => {
-    fieldsRef.current = { title, excerpt, publishedAt };
-    if (draftRef.current) markDirty();
-  }, [excerpt, markDirty, publishedAt, title]);
+    return () => {
+      clearLocalPersistTimer();
+      if (dirtyRef.current) persistLocal();
+    };
+  }, [clearLocalPersistTimer, persistLocal]);
 
   const saveNow = useCallback(async (overrideDocument?: ArticleDocument) => {
     if (overrideDocument) {
@@ -178,7 +199,7 @@ export default function ArticleDraftForm({
     }
     let saved = draftRef.current;
     do {
-      if (savingRef.current) await savingRef.current;
+      while (savingRef.current) await savingRef.current;
       const current = draftRef.current;
       if (!current) throw new Error('Draft is not ready');
       saved = current;
@@ -187,19 +208,17 @@ export default function ArticleDraftForm({
       setStatus('saving');
       const requestDocument = documentRef.current;
       const requestImageLayoutRevision = imageLayoutRevisionRef.current;
-      const request = readJson<ArticleDraft>(
-        await fetch(`/admin-api/article-drafts/${current.id}`, {
-          method: 'PATCH',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            version: current.version,
-            imageLayoutRevision: requestImageLayoutRevision,
-            ...fieldsRef.current,
-            contentJson: requestDocument,
-            coverMediaId: draftRef.current?.coverMediaId ?? null,
-          }),
+      const request = fetch(`/admin-api/article-drafts/${current.id}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          version: current.version,
+          imageLayoutRevision: requestImageLayoutRevision,
+          ...fieldsRef.current,
+          contentJson: requestDocument,
+          coverMediaId: draftRef.current?.coverMediaId ?? null,
         }),
-      );
+      }).then((response) => readJson<ArticleDraft>(response));
       savingRef.current = request;
       try {
         saved = await request;
@@ -210,9 +229,12 @@ export default function ArticleDraftForm({
           imageLayoutRevisionRef.current = saved.imageLayoutRevision;
           setEditorDocument(saved.contentJson);
         }
-        localStorage.removeItem(storageKey);
-        setStatus('saved');
-        setMessage('');
+        if (!dirtyRef.current) {
+          clearLocalPersistTimer();
+          localStorage.removeItem(storageKey);
+          setStatus('saved');
+          setMessage('');
+        }
       } catch (error) {
         dirtyRef.current = true;
         const text = error instanceof Error ? error.message : 'Autosave failed';
@@ -225,17 +247,23 @@ export default function ArticleDraftForm({
       }
     } while (dirtyRef.current);
     return saved!;
-  }, [persistLocal, storageKey]);
+  }, [clearLocalPersistTimer, persistLocal, storageKey]);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
       if (dirtyRef.current) void saveNow().catch(() => undefined);
     }, 10_000);
     const visibility = () => {
-      if (document.visibilityState === 'hidden' && dirtyRef.current) void saveNow().catch(() => undefined);
+      if (document.visibilityState === 'hidden' && dirtyRef.current) {
+        persistLocal();
+        void saveNow().catch(() => undefined);
+      }
     };
     const beforeUnload = (event: BeforeUnloadEvent) => {
-      if (dirtyRef.current) event.preventDefault();
+      if (dirtyRef.current) {
+        persistLocal();
+        event.preventDefault();
+      }
     };
     document.addEventListener('visibilitychange', visibility);
     window.addEventListener('beforeunload', beforeUnload);
@@ -244,7 +272,7 @@ export default function ArticleDraftForm({
       document.removeEventListener('visibilitychange', visibility);
       window.removeEventListener('beforeunload', beforeUnload);
     };
-  }, [saveNow]);
+  }, [persistLocal, saveNow]);
 
   const uploadMedia = useCallback(async (file: File, uploadId: string, role: 'COVER' | 'CONTENT') => {
     const current = draftRef.current;
@@ -259,8 +287,17 @@ export default function ArticleDraftForm({
   }, []);
 
   const publish = async () => {
+    if (publishingRef.current) return;
+    publishingRef.current = true;
+    setIsPublishing(true);
     try {
-      if (hasPendingUploads(documentRef.current)) throw new Error(locale === 'ru' ? 'Завершите или удалите незагруженные изображения.' : 'Finish or remove pending images.');
+      if (hasPendingUploads(documentRef.current)) {
+        throw new Error(
+          locale === 'ru'
+            ? 'Завершите или удалите незагруженные изображения.'
+            : 'Finish or remove pending images.',
+        );
+      }
       const saved = await saveNow();
       const article = await readJson<{ id: number }>(
         await fetch(`/admin-api/article-drafts/${saved.id}/publish`, {
@@ -271,11 +308,16 @@ export default function ArticleDraftForm({
       );
       localStorage.removeItem(storageKey);
       localStorage.removeItem(`${storageKey}:id`);
-      router.replace(`/${locale}/admin/articles?status=updated&article=${article.id}&contentLocale=${contentLocale}`);
+      router.replace(
+        `/${locale}/admin/articles?status=updated&article=${article.id}&contentLocale=${contentLocale}`,
+      );
       router.refresh();
     } catch (error) {
       setStatus('error');
       setMessage(error instanceof Error ? error.message : 'Publish failed');
+    } finally {
+      publishingRef.current = false;
+      setIsPublishing(false);
     }
   };
 
@@ -293,11 +335,31 @@ export default function ArticleDraftForm({
       <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_220px]">
         <label className="space-y-2">
           <span className={adminLabelClassName}>{locale === 'ru' ? 'Заголовок' : 'Title'}</span>
-          <input className={adminInputClassName} value={title} onChange={(event) => setTitle(event.target.value)} required />
+          <input
+            className={adminInputClassName}
+            value={title}
+            onChange={(event) => {
+              const value = event.target.value;
+              setTitle(value);
+              fieldsRef.current.title = value;
+              markDirty();
+            }}
+            required
+          />
         </label>
         <label className="space-y-2">
           <span className={adminLabelClassName}>{locale === 'ru' ? 'Дата публикации' : 'Publication date'}</span>
-          <input className={adminInputClassName} type="date" value={publishedAt} onChange={(event) => setPublishedAt(event.target.value)} />
+          <input
+            className={adminInputClassName}
+            type="date"
+            value={publishedAt}
+            onChange={(event) => {
+              const value = event.target.value;
+              setPublishedAt(value);
+              fieldsRef.current.publishedAt = value;
+              markDirty();
+            }}
+          />
         </label>
       </div>
 
@@ -309,6 +371,7 @@ export default function ArticleDraftForm({
           accept="image/jpeg,image/png,image/webp,image/gif"
           onChange={(event) => {
             const file = event.target.files?.[0];
+            event.currentTarget.value = '';
             if (!file) return;
             void (async () => {
               try {
@@ -342,7 +405,17 @@ export default function ArticleDraftForm({
 
       <label className="block space-y-2">
         <span className={adminLabelClassName}>{locale === 'ru' ? 'Краткое описание' : 'Excerpt'}</span>
-        <textarea className={adminTextareaClassName} rows={4} value={excerpt} onChange={(event) => setExcerpt(event.target.value)} />
+        <textarea
+          className={adminTextareaClassName}
+          rows={4}
+          value={excerpt}
+          onChange={(event) => {
+            const value = event.target.value;
+            setExcerpt(value);
+            fieldsRef.current.excerpt = value;
+            markDirty();
+          }}
+        />
       </label>
 
       <div className="space-y-2">
@@ -353,7 +426,6 @@ export default function ArticleDraftForm({
           placeholder={locale === 'ru' ? 'Начните писать статью…' : 'Start writing the article…'}
           onChange={(document) => {
             documentRef.current = document;
-            setEditorDocument(document);
             markDirty();
           }}
           onBeforeUpload={async (document) => {
@@ -364,14 +436,24 @@ export default function ArticleDraftForm({
       </div>
 
       <div className="flex flex-wrap items-center gap-4 border-t border-[#0b5a45]/10 pt-5">
-        <button type="button" className={adminPrimaryButtonClassName} onClick={() => void publish()}>
-          {articleId
+        <button
+          type="button"
+          className={`${adminPrimaryButtonClassName} disabled:cursor-not-allowed disabled:opacity-60`}
+          onClick={() => void publish()}
+          disabled={isPublishing}
+          aria-busy={isPublishing}
+        >
+          {isPublishing
             ? locale === 'ru'
-              ? 'Сохранить и опубликовать'
-              : 'Save and publish'
-            : locale === 'ru'
-              ? 'Опубликовать'
-              : 'Publish'}
+              ? 'Публикация…'
+              : 'Publishing…'
+            : articleId
+              ? locale === 'ru'
+                ? 'Сохранить и опубликовать'
+                : 'Save and publish'
+              : locale === 'ru'
+                ? 'Опубликовать'
+                : 'Publish'}
         </button>
         <p
           role={status === 'error' || status === 'conflict' ? 'alert' : 'status'}

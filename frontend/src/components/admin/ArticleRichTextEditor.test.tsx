@@ -9,6 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const editorMock = vi.hoisted(() => {
   let options: { onUpdate?: (args: { editor: typeof editor }) => void } = {};
   let nodes: Array<{ type: string; attrs?: Record<string, unknown>; nodeSize: number }> = [];
+  let actions: Array<{ name: string; value?: unknown }> = [];
   const notify = () => options.onUpdate?.({ editor });
   const commands = {
     setContent: (
@@ -37,16 +38,43 @@ const editorMock = vi.hoisted(() => {
   };
   const chain = {
     focus: () => chain,
-    toggleHeading: () => chain,
-    toggleBold: () => chain,
-    toggleItalic: () => chain,
-    toggleUnderline: () => chain,
-    toggleBulletList: () => chain,
-    toggleOrderedList: () => chain,
-    toggleBlockquote: () => chain,
+    toggleHeading: (value: unknown) => {
+      actions.push({ name: 'heading', value });
+      return chain;
+    },
+    toggleBold: () => {
+      actions.push({ name: 'bold' });
+      return chain;
+    },
+    toggleItalic: () => {
+      actions.push({ name: 'italic' });
+      return chain;
+    },
+    toggleUnderline: () => {
+      actions.push({ name: 'underline' });
+      return chain;
+    },
+    toggleBulletList: () => {
+      actions.push({ name: 'bulletList' });
+      return chain;
+    },
+    toggleOrderedList: () => {
+      actions.push({ name: 'orderedList' });
+      return chain;
+    },
+    toggleBlockquote: () => {
+      actions.push({ name: 'blockquote' });
+      return chain;
+    },
     extendMarkRange: () => chain,
-    unsetLink: () => chain,
-    setLink: () => chain,
+    unsetLink: () => {
+      actions.push({ name: 'unsetLink' });
+      return chain;
+    },
+    setLink: (value: unknown) => {
+      actions.push({ name: 'setLink', value });
+      return chain;
+    },
     run: () => true,
   };
   const editor = {
@@ -73,9 +101,13 @@ const editorMock = vi.hoisted(() => {
     initialize(next: typeof options) {
       options = next;
     },
+    getActions() {
+      return actions;
+    },
     reset() {
       options = {};
       nodes = [];
+      actions = [];
     },
   };
 });
@@ -96,7 +128,7 @@ vi.mock('../../lib/articleContent', () => ({
 
 import ArticleRichTextEditor from './ArticleRichTextEditor';
 
-describe('ArticleRichTextEditor JSON uploads', () => {
+describe('ArticleRichTextEditor', () => {
   let container: HTMLDivElement;
   let root: Root;
 
@@ -110,6 +142,7 @@ describe('ArticleRichTextEditor JSON uploads', () => {
   afterEach(() => {
     act(() => root.unmount());
     container.remove();
+    vi.restoreAllMocks();
   });
 
   function render(overrides: Partial<ComponentProps<typeof ArticleRichTextEditor>> = {}) {
@@ -137,6 +170,75 @@ describe('ArticleRichTextEditor JSON uploads', () => {
     expect(container.querySelector('[aria-label="H2"]')).not.toBeNull();
     expect(container.querySelector('[aria-label="H3"]')).not.toBeNull();
     expect(container.querySelector('[aria-label="H4"]')).not.toBeNull();
+  });
+
+  it('runs every formatting action through a normal click', () => {
+    render();
+    const labels = [
+      'H2',
+      'H3',
+      'H4',
+      'Жирный',
+      'Курсив',
+      'Подчёркнутый',
+      'Маркированный список',
+      'Нумерованный список',
+      'Цитата',
+    ];
+
+    act(() => {
+      labels.forEach((label) => {
+        container.querySelector<HTMLButtonElement>(`[aria-label="${label}"]`)!.click();
+      });
+    });
+
+    expect(editorMock.getActions()).toEqual([
+      { name: 'heading', value: { level: 2 } },
+      { name: 'heading', value: { level: 3 } },
+      { name: 'heading', value: { level: 4 } },
+      { name: 'bold' },
+      { name: 'italic' },
+      { name: 'underline' },
+      { name: 'bulletList' },
+      { name: 'orderedList' },
+      { name: 'blockquote' },
+    ]);
+  });
+
+  it('keeps the editor selection on pointer interaction with the toolbar', () => {
+    render();
+    const button = container.querySelector<HTMLButtonElement>('[aria-label="Жирный"]')!;
+    const pointerDown = new Event('pointerdown', { bubbles: true, cancelable: true });
+
+    expect(button.dispatchEvent(pointerDown)).toBe(false);
+    expect(pointerDown.defaultPrevented).toBe(true);
+  });
+
+  it('normalizes a domain link and removes a link when the prompt is empty', () => {
+    const prompt = vi.spyOn(window, 'prompt');
+    prompt.mockReturnValueOnce('example.com/article').mockReturnValueOnce('  ');
+    render();
+    const linkButton = container.querySelector<HTMLButtonElement>('[aria-label="Ссылка"]')!;
+
+    act(() => linkButton.click());
+    act(() => linkButton.click());
+
+    expect(editorMock.getActions()).toContainEqual({
+      name: 'setLink',
+      value: { href: 'https://example.com/article' },
+    });
+    expect(editorMock.getActions()).toContainEqual({ name: 'unsetLink' });
+  });
+
+  it('rejects unsafe links without changing the document', () => {
+    vi.spyOn(window, 'prompt').mockReturnValue('javascript:alert(1)');
+    const alert = vi.spyOn(window, 'alert').mockImplementation(() => undefined);
+    render();
+
+    act(() => container.querySelector<HTMLButtonElement>('[aria-label="Ссылка"]')!.click());
+
+    expect(alert).toHaveBeenCalledWith('Небезопасный URL.');
+    expect(editorMock.getActions()).toEqual([]);
   });
 
   it('saves a positional placeholder before uploading and replaces it with an image node', async () => {
@@ -173,7 +275,70 @@ describe('ArticleRichTextEditor JSON uploads', () => {
       await Promise.resolve();
     });
     expect(container.querySelector('[role="alert"]')?.textContent).toContain('Network unavailable');
-    expect(container.querySelector('[aria-label="Retry"]')).not.toBeNull();
+    expect(container.querySelector('[aria-label="Повторить загрузку"]')).not.toBeNull();
     expect(editorMock.editor.getJSON().content?.[0].type).toBe('imageUpload');
+  });
+
+  it('rejects unsupported files before saving or uploading', async () => {
+    const props = render();
+    const input = container.querySelector<HTMLInputElement>('input[type="file"]')!;
+    Object.defineProperty(input, 'files', {
+      configurable: true,
+      value: [new File(['code'], 'unsafe.svg', { type: 'image/svg+xml' })],
+    });
+
+    await act(async () => {
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      await Promise.resolve();
+    });
+
+    expect(container.querySelector('[role="alert"]')?.textContent).toContain(
+      'Поддерживаются только JPG, PNG, WEBP и GIF.',
+    );
+    expect(container.querySelector('[aria-label="Повторить загрузку"]')).toBeNull();
+    expect(props.onBeforeUpload).not.toHaveBeenCalled();
+    expect(props.onUpload).not.toHaveBeenCalled();
+    expect(editorMock.editor.getJSON().content).not.toContainEqual(
+      expect.objectContaining({ type: 'imageUpload' }),
+    );
+  });
+
+  it('prevents duplicate retries for the same failed upload', async () => {
+    const onUpload = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('Network unavailable'))
+      .mockResolvedValueOnce({
+        id: 'd87ed781-53f8-4a20-90f3-927c75ef7842',
+        publicUrl: '/media/articles/media/d87ed781-53f8-4a20-90f3-927c75ef7842/original.webp',
+        previewUrl: '/media/articles/media/d87ed781-53f8-4a20-90f3-927c75ef7842/preview.webp',
+        width: 800,
+        height: 600,
+      });
+    render({ onUpload });
+    const input = container.querySelector<HTMLInputElement>('input[type="file"]')!;
+    Object.defineProperty(input, 'files', {
+      configurable: true,
+      value: [new File(['image'], 'leaf.png', { type: 'image/png' })],
+    });
+
+    await act(async () => {
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    const retry = container.querySelector<HTMLButtonElement>(
+      '[aria-label="Повторить загрузку"]',
+    )!;
+
+    await act(async () => {
+      retry.click();
+      retry.click();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(onUpload).toHaveBeenCalledTimes(2);
+    expect(editorMock.editor.getJSON().content?.[0].type).toBe('image');
   });
 });

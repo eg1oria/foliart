@@ -10,13 +10,15 @@ import {
   FiItalic,
   FiLink,
   FiList,
-  FiType,
   FiUnderline,
   FiX,
   FiRefreshCw,
 } from 'react-icons/fi';
 import { MdFormatListNumbered, MdFormatQuote } from 'react-icons/md';
 import { createArticleExtensions, type ArticleDocument } from '../../lib/articleContent';
+
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
 export type UploadedArticleMedia = {
   id: string;
@@ -26,7 +28,36 @@ export type UploadedArticleMedia = {
   height: number;
 };
 
-type UploadFailure = { uploadId: string; file: File; message: string };
+type UploadFailure = {
+  uploadId: string;
+  file: File;
+  message: string;
+  retryable: boolean;
+};
+
+const EMPTY_TOOLBAR_STATE = {
+  h2: false,
+  h3: false,
+  h4: false,
+  bold: false,
+  italic: false,
+  underline: false,
+  bullet: false,
+  ordered: false,
+  quote: false,
+  link: false,
+  empty: true,
+};
+
+type ToolbarState = typeof EMPTY_TOOLBAR_STATE;
+type ToolbarActionKey = Exclude<keyof ToolbarState, 'empty'>;
+type ToolbarItem = {
+  key: ToolbarActionKey;
+  label: string;
+  icon: ReactNode;
+  action: () => void;
+  shortcut?: string;
+};
 
 function findUploadPosition(editor: Editor, uploadId: string) {
   let found: { from: number; to: number } | null = null;
@@ -40,12 +71,18 @@ function findUploadPosition(editor: Editor, uploadId: string) {
   return found;
 }
 
-function isSafeUrl(value: string) {
-  return (
-    !value.startsWith('//') &&
-    !/^(?:javascript|data|vbscript):/i.test(value) &&
-    (/^(?:https?:|mailto:|tel:)/i.test(value) || value.startsWith('/') || value.startsWith('#'))
-  );
+function normalizeSafeUrl(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.startsWith('//') || /[\u0000-\u001f\u007f]/.test(trimmed)) return null;
+  if (trimmed.startsWith('/') || trimmed.startsWith('#')) return trimmed;
+
+  const hasProtocol = /^[a-z][a-z\d+.-]*:/i.test(trimmed);
+  try {
+    const url = new URL(hasProtocol ? trimmed : `https://${trimmed}`);
+    return ['http:', 'https:', 'mailto:', 'tel:'].includes(url.protocol) ? url.href : null;
+  } catch {
+    return null;
+  }
 }
 
 export default function ArticleRichTextEditor({
@@ -66,6 +103,8 @@ export default function ArticleRichTextEditor({
   const [failures, setFailures] = useState<UploadFailure[]>([]);
   const [activeUploads, setActiveUploads] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const imagePositionRef = useRef<number | undefined>(undefined);
+  const uploadingIdsRef = useRef(new Set<string>());
   const changeRef = useRef(onChange);
   const uploadHandlerRef = useRef<
     ((file: File, pos?: number, reuseId?: string) => Promise<void>) | undefined
@@ -76,13 +115,17 @@ export default function ArticleRichTextEditor({
     () => [
       ...createArticleExtensions(true),
       FileHandler.configure({
-        allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
         consumePasteEvent: true,
-        onPaste: (_editor, files) => {
-          files.forEach((file) => void uploadHandlerRef.current?.(file));
+        onPaste: (currentEditor, files) => {
+          const position = currentEditor.state.selection.from;
+          files.forEach((file, index) => {
+            void uploadHandlerRef.current?.(file, position + index);
+          });
         },
         onDrop: (_editor, files, pos) => {
-          files.forEach((file, index) => void uploadHandlerRef.current?.(file, pos + index));
+          files.forEach((file, index) => {
+            void uploadHandlerRef.current?.(file, pos + index);
+          });
         },
       }),
     ],
@@ -125,33 +168,51 @@ export default function ArticleRichTextEditor({
         ordered: current?.isActive('orderedList') ?? false,
         quote: current?.isActive('blockquote') ?? false,
         link: current?.isActive('link') ?? false,
+        empty: current?.isEmpty ?? true,
       }),
-    }) ?? {};
+    }) ?? EMPTY_TOOLBAR_STATE;
 
   const performUpload = useCallback(
     async (file: File, pos?: number, reuseId?: string) => {
       if (!editor) return;
-      if (file.size > 5 * 1024 * 1024) {
+
+      const uploadId = reuseId ?? crypto.randomUUID();
+      if (uploadingIdsRef.current.has(uploadId)) return;
+
+      const validationMessage = !ALLOWED_IMAGE_TYPES.includes(file.type)
+        ? locale === 'ru'
+          ? 'Поддерживаются только JPG, PNG, WEBP и GIF.'
+          : 'Only JPG, PNG, WEBP, and GIF images are supported.'
+        : file.size > MAX_IMAGE_SIZE
+          ? locale === 'ru'
+            ? 'Размер изображения не должен превышать 5 МБ.'
+            : 'The image must be no larger than 5 MB.'
+          : '';
+
+      if (validationMessage) {
         setFailures((items) => [
-          ...items,
-          { uploadId: reuseId ?? crypto.randomUUID(), file, message: locale === 'ru' ? 'Файл больше 5 МБ.' : 'The file is larger than 5 MB.' },
+          ...items.filter((item) => item.uploadId !== uploadId),
+          { uploadId, file, message: validationMessage, retryable: false },
         ]);
         return;
       }
-      const uploadId = reuseId ?? crypto.randomUUID();
-      if (!reuseId) {
+
+      if (!reuseId || !findUploadPosition(editor, uploadId)) {
         editor.commands.insertContentAt(pos ?? editor.state.selection.from, {
           type: 'imageUpload',
           attrs: { uploadId, alt: file.name.replace(/\.[^.]+$/, '') },
         });
       }
+
       setFailures((items) => items.filter((item) => item.uploadId !== uploadId));
+      uploadingIdsRef.current.add(uploadId);
       setActiveUploads((count) => count + 1);
+
       try {
         await onBeforeUpload(editor.getJSON());
         const media = await onUpload(file, uploadId);
         const range = findUploadPosition(editor, uploadId);
-        if (!range) throw new Error('Image placeholder is missing');
+        if (!range) return;
         editor.commands.insertContentAt(range, {
           type: 'image',
           attrs: {
@@ -174,9 +235,11 @@ export default function ArticleRichTextEditor({
                 : locale === 'ru'
                   ? 'Не удалось загрузить изображение.'
                   : 'Could not upload the image.',
+            retryable: true,
           },
         ]);
       } finally {
+        uploadingIdsRef.current.delete(uploadId);
         setActiveUploads((count) => Math.max(0, count - 1));
       }
     },
@@ -194,33 +257,122 @@ export default function ArticleRichTextEditor({
   const setLink = () => {
     if (!editor) return;
     const previous = String(editor.getAttributes('link').href ?? '');
-    const value = window.prompt(locale === 'ru' ? 'Введите URL ссылки' : 'Enter link URL', previous);
+    const value = window.prompt(
+      locale === 'ru'
+        ? 'Введите адрес ссылки. Оставьте поле пустым, чтобы удалить ссылку.'
+        : 'Enter the link URL. Leave empty to remove the link.',
+      previous,
+    );
     if (value === null) return;
     if (!value.trim()) return void editor.chain().focus().extendMarkRange('link').unsetLink().run();
-    if (!isSafeUrl(value.trim())) {
+    const safeUrl = normalizeSafeUrl(value);
+    if (!safeUrl) {
       window.alert(locale === 'ru' ? 'Небезопасный URL.' : 'Unsafe URL.');
       return;
     }
-    editor.chain().focus().extendMarkRange('link').setLink({ href: value.trim() }).run();
+    editor.chain().focus().extendMarkRange('link').setLink({ href: safeUrl }).run();
   };
 
-  const button = (key: string, label: string, icon: ReactNode, action: () => void) => (
+  const toolbar: ToolbarItem[] = [
+    {
+      key: 'h2',
+      label: 'H2',
+      icon: (
+        <span aria-hidden="true" className="text-sm font-bold">
+          H2
+        </span>
+      ),
+      action: () => editor?.chain().focus().toggleHeading({ level: 2 }).run(),
+    },
+    {
+      key: 'h3',
+      label: 'H3',
+      icon: (
+        <span aria-hidden="true" className="text-sm font-bold">
+          H3
+        </span>
+      ),
+      action: () => editor?.chain().focus().toggleHeading({ level: 3 }).run(),
+    },
+    {
+      key: 'h4',
+      label: 'H4',
+      icon: (
+        <span aria-hidden="true" className="text-sm font-bold">
+          H4
+        </span>
+      ),
+      action: () => editor?.chain().focus().toggleHeading({ level: 4 }).run(),
+    },
+    {
+      key: 'bold',
+      label: locale === 'ru' ? 'Жирный' : 'Bold',
+      icon: <FiBold aria-hidden="true" />,
+      action: () => editor?.chain().focus().toggleBold().run(),
+      shortcut: 'Control+B',
+    },
+    {
+      key: 'italic',
+      label: locale === 'ru' ? 'Курсив' : 'Italic',
+      icon: <FiItalic aria-hidden="true" />,
+      action: () => editor?.chain().focus().toggleItalic().run(),
+      shortcut: 'Control+I',
+    },
+    {
+      key: 'underline',
+      label: locale === 'ru' ? 'Подчёркнутый' : 'Underline',
+      icon: <FiUnderline aria-hidden="true" />,
+      action: () => editor?.chain().focus().toggleUnderline().run(),
+      shortcut: 'Control+U',
+    },
+    {
+      key: 'bullet',
+      label: locale === 'ru' ? 'Маркированный список' : 'Bullet list',
+      icon: <FiList aria-hidden="true" />,
+      action: () => editor?.chain().focus().toggleBulletList().run(),
+    },
+    {
+      key: 'ordered',
+      label: locale === 'ru' ? 'Нумерованный список' : 'Numbered list',
+      icon: <MdFormatListNumbered aria-hidden="true" />,
+      action: () => editor?.chain().focus().toggleOrderedList().run(),
+    },
+    {
+      key: 'quote',
+      label: locale === 'ru' ? 'Цитата' : 'Quote',
+      icon: <MdFormatQuote aria-hidden="true" />,
+      action: () => editor?.chain().focus().toggleBlockquote().run(),
+    },
+    {
+      key: 'link',
+      label: locale === 'ru' ? 'Ссылка' : 'Link',
+      icon: <FiLink aria-hidden="true" />,
+      action: setLink,
+    },
+  ];
+
+  const button = (
+    key: ToolbarActionKey,
+    label: string,
+    icon: ReactNode,
+    action: () => void,
+    shortcut?: string,
+  ) => (
     <button
       key={key}
       type="button"
-      title={label}
+      title={shortcut ? `${label} (${shortcut})` : label}
       aria-label={label}
-      aria-pressed={Boolean(toolbarState[key as keyof typeof toolbarState])}
+      aria-keyshortcuts={shortcut}
+      aria-pressed={toolbarState[key]}
       disabled={!editor}
-      onMouseDown={(event) => {
-        event.preventDefault();
-        action();
-      }}
+      onPointerDown={(event) => event.preventDefault()}
+      onClick={action}
       className={`inline-flex h-10 min-w-10 items-center justify-center rounded-lg border px-2.5 transition ${
-        toolbarState[key as keyof typeof toolbarState]
+        toolbarState[key]
           ? 'border-[#0b5a45] bg-[#0b5a45] text-white'
-          : 'border-[#0b5a45]/12 bg-white text-[#0b3e31] hover:bg-[#eef4ef]'
-      }`}
+          : 'border-[#0b5a45]/12 bg-white text-[#0b3e31] hover:border-[#0b5a45]/30 hover:bg-[#eef4ef]'
+      } focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b5a45] disabled:cursor-not-allowed disabled:opacity-50`}
     >
       {icon}
     </button>
@@ -233,34 +385,41 @@ export default function ArticleRichTextEditor({
         type="file"
         accept="image/jpeg,image/png,image/webp,image/gif"
         className="sr-only"
+        tabIndex={-1}
         onChange={(event) => {
           const file = event.target.files?.[0];
-          if (file) void performUpload(file);
+          const position = imagePositionRef.current;
+          imagePositionRef.current = undefined;
+          if (file) void performUpload(file, position);
           event.currentTarget.value = '';
         }}
       />
-      <div role="toolbar" className="flex flex-wrap gap-2 border-b border-[#0b5a45]/10 bg-white/75 p-3">
-        {button('h2', 'H2', <FiType />, () => editor?.chain().focus().toggleHeading({ level: 2 }).run())}
-        {button('h3', 'H3', <FiType />, () => editor?.chain().focus().toggleHeading({ level: 3 }).run())}
-        {button('h4', 'H4', <FiType />, () => editor?.chain().focus().toggleHeading({ level: 4 }).run())}
-        {button('bold', locale === 'ru' ? 'Жирный' : 'Bold', <FiBold />, () => editor?.chain().focus().toggleBold().run())}
-        {button('italic', locale === 'ru' ? 'Курсив' : 'Italic', <FiItalic />, () => editor?.chain().focus().toggleItalic().run())}
-        {button('underline', locale === 'ru' ? 'Подчёркнутый' : 'Underline', <FiUnderline />, () => editor?.chain().focus().toggleUnderline().run())}
-        {button('bullet', locale === 'ru' ? 'Список' : 'Bullets', <FiList />, () => editor?.chain().focus().toggleBulletList().run())}
-        {button('ordered', locale === 'ru' ? 'Нумерация' : 'Numbers', <MdFormatListNumbered />, () => editor?.chain().focus().toggleOrderedList().run())}
-        {button('quote', locale === 'ru' ? 'Цитата' : 'Quote', <MdFormatQuote />, () => editor?.chain().focus().toggleBlockquote().run())}
-        {button('link', locale === 'ru' ? 'Ссылка' : 'Link', <FiLink />, setLink)}
+      <div
+        role="toolbar"
+        aria-label={locale === 'ru' ? 'Форматирование статьи' : 'Article formatting'}
+        className="flex flex-nowrap gap-2 overflow-x-auto border-b border-[#0b5a45]/10 bg-white/75 p-3 sm:flex-wrap"
+      >
+        {toolbar.map((item) =>
+          button(item.key, item.label, item.icon, item.action, item.shortcut),
+        )}
         <button
           type="button"
-          title={locale === 'ru' ? 'Изображение' : 'Image'}
-          onClick={() => inputRef.current?.click()}
-          className="inline-flex h-10 min-w-10 items-center justify-center rounded-lg border border-[#0b5a45]/12 bg-white text-[#0b3e31]"
+          title={locale === 'ru' ? 'Вставить изображение' : 'Insert image'}
+          aria-label={locale === 'ru' ? 'Вставить изображение' : 'Insert image'}
+          disabled={!editor}
+          onPointerDown={(event) => event.preventDefault()}
+          onClick={() => {
+            if (!editor) return;
+            imagePositionRef.current = editor.state.selection.from;
+            inputRef.current?.click();
+          }}
+          className="inline-flex h-10 min-w-10 shrink-0 items-center justify-center rounded-lg border border-[#0b5a45]/12 bg-white px-2.5 text-[#0b3e31] transition hover:border-[#0b5a45]/30 hover:bg-[#eef4ef] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b5a45] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <FiImage />
+          <FiImage aria-hidden="true" />
         </button>
       </div>
       <div className="relative">
-        {editor?.isEmpty ? (
+        {toolbarState.empty ? (
           <p className="pointer-events-none absolute left-5 top-5 text-sm text-[#7e9088]">{placeholder}</p>
         ) : null}
         <EditorContent editor={editor} />
@@ -273,11 +432,26 @@ export default function ArticleRichTextEditor({
       {failures.map((failure) => (
         <div key={failure.uploadId} role="alert" className="flex items-center gap-3 border-t border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
           <span className="min-w-0 flex-1">{failure.message}</span>
-          <button type="button" onClick={() => void performUpload(failure.file, undefined, failure.uploadId)} aria-label="Retry">
-            <FiRefreshCw />
-          </button>
-          <button type="button" onClick={() => removeFailure(failure.uploadId)} aria-label="Remove">
-            <FiX />
+          {failure.retryable ? (
+            <button
+              type="button"
+              title={locale === 'ru' ? 'Повторить загрузку' : 'Retry upload'}
+              onClick={() => void performUpload(failure.file, undefined, failure.uploadId)}
+              aria-label={locale === 'ru' ? 'Повторить загрузку' : 'Retry upload'}
+              className="rounded-md p-2 transition hover:bg-red-100 focus-visible:outline-2 focus-visible:outline-red-700 disabled:opacity-50"
+              disabled={uploadingIdsRef.current.has(failure.uploadId)}
+            >
+              <FiRefreshCw aria-hidden="true" />
+            </button>
+          ) : null}
+          <button
+            type="button"
+            title={locale === 'ru' ? 'Убрать сообщение' : 'Dismiss message'}
+            onClick={() => removeFailure(failure.uploadId)}
+            aria-label={locale === 'ru' ? 'Убрать сообщение' : 'Dismiss message'}
+            className="rounded-md p-2 transition hover:bg-red-100 focus-visible:outline-2 focus-visible:outline-red-700"
+          >
+            <FiX aria-hidden="true" />
           </button>
         </div>
       ))}
