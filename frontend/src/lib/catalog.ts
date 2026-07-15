@@ -360,7 +360,6 @@ export function getCatalogCopy(locale: string) {
       backToCategory: 'Back to products',
       descriptionTitle: 'Description',
       advantagesTitle: 'Advantages',
-      advantagesEmpty: 'Advantages will be added later.',
       detailsFallback: 'Detailed product information will be added later.',
       routeMismatch: 'This product belongs to another category.',
     };
@@ -380,7 +379,6 @@ export function getCatalogCopy(locale: string) {
       backToCategory: 'Retour aux produits',
       descriptionTitle: 'Description',
       advantagesTitle: 'Avantages',
-      advantagesEmpty: 'Les avantages seront ajoutés ultérieurement.',
       detailsFallback: 'Les informations détaillées sur le produit seront ajoutées ultérieurement.',
       routeMismatch: 'Ce produit appartient à une autre catégorie.',
     };
@@ -400,7 +398,6 @@ export function getCatalogCopy(locale: string) {
       backToCategory: 'Volver a los productos',
       descriptionTitle: 'Descripción',
       advantagesTitle: 'Ventajas',
-      advantagesEmpty: 'Las ventajas se añadirán más adelante.',
       detailsFallback: 'La información detallada del producto se añadirá más adelante.',
       routeMismatch: 'Este producto pertenece a otra categoría.',
     };
@@ -419,7 +416,6 @@ export function getCatalogCopy(locale: string) {
     backToCategory: 'К списку товаров',
     descriptionTitle: 'Описание',
     advantagesTitle: 'Преимущества',
-    advantagesEmpty: 'Преимущества будут добавлены позже.',
     detailsFallback: 'Подробное описание товара будет добавлено позже.',
     routeMismatch: 'Этот товар относится к другой категории.',
   };

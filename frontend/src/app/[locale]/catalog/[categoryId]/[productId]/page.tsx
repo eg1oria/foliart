@@ -169,7 +169,9 @@ export default async function ProductDetailsPage({
   const sectionLinks = [
     { id: 'description', label: copy.descriptionTitle },
     { id: 'composition', label: pageCopy.compositionTitle },
-    { id: 'advantages', label: pageCopy.advantagesLabel },
+    ...(advantages.length > 0
+      ? [{ id: 'advantages', label: pageCopy.advantagesLabel }]
+      : []),
     { id: 'application', label: pageCopy.applicationTitle },
     { id: 'specialist', label: pageCopy.specialistTitle },
   ];
@@ -354,14 +356,12 @@ export default async function ProductDetailsPage({
               </div>
             </article>
 
-            <article id="advantages" className="scroll-mt-32 border-t border-[#e7eaec] pt-10">
-              <h2 className="text-2xl text-[#0b3e31]">{pageCopy.advantagesLabel}</h2>
+            {advantages.length > 0 && (
+              <article
+                id="advantages"
+                className="scroll-mt-32 border-t border-[#e7eaec] pt-10">
+                <h2 className="text-2xl text-[#0b3e31]">{pageCopy.advantagesLabel}</h2>
 
-              {advantages.length === 0 ? (
-                <p className="mt-6 max-w-3xl text-[16px] leading-[1.7] text-[#55676d]">
-                  {copy.advantagesEmpty}
-                </p>
-              ) : (
                 <ul className="mt-8 space-y-1">
                   {advantages.map((advantage, index) => (
                     <li
@@ -374,8 +374,8 @@ export default async function ProductDetailsPage({
                     </li>
                   ))}
                 </ul>
-              )}
-            </article>
+              </article>
+            )}
 
             <article id="application" className="scroll-mt-32 border-t border-[#e7eaec] pt-10">
               <h2 className="text-2xl text-[#0b3e31]">{pageCopy.applicationTitle}</h2>
