@@ -11,6 +11,31 @@ export const EMPTY_ARTICLE_DOCUMENT: ArticleDocument = {
   content: [{ type: 'paragraph' }],
 };
 
+const internalArticleImagePattern =
+  /^\/media\/articles\/(?:media\/[0-9a-f-]+\/(?:original\.(?:webp|gif)|preview\.webp)|content\/[a-z0-9-]+\.webp)$/i;
+
+export function isInternalArticleImageSource(value: unknown): value is string {
+  return typeof value === 'string' && internalArticleImagePattern.test(value.trim());
+}
+
+export function sanitizeArticleDocumentImages(document: ArticleDocument) {
+  let removedImages = 0;
+
+  const visit = (node: ArticleDocument): ArticleDocument => {
+    if (node.type === 'image' && !isInternalArticleImageSource(node.attrs?.src)) {
+      removedImages += 1;
+      return { type: 'paragraph' };
+    }
+
+    return {
+      ...node,
+      ...(node.content ? { content: node.content.map(visit) } : {}),
+    };
+  };
+
+  return { document: visit(document), removedImages };
+}
+
 export const ArticleImage = Image.extend({
   addAttributes() {
     return {
@@ -19,6 +44,15 @@ export const ArticleImage = Image.extend({
       width: { default: null },
       height: { default: null },
     };
+  },
+  parseHTML() {
+    return [
+      {
+        tag: 'img[src]',
+        getAttrs: (element) =>
+          isInternalArticleImageSource(element.getAttribute('src')) ? {} : false,
+      },
+    ];
   },
 });
 

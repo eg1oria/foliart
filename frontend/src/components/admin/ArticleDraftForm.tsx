@@ -8,6 +8,7 @@ import ArticleRichTextEditor, {
 import {
   EMPTY_ARTICLE_DOCUMENT,
   hasPendingUploads,
+  sanitizeArticleDocumentImages,
   type ArticleDocument,
 } from '@/lib/articleContent';
 import {
@@ -43,11 +44,21 @@ type LocalDraftSnapshot = {
   savedAt?: number;
 };
 
+class DraftRequestError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+  ) {
+    super(message);
+    this.name = 'DraftRequestError';
+  }
+}
+
 async function readJson<T>(response: Response): Promise<T> {
   const data = (await response.json().catch(() => null)) as (T & { message?: string | string[] }) | null;
   if (!response.ok || !data) {
     const message = Array.isArray(data?.message) ? data.message.join(', ') : data?.message;
-    throw new Error(message || 'Request failed');
+    throw new DraftRequestError(message || 'Request failed', response.status);
   }
   return data;
 }
@@ -79,6 +90,7 @@ export default function ArticleDraftForm({
   const imageLayoutRevisionRef = useRef(0);
   const fieldsRef = useRef({ title: '', excerpt: '', publishedAt: '' });
   const dirtyRef = useRef(false);
+  const validationErrorRef = useRef(false);
   const localPersistTimerRef = useRef<number | null>(null);
   const savingRef = useRef<Promise<ArticleDraft> | null>(null);
   const publishingRef = useRef(false);
@@ -103,7 +115,10 @@ export default function ArticleDraftForm({
     const nextDate = useLocal
       ? local?.publishedAt ?? value.publishedAt.slice(0, 10)
       : value.publishedAt.slice(0, 10);
-    const nextDocument = useLocal ? local?.contentJson ?? value.contentJson : value.contentJson;
+    const candidateDocument = useLocal ? local?.contentJson ?? value.contentJson : value.contentJson;
+    const { document: nextDocument, removedImages } =
+      sanitizeArticleDocumentImages(candidateDocument);
+    const repairedImages = removedImages > 0;
     setTitle(nextTitle);
     setExcerpt(nextExcerpt);
     setPublishedAt(nextDate);
@@ -112,9 +127,32 @@ export default function ArticleDraftForm({
     setEditorDocument(nextDocument);
     fieldsRef.current = { title: nextTitle, excerpt: nextExcerpt, publishedAt: nextDate };
     setCover(value.media.find((item) => item.id === value.coverMediaId) ?? null);
-    dirtyRef.current = useLocal;
-    setStatus(useLocal ? 'error' : 'saved');
-    if (useLocal) setMessage(locale === 'ru' ? 'Восстановлена локальная несохранённая версия.' : 'Recovered a local unsaved version.');
+    dirtyRef.current = useLocal || repairedImages;
+    validationErrorRef.current = false;
+    setStatus(useLocal || repairedImages ? 'error' : 'saved');
+    if (repairedImages) {
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          title: nextTitle,
+          excerpt: nextExcerpt,
+          publishedAt: nextDate,
+          contentJson: nextDocument,
+          savedAt: Date.now(),
+        }),
+      );
+      setMessage(
+        locale === 'ru'
+          ? `Удалено внешних изображений: ${removedImages}. Загрузите их заново кнопкой изображения.`
+          : `Removed external images: ${removedImages}. Upload them again with the image button.`,
+      );
+    } else if (useLocal) {
+      setMessage(
+        locale === 'ru'
+          ? 'Восстановлена локальная несохранённая версия.'
+          : 'Recovered a local unsaved version.',
+      );
+    }
   }, [locale, storageKey]);
 
   useEffect(() => {
@@ -180,6 +218,7 @@ export default function ArticleDraftForm({
   }, [clearLocalPersistTimer, persistLocal]);
 
   const markDirty = useCallback(() => {
+    validationErrorRef.current = false;
     dirtyRef.current = true;
     scheduleLocalPersist();
   }, [scheduleLocalPersist]);
@@ -194,6 +233,7 @@ export default function ArticleDraftForm({
   const saveNow = useCallback(async (overrideDocument?: ArticleDocument) => {
     if (overrideDocument) {
       documentRef.current = overrideDocument;
+      validationErrorRef.current = false;
       dirtyRef.current = true;
       persistLocal();
     }
@@ -230,6 +270,7 @@ export default function ArticleDraftForm({
           setEditorDocument(saved.contentJson);
         }
         if (!dirtyRef.current) {
+          validationErrorRef.current = false;
           clearLocalPersistTimer();
           localStorage.removeItem(storageKey);
           setStatus('saved');
@@ -238,7 +279,14 @@ export default function ArticleDraftForm({
       } catch (error) {
         dirtyRef.current = true;
         const text = error instanceof Error ? error.message : 'Autosave failed';
-        setStatus(text.toLowerCase().includes('another session') ? 'conflict' : 'error');
+        validationErrorRef.current =
+          error instanceof DraftRequestError &&
+          error.status >= 400 &&
+          error.status < 500 &&
+          ![408, 425, 429].includes(error.status);
+        setStatus(
+          error instanceof DraftRequestError && error.status === 409 ? 'conflict' : 'error',
+        );
         setMessage(text);
         persistLocal();
         throw error;
@@ -251,12 +299,14 @@ export default function ArticleDraftForm({
 
   useEffect(() => {
     const timer = window.setInterval(() => {
-      if (dirtyRef.current) void saveNow().catch(() => undefined);
+      if (dirtyRef.current && !validationErrorRef.current) {
+        void saveNow().catch(() => undefined);
+      }
     }, 10_000);
     const visibility = () => {
       if (document.visibilityState === 'hidden' && dirtyRef.current) {
         persistLocal();
-        void saveNow().catch(() => undefined);
+        if (!validationErrorRef.current) void saveNow().catch(() => undefined);
       }
     };
     const beforeUnload = (event: BeforeUnloadEvent) => {
@@ -299,6 +349,13 @@ export default function ArticleDraftForm({
     publishingRef.current = true;
     setIsPublishing(true);
     try {
+      if (validationErrorRef.current) {
+        throw new Error(
+          locale === 'ru'
+            ? 'Исправьте указанную ошибку черновика перед публикацией.'
+            : 'Fix the reported draft error before publishing.',
+        );
+      }
       if (hasPendingUploads(documentRef.current)) {
         throw new Error(
           locale === 'ru'
@@ -337,7 +394,12 @@ export default function ArticleDraftForm({
     <div
       className="mt-6 space-y-5"
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) void saveNow().catch(() => undefined);
+        if (
+          !event.currentTarget.contains(event.relatedTarget) &&
+          !validationErrorRef.current
+        ) {
+          void saveNow().catch(() => undefined);
+        }
       }}
     >
       <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_220px]">
@@ -486,7 +548,15 @@ export default function ArticleDraftForm({
                 : 'Draft saved')}
         </p>
         {(status === 'error' || status === 'conflict') && (
-          <button type="button" className="text-sm underline" onClick={() => void saveNow().catch(() => undefined)}>
+          <button
+            type="button"
+            className="text-sm underline"
+            onClick={() => {
+              validationErrorRef.current = false;
+              dirtyRef.current = true;
+              void saveNow().catch(() => undefined);
+            }}
+          >
             {locale === 'ru' ? 'Повторить' : 'Retry'}
           </button>
         )}
