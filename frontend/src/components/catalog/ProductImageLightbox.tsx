@@ -1,9 +1,11 @@
 'use client';
 
-import { useMemo, useState, type ReactNode } from 'react';
-import Lightbox from 'yet-another-react-lightbox';
+import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
+import Lightbox, { type ZoomRef } from 'yet-another-react-lightbox';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import MediaImage from '@/components/catalog/MediaImage';
+
+const INITIAL_ZOOM = 1.6;
 
 type ProductImageLightboxProps = {
   src?: string | null;
@@ -23,10 +25,28 @@ export default function ProductImageLightbox({
   locale,
 }: ProductImageLightboxProps) {
   const [open, setOpen] = useState(false);
+  const initialZoomAppliedRef = useRef(false);
   const slides = useMemo(
     () => (src ? [{ src, alt, imageFit: 'contain' as const }] : []),
     [alt, src],
   );
+  const handleZoomRef = useCallback((zoomController: ZoomRef | null) => {
+    if (
+      !zoomController ||
+      zoomController.disabled ||
+      zoomController.maxZoom <= 1 ||
+      initialZoomAppliedRef.current
+    ) {
+      return;
+    }
+
+    initialZoomAppliedRef.current = true;
+    zoomController.changeZoom(Math.min(INITIAL_ZOOM, zoomController.maxZoom), true);
+  }, []);
+  const openLightbox = () => {
+    initialZoomAppliedRef.current = false;
+    setOpen(true);
+  };
   const openLabel =
     locale === 'en' ? `View ${productName} image` : `Посмотреть фото ${productName}`;
   const closeLabel = locale === 'en' ? 'Close' : 'Закрыть';
@@ -49,7 +69,7 @@ export default function ProductImageLightbox({
       <button
         type="button"
         aria-label={openLabel}
-        onClick={() => setOpen(true)}
+        onClick={openLightbox}
         className="group relative block h-full w-full cursor-zoom-in appearance-none border-0 bg-transparent p-0 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0b5a45] focus-visible:ring-offset-4">
         <MediaImage
           src={src}
@@ -69,7 +89,7 @@ export default function ProductImageLightbox({
         controller={{ closeOnBackdropClick: true }}
         labels={{ Close: closeLabel, Lightbox: productName }}
         toolbar={{ buttons: ['close'] }}
-        zoom={{ maxZoomPixelRatio: 2.5, scrollToZoom: true }}
+        zoom={{ ref: handleZoomRef, maxZoomPixelRatio: 3, scrollToZoom: true }}
         styles={{
           container: { backgroundColor: 'rgba(0, 0, 0, 0.88)' },
           slide: {
