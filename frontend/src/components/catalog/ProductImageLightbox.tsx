@@ -5,7 +5,7 @@ import Lightbox, { type ZoomRef } from 'yet-another-react-lightbox';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import MediaImage from '@/components/catalog/MediaImage';
 
-const INITIAL_ZOOM = 1.4;
+const INITIAL_ZOOM = 1.3;
 
 type ProductImageLightboxProps = {
   src?: string | null;
