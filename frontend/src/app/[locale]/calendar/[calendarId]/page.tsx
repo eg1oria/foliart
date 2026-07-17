@@ -184,16 +184,13 @@ export default async function CalendarDetailsPage({
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.35),rgba(244,248,241,0.4))]" />
 
           <div className="relative z-10 mx-auto flex w-full max-w-[980px] flex-col items-center">
-            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[1.5rem]">
-              <MediaImage
+            <div className="w-full overflow-hidden rounded-[1.5rem]">
+              {/* The intrinsic ratio keeps the calendar large without a tall empty wrapper. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={showcaseImage}
                 alt={calendar.title}
-                fill
-                sizes="(max-width: 980px) 100vw, 980px"
-                className="object-contain p-5"
-                emptyState={
-                  <div className="h-full w-full bg-[linear-gradient(135deg,#fbfcfa,#e5eee1,#d1ddcb)]" />
-                }
+                className="block h-auto w-full p-5 py-20"
               />
             </div>
 
