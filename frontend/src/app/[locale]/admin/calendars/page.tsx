@@ -263,7 +263,7 @@ function CalendarFormFields({
           <p className="mt-2 text-sm text-[#0b3e31]">
             {pdfCopy.current}{' '}
             <a
-              href={resolveMediaUrl(values.pdfUrl)}
+              href={resolveMediaUrl(values.pdfUrl) ?? undefined}
               target="_blank"
               rel="noreferrer"
               className="font-semibold underline underline-offset-2">
@@ -644,7 +644,7 @@ export default async function AdminCalendarsPage({
                         <div className="mt-2 flex items-center gap-1.5 text-xs">
                           {calendarItem.pdfUrl ? (
                             <a
-                              href={resolveMediaUrl(calendarItem.pdfUrl)}
+                              href={resolveMediaUrl(calendarItem.pdfUrl) ?? undefined}
                               target="_blank"
                               rel="noreferrer"
                               className="inline-flex items-center gap-1 font-semibold text-[#0b5a45] underline underline-offset-2">
