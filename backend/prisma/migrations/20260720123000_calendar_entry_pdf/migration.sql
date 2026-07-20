@@ -1,0 +1,1 @@
+ALTER TABLE "CalendarEntry" ADD COLUMN "pdfUrl" TEXT NOT NULL DEFAULT '';

@@ -6,7 +6,7 @@ const backendUrl = (process.env.BACKEND_URL ?? 'http://localhost:3001').replace(
 const isStandaloneBuild = process.env.NEXT_OUTPUT === 'standalone';
 const isHttpsDeployment = (process.env.SITE_URL ?? '').startsWith('https://');
 const isReactCompilerEnabled = process.env.NEXT_REACT_COMPILER !== 'false';
-const maxAdminRequestBodySize = '22mb';
+const maxAdminRequestBodySize = '44mb';
 
 const createConfig = (): NextConfig => {
   const nextConfig: NextConfig = {
@@ -14,7 +14,7 @@ const createConfig = (): NextConfig => {
     output: isStandaloneBuild ? 'standalone' : undefined,
     poweredByHeader: false,
     experimental: {
-      // Calendar forms can contain four 5 MiB images plus multipart metadata.
+      // Calendar forms can contain four 5 MiB images, a 20 MiB PDF, and multipart metadata.
       proxyClientMaxBodySize: maxAdminRequestBodySize,
       serverActions: {
         bodySizeLimit: maxAdminRequestBodySize,

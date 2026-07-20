@@ -96,6 +96,7 @@ export type CalendarEntry = {
   imageUrl2: string;
   imageUrl3: string;
   imageUrl4: string;
+  pdfUrl: string;
   imageUrls: string[];
   slugSourceTitle?: string;
   adminTranslation?: CalendarAdminTranslation;

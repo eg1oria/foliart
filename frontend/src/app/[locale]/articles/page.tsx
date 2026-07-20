@@ -68,7 +68,10 @@ export default async function ArticlesPage({ params }: { params: Promise<{ local
 
         <div className="relative z-10 w-full">
           <div className="mb-3 md:mb-5">
-            <HeroBreadcrumbs locale={locale} items={[{ label: breadcrumbCopy.articles }]} />
+            <HeroBreadcrumbs
+              locale={locale}
+              items={[{ label: breadcrumbCopy.articles, href: '/articles' }]}
+            />
           </div>
           <h1 className="max-w-4xl text-3xl font-bold text-white md:text-5xl">{copy.title}</h1>
         </div>

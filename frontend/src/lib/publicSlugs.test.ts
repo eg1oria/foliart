@@ -50,6 +50,7 @@ const calendar = (overrides: Partial<CalendarEntry>): CalendarEntry => ({
   imageUrl2: '',
   imageUrl3: '',
   imageUrl4: '',
+  pdfUrl: '',
   imageUrls: [],
   ...overrides,
 });

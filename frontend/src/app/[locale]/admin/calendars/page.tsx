@@ -37,8 +37,7 @@ import {
 import { parseEntityId } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
 import { richDescriptionToPlainText } from '@/lib/richDescription';
-import { FiEdit3, FiExternalLink } from 'react-icons/fi';
-
+import { FiEdit3, FiExternalLink, FiFileText } from 'react-icons/fi';
 import { createCalendarAction, deleteCalendarAction, updateCalendarAction } from './actions';
 
 type AdminPageSearchParams = {
@@ -52,7 +51,7 @@ type AdminPageSearchParams = {
 
 type CalendarFormValues = Pick<
   CalendarEntry,
-  'title' | 'titleEn' | 'description' | 'descriptionEn'
+  'title' | 'titleEn' | 'description' | 'descriptionEn' | 'pdfUrl'
 >;
 
 const calendarImageFields = [
@@ -153,6 +152,29 @@ function getCalendarImageSlotCopy(locale: string): CalendarImageSlotCopy {
   };
 }
 
+function getCalendarPdfCopy(locale: string) {
+  if (locale === 'en') {
+    return {
+      label: 'Calendar PDF',
+      hint: 'Upload a PDF (up to 20 MB). If a PDF is uploaded, the "View calendar" button on the site opens it instead of the showcase image.',
+      current: 'Current file:',
+      none: 'No PDF uploaded yet.',
+      view: 'Open PDF',
+      replace: 'Upload a new file to replace the current PDF, or leave empty to keep it.',
+    };
+  }
+
+  return {
+    label: 'PDF календаря',
+    hint: 'Загрузите PDF (до 20 МБ). Если PDF загружен, кнопка «Смотреть календарь» на сайте будет открывать именно его вместо акцентной картинки.',
+    current: 'Текущий файл:',
+    none: 'PDF еще не загружен.',
+    view: 'Открыть PDF',
+    replace:
+      'Загрузите новый файл, чтобы заменить текущий PDF, либо оставьте поле пустым, чтобы сохранить его.',
+  };
+}
+
 function CalendarFormFields({
   contentLocale,
   copy,
@@ -167,6 +189,7 @@ function CalendarFormFields({
   imageRequired: boolean;
 }) {
   const imageSlotCopy = getCalendarImageSlotCopy(locale);
+  const pdfCopy = getCalendarPdfCopy(locale);
 
   return (
     <div className="space-y-5">
@@ -193,8 +216,7 @@ function CalendarFormFields({
             return (
               <div
                 key={field.inputName}
-                className="rounded-lg border border-[#0b5a45]/10 bg-[#f8f7f2] p-4"
-              >
+                className="rounded-lg border border-[#0b5a45]/10 bg-[#f8f7f2] p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className={adminLabelClassName}>
@@ -227,6 +249,39 @@ function CalendarFormFields({
         <p className={adminHintClassName}>
           {imageRequired ? imageSlotCopy.imageHint : copy.replaceImageHint}
         </p>
+      </div>
+
+      <div className="rounded-lg border border-[#0b5a45]/10 bg-[#f8f7f2] p-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <p className={adminLabelClassName}>{pdfCopy.label}</p>
+          <span className={adminBadgeClassName}>{copy.optionalLabel}</span>
+        </div>
+
+        <p className={adminCx('mt-2', adminHintClassName)}>{pdfCopy.hint}</p>
+
+        {values?.pdfUrl ? (
+          <p className="mt-2 text-sm text-[#0b3e31]">
+            {pdfCopy.current}{' '}
+            <a
+              href={resolveMediaUrl(values.pdfUrl)}
+              target="_blank"
+              rel="noreferrer"
+              className="font-semibold underline underline-offset-2">
+              {pdfCopy.view}
+            </a>
+          </p>
+        ) : (
+          <p className="mt-2 text-sm text-[#6a7f76]">{pdfCopy.none}</p>
+        )}
+
+        <input
+          name="pdf"
+          type="file"
+          accept="application/pdf"
+          className={adminCx('mt-4', adminFileInputClassName)}
+        />
+
+        <p className={adminCx('mt-2', adminHintClassName)}>{pdfCopy.replace}</p>
       </div>
 
       <div className={adminFieldClassName}>
@@ -287,12 +342,19 @@ export default async function AdminCalendarsPage({
   const { locale } = await params;
   await requireAdminSession(locale, `/${locale}/admin/calendars`);
 
-  const { calendar, contentLocale: contentLocaleParam, edit, error, manageError, status } =
-    await searchParams;
+  const {
+    calendar,
+    contentLocale: contentLocaleParam,
+    edit,
+    error,
+    manageError,
+    status,
+  } = await searchParams;
   const contentLocale = normalizeContentLocale(contentLocaleParam);
   const contentLocaleLabel = getContentLocaleLabel(contentLocale);
   const copy = getCalendarsAdminCopy(locale);
   const imageSlotCopy = getCalendarImageSlotCopy(locale);
+  const pdfCopy = getCalendarPdfCopy(locale);
   const calendars = await getCalendars(contentLocale, noStoreApiFetchOptions, contentLocale);
   const editCalendarId = parseEntityId(edit ?? '');
   const statusCalendarId = parseEntityId(calendar ?? '');
@@ -375,15 +437,13 @@ export default async function AdminCalendarsPage({
       locale={locale}
       shortcuts={shortcuts}
       stats={stats}
-      title={copy.adminTitle}
-    >
+      title={copy.adminTitle}>
       <AdminWorkspace>
         <AdminPanel
           id="create-calendar"
           badge={createBadge}
           title={copy.adminFormTitle}
-          description={imageSlotCopy.formDescription}
-        >
+          description={imageSlotCopy.formDescription}>
           <div className="space-y-4">
             {topLevelStatus ? <AdminNotice tone="success">{topLevelStatus}</AdminNotice> : null}
             {topLevelError ? <AdminNotice tone="error">{topLevelError}</AdminNotice> : null}
@@ -404,8 +464,7 @@ export default async function AdminCalendarsPage({
               <div className="flex flex-col gap-3 border-t border-[#0b5a45]/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
                 <button
                   type="submit"
-                  className={adminCx(adminPrimaryButtonClassName, 'w-full sm:w-auto')}
-                >
+                  className={adminCx(adminPrimaryButtonClassName, 'w-full sm:w-auto')}>
                   {copy.submitLabel}
                 </button>
                 <p className={adminHintClassName}>{imageSlotCopy.imageHint}</p>
@@ -436,8 +495,7 @@ export default async function AdminCalendarsPage({
           title={copy.existingTitle}
           description={imageSlotCopy.formDescription}
           tone="muted"
-          headerContent={<span className={adminBadgeClassName}>{calendars.length}</span>}
-        >
+          headerContent={<span className={adminBadgeClassName}>{calendars.length}</span>}>
           {manageStatus ? (
             <div className="mb-5">
               <AdminNotice tone="success">{manageStatus}</AdminNotice>
@@ -467,8 +525,7 @@ export default async function AdminCalendarsPage({
                   <div
                     key={calendarItem.id}
                     id={`calendar-${calendarItem.id}`}
-                    className="scroll-mt-6 rounded-lg border border-[#0b5a45]/10 bg-white p-4 shadow-[0_12px_40px_-30px_rgba(11,62,49,0.8)] sm:p-5"
-                  >
+                    className="scroll-mt-6 rounded-lg border border-[#0b5a45]/10 bg-white p-4 shadow-[0_12px_40px_-30px_rgba(11,62,49,0.8)] sm:p-5">
                     {/* Header row: title + badges + action buttons */}
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div className="min-w-0">
@@ -482,8 +539,7 @@ export default async function AdminCalendarsPage({
                               hasContentTranslation
                                 ? 'bg-emerald-50 text-emerald-700'
                                 : 'bg-amber-50 text-amber-700',
-                            )}
-                          >
+                            )}>
                             {hasContentTranslation
                               ? `${contentLocaleLabel} ✓`
                               : locale === 'en'
@@ -499,8 +555,7 @@ export default async function AdminCalendarsPage({
                           className={adminCx(
                             adminSecondaryButtonClassName,
                             'min-h-8 px-2.5 py-1.5 text-xs',
-                          )}
-                        >
+                          )}>
                           <FiExternalLink />
                         </Link>
                         <Link
@@ -511,15 +566,11 @@ export default async function AdminCalendarsPage({
                           className={adminCx(
                             adminSecondaryButtonClassName,
                             'min-h-8 px-2.5 py-1.5 text-xs',
-                          )}
-                        >
+                          )}>
                           <FiEdit3 className="mr-1" />
                           {openEditorLabel}
                         </Link>
-                        <form
-                          action={deleteCalendarAction}
-                          className="col-span-2 sm:col-span-1"
-                        >
+                        <form action={deleteCalendarAction} className="col-span-2 sm:col-span-1">
                           <input type="hidden" name="locale" value={locale} />
                           <input type="hidden" name="contentLocale" value={contentLocale} />
                           <input type="hidden" name="calendarId" value={calendarItem.id} />
@@ -538,8 +589,7 @@ export default async function AdminCalendarsPage({
                                 ? `Delete calendar item "${calendarItem.title}"? This cannot be undone.`
                                 : `Удалить запись календаря «${calendarItem.title}»? Это действие нельзя отменить.`
                             }
-                            pendingLabel={deletingLabel}
-                          >
+                            pendingLabel={deletingLabel}>
                             {deleteLabel}
                           </AdminDeleteButton>
                         </form>
@@ -557,8 +607,7 @@ export default async function AdminCalendarsPage({
                           return (
                             <div
                               key={`${calendarItem.id}-${field.inputName}`}
-                              className="overflow-hidden rounded-md border border-[#0b5a45]/10 bg-[#eef3ef]"
-                            >
+                              className="overflow-hidden rounded-md border border-[#0b5a45]/10 bg-[#eef3ef]">
                               <div className="relative aspect-[1] overflow-hidden">
                                 {imagePath ? (
                                   <MediaImage
@@ -591,6 +640,24 @@ export default async function AdminCalendarsPage({
                         <p className="line-clamp-3 text-sm leading-6 text-[#567068]">
                           {richDescriptionToPlainText(calendarItem.description)}
                         </p>
+
+                        <div className="mt-2 flex items-center gap-1.5 text-xs">
+                          {calendarItem.pdfUrl ? (
+                            <a
+                              href={resolveMediaUrl(calendarItem.pdfUrl)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 font-semibold text-[#0b5a45] underline underline-offset-2">
+                              <FiFileText />
+                              {pdfCopy.view}
+                            </a>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[#6a7f76]">
+                              <FiFileText />
+                              {pdfCopy.none}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -627,14 +694,14 @@ export default async function AdminCalendarsPage({
                             values={{
                               title: calendarItem.adminTranslation?.title ?? '',
                               description: calendarItem.adminTranslation?.description ?? '',
+                              pdfUrl: calendarItem.pdfUrl,
                             }}
                             imageRequired={false}
                           />
 
                           <button
                             type="submit"
-                            className={adminCx(adminPrimaryButtonClassName, 'w-full sm:w-auto')}
-                          >
+                            className={adminCx(adminPrimaryButtonClassName, 'w-full sm:w-auto')}>
                             {copy.updateLabel}
                           </button>
                         </form>

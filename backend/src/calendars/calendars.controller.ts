@@ -15,8 +15,15 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
+import { diskStorage, MulterFile } from 'multer';
+import {
+  closeSync,
+  existsSync,
+  mkdirSync,
+  openSync,
+  readSync,
+  unlinkSync,
+} from 'node:fs';
 import { basename, extname, join } from 'node:path';
 import { AdminApiGuard } from '../admin-api.guard';
 import {
@@ -34,15 +41,23 @@ import { CalendarsService } from './calendars.service';
 const calendarsImagesDirectory = join(process.cwd(), 'images', 'calendars');
 const calendarImageFields = ['image1', 'image2', 'image3', 'image4'] as const;
 const requiredCalendarImageFields = ['image1', 'image2'] as const;
+const calendarPdfField = 'pdf' as const;
+const calendarUploadFields = [
+  ...calendarImageFields,
+  calendarPdfField,
+] as const;
+const maxCalendarPdfUploadBytes = 20 * 1024 * 1024;
+const allowedPdfMimeTypes = new Set(['application/pdf', 'application/x-pdf']);
 
-type CalendarImageField = (typeof calendarImageFields)[number];
+type CalendarUploadField = (typeof calendarUploadFields)[number];
 
 type StoredUploadFile = StoredImageUploadFile & {
-  fieldname: string;
+  fieldname: CalendarUploadField;
+  size: number;
 };
 
 type UploadedCalendarFiles = Partial<
-  Record<CalendarImageField, StoredUploadFile[]>
+  Record<CalendarUploadField, StoredUploadFile[]>
 >;
 
 type DestinationCallback = (error: Error | null, destination: string) => void;
@@ -62,7 +77,7 @@ function removeUploadedFiles(filePaths: Array<string | undefined>) {
     try {
       unlinkSync(filePath);
     } catch (error) {
-      console.warn('Uploaded calendar image could not be removed', {
+      console.warn('Uploaded calendar file could not be removed', {
         message: error instanceof Error ? error.message : String(error),
         path: filePath,
       });
@@ -70,12 +85,12 @@ function removeUploadedFiles(filePaths: Array<string | undefined>) {
   }
 }
 
-function getStoredCalendarImagePath(imageUrl?: string) {
-  if (!imageUrl) {
+function getStoredCalendarFilePath(fileUrl?: string) {
+  if (!fileUrl) {
     return undefined;
   }
 
-  const fileName = basename(imageUrl);
+  const fileName = basename(fileUrl);
   if (!fileName || fileName === '.' || fileName === 'calendars') {
     return undefined;
   }
@@ -105,14 +120,58 @@ function getRequestTextField(req: Request, fieldName: string) {
 
 function getUploadedFile(
   files: UploadedCalendarFiles | undefined,
-  fieldName: CalendarImageField,
+  fieldName: CalendarUploadField,
 ) {
   return files?.[fieldName]?.[0];
 }
 
-function createImagesInterceptor() {
+function validateUploadedImages(files: Array<StoredUploadFile | undefined>) {
+  const oversizedImage = files.find(
+    (file) => file && file.size > maxImageUploadBytes,
+  );
+
+  if (oversizedImage) {
+    throw new BadRequestException(
+      'Calendar images must be no larger than 5 MB',
+    );
+  }
+}
+
+function hasPdfFileSignature(file: StoredUploadFile) {
+  let descriptor: number | null = null;
+
+  try {
+    const signature = Buffer.alloc(5);
+    descriptor = openSync(file.path, 'r');
+    const bytesRead = readSync(descriptor, signature, 0, signature.length, 0);
+
+    return bytesRead === signature.length && signature.toString() === '%PDF-';
+  } catch {
+    return false;
+  } finally {
+    if (descriptor !== null) {
+      closeSync(descriptor);
+    }
+  }
+}
+
+function validateUploadedPdf(file?: StoredUploadFile) {
+  if (!file) {
+    return;
+  }
+
+  if (file.size > maxCalendarPdfUploadBytes) {
+    throw new BadRequestException('PDF must be no larger than 20 MB');
+  }
+
+  if (!hasPdfFileSignature(file)) {
+    throw new BadRequestException('PDF file could not be read');
+  }
+}
+
+function createCalendarFilesInterceptor() {
   return FileFieldsInterceptor(
-    calendarImageFields.map((name) => ({
+    calendarUploadFields.map((name) => ({
       name,
       maxCount: 1,
     })),
@@ -120,7 +179,7 @@ function createImagesInterceptor() {
       storage: diskStorage({
         destination: (
           _req: Request,
-          _file: StoredUploadFile,
+          _file: MulterFile,
           callback: DestinationCallback,
         ) => {
           ensureCalendarsDirectory();
@@ -128,20 +187,41 @@ function createImagesInterceptor() {
         },
         filename: (
           req: Request,
-          file: StoredUploadFile,
+          file: MulterFile,
           callback: FilenameCallback,
         ) => {
           const title = getRequestTextField(req, 'title') ?? 'calendar-entry';
-          const extension = extname(file.originalname).toLowerCase() || '.jpg';
+          const extension =
+            file.fieldname === calendarPdfField
+              ? '.pdf'
+              : extname(file.originalname).toLowerCase() || '.jpg';
           const fileName = `${Date.now()}-${file.fieldname}-${normalizeFileNameSegment(title)}${extension}`;
           callback(null, fileName);
         },
       }),
       fileFilter: (
         _req: Request,
-        file: StoredUploadFile,
+        file: MulterFile,
         callback: FileFilterCallback,
       ) => {
+        if (file.fieldname === calendarPdfField) {
+          const originalExtension = extname(file.originalname).toLowerCase();
+
+          if (
+            !allowedPdfMimeTypes.has(file.mimetype) &&
+            originalExtension !== '.pdf'
+          ) {
+            callback(
+              new BadRequestException('Only PDF files are supported'),
+              false,
+            );
+            return;
+          }
+
+          callback(null, true);
+          return;
+        }
+
         if (!allowedImageMimeTypes.has(file.mimetype)) {
           callback(
             new BadRequestException(
@@ -155,8 +235,8 @@ function createImagesInterceptor() {
         callback(null, true);
       },
       limits: {
-        fileSize: maxImageUploadBytes,
-        files: calendarImageFields.length,
+        fileSize: maxCalendarPdfUploadBytes,
+        files: calendarUploadFields.length,
       },
     },
   );
@@ -185,7 +265,7 @@ export class CalendarsController {
 
   @Post()
   @UseGuards(AdminApiGuard)
-  @UseInterceptors(createImagesInterceptor())
+  @UseInterceptors(createCalendarFilesInterceptor())
   async create(
     @Body() body: Record<string, string | undefined>,
     @UploadedFiles() files?: UploadedCalendarFiles,
@@ -193,9 +273,11 @@ export class CalendarsController {
     const contentLocale = body.contentLocale?.trim().toLowerCase();
     const title = body.title?.trim() ?? '';
     const description = body.description?.trim() ?? '';
-    const uploadedFiles = calendarImageFields.map((fieldName) =>
+    const uploadedImageFiles = calendarImageFields.map((fieldName) =>
       getUploadedFile(files, fieldName),
     );
+    const uploadedPdfFile = getUploadedFile(files, calendarPdfField);
+    const uploadedFiles = [...uploadedImageFiles, uploadedPdfFile];
     const requiredUploadedFiles = requiredCalendarImageFields.map((fieldName) =>
       getUploadedFile(files, fieldName),
     );
@@ -228,8 +310,11 @@ export class CalendarsController {
     }
 
     try {
+      validateUploadedImages(uploadedImageFiles);
+      validateUploadedPdf(uploadedPdfFile);
+
       const optimizedFiles = await Promise.all(
-        uploadedFiles.map((file) =>
+        uploadedImageFiles.map((file) =>
           file ? optimizeUploadedImage(file) : Promise.resolve(undefined),
         ),
       );
@@ -246,6 +331,9 @@ export class CalendarsController {
         imageUrl4: optimizedFiles[3]?.filename
           ? `calendars/${optimizedFiles[3].filename}`
           : '',
+        pdfUrl: uploadedPdfFile?.filename
+          ? `calendars/${uploadedPdfFile.filename}`
+          : '',
       });
     } catch (error) {
       removeUploadedFiles(uploadedFiles.map((file) => file?.path));
@@ -255,7 +343,7 @@ export class CalendarsController {
 
   @Patch(':id')
   @UseGuards(AdminApiGuard)
-  @UseInterceptors(createImagesInterceptor())
+  @UseInterceptors(createCalendarFilesInterceptor())
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: Record<string, string | undefined>,
@@ -264,9 +352,11 @@ export class CalendarsController {
     const contentLocale = body.contentLocale?.trim().toLowerCase();
     const title = body.title?.trim() ?? '';
     const description = body.description?.trim() ?? '';
-    const uploadedFiles = calendarImageFields.map((fieldName) =>
+    const uploadedImageFiles = calendarImageFields.map((fieldName) =>
       getUploadedFile(files, fieldName),
     );
+    const uploadedPdfFile = getUploadedFile(files, calendarPdfField);
+    const uploadedFiles = [...uploadedImageFiles, uploadedPdfFile];
 
     if (!isSupportedContentLocale(contentLocale)) {
       removeUploadedFiles(uploadedFiles.map((file) => file?.path));
@@ -284,8 +374,11 @@ export class CalendarsController {
     }
 
     try {
+      validateUploadedImages(uploadedImageFiles);
+      validateUploadedPdf(uploadedPdfFile);
+
       const optimizedFiles = await Promise.all(
-        uploadedFiles.map((file) =>
+        uploadedImageFiles.map((file) =>
           file ? optimizeUploadedImage(file) : Promise.resolve(undefined),
         ),
       );
@@ -311,6 +404,9 @@ export class CalendarsController {
         ...(optimizedFiles[3]?.filename
           ? { imageUrl4: `calendars/${optimizedFiles[3].filename}` }
           : {}),
+        ...(uploadedPdfFile?.filename
+          ? { pdfUrl: `calendars/${uploadedPdfFile.filename}` }
+          : {}),
       });
       const previousLocalizedImageUrl3 =
         contentLocale === DEFAULT_CONTENT_LOCALE
@@ -324,13 +420,16 @@ export class CalendarsController {
         currentEntry.imageUrl4,
       ];
 
-      removeUploadedFiles(
-        optimizedFiles.map((file, index) =>
+      removeUploadedFiles([
+        ...optimizedFiles.map((file, index) =>
           file?.filename
-            ? getStoredCalendarImagePath(previousImageUrls[index])
+            ? getStoredCalendarFilePath(previousImageUrls[index])
             : undefined,
         ),
-      );
+        uploadedPdfFile?.filename
+          ? getStoredCalendarFilePath(currentEntry.pdfUrl)
+          : undefined,
+      ]);
 
       return updatedEntry;
     } catch (error) {
@@ -345,12 +444,13 @@ export class CalendarsController {
     const deletedEntry = await this.calendarsService.remove(id);
 
     removeUploadedFiles([
-      getStoredCalendarImagePath(deletedEntry.imageUrl1),
-      getStoredCalendarImagePath(deletedEntry.imageUrl2),
-      getStoredCalendarImagePath(deletedEntry.imageUrl3),
-      getStoredCalendarImagePath(deletedEntry.imageUrl4),
+      getStoredCalendarFilePath(deletedEntry.imageUrl1),
+      getStoredCalendarFilePath(deletedEntry.imageUrl2),
+      getStoredCalendarFilePath(deletedEntry.imageUrl3),
+      getStoredCalendarFilePath(deletedEntry.imageUrl4),
+      getStoredCalendarFilePath(deletedEntry.pdfUrl),
       ...deletedEntry.translations.map((translation) =>
-        getStoredCalendarImagePath(translation.imageUrl3),
+        getStoredCalendarFilePath(translation.imageUrl3),
       ),
     ]);
 

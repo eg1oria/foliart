@@ -252,7 +252,7 @@ export default async function ProductDetailsPage({
               locale={locale}
               items={[
                 { label: breadcrumbCopy.catalog, href: '/catalog' },
-                { label: category.name },
+                { label: category.name, href: getCategoryHref(category) },
               ]}
             />
           </div>

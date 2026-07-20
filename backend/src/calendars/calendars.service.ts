@@ -26,6 +26,7 @@ type CalendarEntryWithLegacyAndTranslations = CalendarTextFields & {
   imageUrl2: string;
   imageUrl3: string;
   imageUrl4: string;
+  pdfUrl: string;
   translations?: Array<CalendarTranslationFields & { locale: string }>;
 };
 
@@ -35,6 +36,7 @@ type CreateCalendarEntryInput = CalendarTextFields & {
   imageUrl2: string;
   imageUrl3: string;
   imageUrl4: string;
+  pdfUrl?: string;
 };
 
 type UpdateCalendarEntryInput = CalendarTextFields & {
@@ -44,6 +46,7 @@ type UpdateCalendarEntryInput = CalendarTextFields & {
   imageUrl2?: string;
   imageUrl3?: string;
   imageUrl4?: string;
+  pdfUrl?: string;
 };
 
 @Injectable()
@@ -231,6 +234,7 @@ export class CalendarsService {
         imageUrl2: input.imageUrl2,
         imageUrl3: input.imageUrl3,
         imageUrl4: input.imageUrl4,
+        pdfUrl: input.pdfUrl ?? '',
         translations: {
           create: {
             locale: contentLocale,
@@ -269,6 +273,7 @@ export class CalendarsService {
           ? { imageUrl3: input.imageUrl3 }
           : {}),
         ...(input.imageUrl4 ? { imageUrl4: input.imageUrl4 } : {}),
+        ...(input.pdfUrl ? { pdfUrl: input.pdfUrl } : {}),
         translations: {
           upsert: {
             where: {
@@ -303,6 +308,7 @@ export class CalendarsService {
         imageUrl2: true,
         imageUrl3: true,
         imageUrl4: true,
+        pdfUrl: true,
         translations: {
           select: {
             imageUrl3: true,

@@ -77,7 +77,10 @@ export default async function CatalogPage({ params }: { params: Promise<{ locale
         <div className="pointer-events-none absolute inset-x-0 top-0 h-30 bg-gradient-to-b from-black/60 via-black/40 to-transparent" />
         <div className="relative z-10 w-full">
           <div className="mb-3 md:mb-5">
-            <HeroBreadcrumbs locale={locale} items={[{ label: breadcrumbCopy.catalog }]} />
+            <HeroBreadcrumbs
+              locale={locale}
+              items={[{ label: breadcrumbCopy.catalog, href: '/catalog' }]}
+            />
           </div>
           <h1 className="font-bold text-3xl md:text-5xl text-white mb-4 text-start">
             {copy.title}

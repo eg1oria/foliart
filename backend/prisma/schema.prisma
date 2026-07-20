@@ -74,6 +74,7 @@ model CalendarEntry {
   imageUrl2     String
   imageUrl3     String
   imageUrl4     String
+  pdfUrl        String                     @default("")
   translations  CalendarEntryTranslation[]
 }
 

@@ -143,7 +143,10 @@ export default async function ArticleDetailsPage({
 
         <div className="relative z-10 max-w-5xl">
           <div className="mb-3 md:mb-5">
-            <HeroBreadcrumbs locale={locale} items={[{ label: breadcrumbCopy.articles }]} />
+            <HeroBreadcrumbs
+              locale={locale}
+              items={[{ label: breadcrumbCopy.articles, href: '/articles' }]}
+            />
           </div>
           <h1 className="max-w-5xl text-3xl font-bold leading-[1.18] text-white md:text-4xl">
             {article.title}

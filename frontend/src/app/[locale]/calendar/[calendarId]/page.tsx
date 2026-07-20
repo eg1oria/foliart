@@ -78,6 +78,8 @@ export default async function CalendarDetailsPage({
   const detailsImage = resolveMediaUrl(detailsImagePath);
   const showcaseImage = resolveMediaUrl(showcaseImagePath);
   const showcaseBackgroundImage = resolveMediaUrl(showcaseBackgroundImagePath);
+  const calendarPdf = resolveMediaUrl(calendar.pdfUrl);
+  const calendarViewTarget = calendarPdf ?? showcaseImage;
   const descriptionHtml = renderRichDescription(calendar.description || copy.detailsEmpty);
   const viewCalendarLabel =
     locale === 'ru'
@@ -166,7 +168,7 @@ export default async function CalendarDetailsPage({
         </article>
       </section>
 
-      {showcaseImage ? (
+      {calendarViewTarget ? (
         <div className="relative overflow-hidden px-4 py-10 sm:px-6 md:px-10 md:py-16">
           <div className="absolute inset-0">
             <MediaImage
@@ -184,18 +186,20 @@ export default async function CalendarDetailsPage({
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.35),rgba(244,248,241,0.4))]" />
 
           <div className="relative z-10 mx-auto flex w-full max-w-[980px] flex-col items-center">
-            <div className="w-full overflow-hidden rounded-[1.5rem]">
-              {/* The intrinsic ratio keeps the calendar large without a tall empty wrapper. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={showcaseImage}
-                alt={calendar.title}
-                className="block h-auto w-full p-5 py-20"
-              />
-            </div>
+            {showcaseImage ? (
+              <div className="w-full overflow-hidden rounded-[1.5rem]">
+                {/* The intrinsic ratio keeps the calendar large without a tall empty wrapper. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={showcaseImage}
+                  alt={calendar.title}
+                  className="block h-auto w-full p-5 py-20"
+                />
+              </div>
+            ) : null}
 
             <a
-              href={showcaseImage}
+              href={calendarViewTarget}
               target="_blank"
               rel="noreferrer"
               className="mt-8 inline-flex items-center rounded-full bg-[#014c3c] px-8 py-4 text-base font-semibold text-white transition hover:bg-[#013a2e]">

@@ -125,6 +125,11 @@ export async function createCalendarAction(formData: FormData) {
     }
   }
 
+  const pdf = formData.get('pdf');
+  if (hasFile(pdf)) {
+    payload.append('pdf', pdf);
+  }
+
   const response = await adminApiFetch('/api/calendars', {
     method: 'POST',
     headers: getAdminApiHeaders(),
@@ -264,6 +269,11 @@ export async function updateCalendarAction(formData: FormData) {
     if (hasFile(image)) {
       payload.append(fieldName, image);
     }
+  }
+
+  const pdf = formData.get('pdf');
+  if (hasFile(pdf)) {
+    payload.append('pdf', pdf);
   }
 
   const response = await adminApiFetch(`/api/calendars/${calendarId}`, {

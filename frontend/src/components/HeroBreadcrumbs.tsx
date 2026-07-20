@@ -61,10 +61,15 @@ export default function HeroBreadcrumbs({
 
           return (
             <li key={`${item.href ?? 'current'}-${index}`} className="shrink-0">
-              {item.href && !isCurrent ? (
+              {item.href ? (
                 <Link
                   href={item.href}
-                  className={`${itemClassName} bg-white/10 text-white/60 hover:bg-white/18 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white`}>
+                  aria-current={isCurrent ? 'page' : undefined}
+                  className={`${itemClassName} ${
+                    isCurrent
+                      ? 'max-w-[calc(100vw-var(--site-gutter)-var(--site-gutter))] overflow-hidden text-ellipsis bg-white/10 text-white hover:bg-white/18'
+                      : 'bg-white/10 text-white/60 hover:bg-white/18 hover:text-white'
+                  } focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white`}>
                   {item.label}
                 </Link>
               ) : (
