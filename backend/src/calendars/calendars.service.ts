@@ -11,9 +11,15 @@ import { createUniquePublicSlug } from '../public-slug.util';
 type CalendarTranslationFields = {
   title: string;
   description: string;
+  imageUrl3: string;
 };
 
-type CalendarEntryWithLegacyAndTranslations = CalendarTranslationFields & {
+type CalendarTextFields = Pick<
+  CalendarTranslationFields,
+  'title' | 'description'
+>;
+
+type CalendarEntryWithLegacyAndTranslations = CalendarTextFields & {
   titleEn: string;
   descriptionEn: string;
   imageUrl1: string;
@@ -23,7 +29,7 @@ type CalendarEntryWithLegacyAndTranslations = CalendarTranslationFields & {
   translations?: Array<CalendarTranslationFields & { locale: string }>;
 };
 
-type CreateCalendarEntryInput = CalendarTranslationFields & {
+type CreateCalendarEntryInput = CalendarTextFields & {
   contentLocale: string;
   imageUrl1: string;
   imageUrl2: string;
@@ -31,7 +37,7 @@ type CreateCalendarEntryInput = CalendarTranslationFields & {
   imageUrl4: string;
 };
 
-type UpdateCalendarEntryInput = CalendarTranslationFields & {
+type UpdateCalendarEntryInput = CalendarTextFields & {
   id: number;
   contentLocale: string;
   imageUrl1?: string;
@@ -61,6 +67,7 @@ export class CalendarsService {
       return {
         title: entry.title,
         description: entry.description,
+        imageUrl3: entry.imageUrl3,
         hasTranslation: false,
       };
     }
@@ -69,6 +76,7 @@ export class CalendarsService {
       return {
         title: entry.titleEn,
         description: entry.descriptionEn,
+        imageUrl3: '',
         hasTranslation: false,
       };
     }
@@ -76,6 +84,7 @@ export class CalendarsService {
     return {
       title: '',
       description: '',
+      imageUrl3: '',
       hasTranslation: false,
     };
   }
@@ -96,6 +105,10 @@ export class CalendarsService {
       : null;
 
     const { translations: _translations, ...entryFields } = entry;
+    const resolvedImageUrl3 =
+      locale && selected.imageUrl3.trim()
+        ? selected.imageUrl3
+        : entry.imageUrl3;
 
     const resolve = (
       selectedValue: string,
@@ -115,10 +128,11 @@ export class CalendarsService {
         fallback.description,
         entry.description,
       ),
+      imageUrl3: resolvedImageUrl3,
       imageUrls: [
         entry.imageUrl1,
         entry.imageUrl2,
-        entry.imageUrl3,
+        resolvedImageUrl3,
         entry.imageUrl4,
       ].filter((url): url is string => Boolean(url?.trim())),
       slugSourceTitle: entry.title,
@@ -132,6 +146,7 @@ export class CalendarsService {
                 Boolean(adminTranslation.description.trim()),
               title: adminTranslation.title,
               description: adminTranslation.description,
+              imageUrl3: adminTranslation.imageUrl3,
             },
           }
         : {}),
@@ -140,7 +155,7 @@ export class CalendarsService {
 
   private getCreateLegacyFields(
     contentLocale: string,
-    input: CalendarTranslationFields,
+    input: CalendarTextFields,
   ) {
     const isDefault = isDefaultContentLocale(contentLocale);
     const isLegacyEn = isLegacyEnglishContentLocale(contentLocale);
@@ -155,7 +170,7 @@ export class CalendarsService {
 
   private getUpdateLegacyFields(
     contentLocale: string,
-    input: CalendarTranslationFields,
+    input: CalendarTextFields,
   ) {
     if (isDefaultContentLocale(contentLocale)) {
       return {
@@ -221,6 +236,7 @@ export class CalendarsService {
             locale: contentLocale,
             title: input.title,
             description: input.description,
+            imageUrl3: input.imageUrl3,
           },
         },
       },
@@ -238,6 +254,10 @@ export class CalendarsService {
     }
 
     const contentLocale = normalizeContentLocale(input.contentLocale);
+    const isDefaultLocale = isDefaultContentLocale(contentLocale);
+    const translationImageUrl3Update = input.imageUrl3
+      ? { imageUrl3: input.imageUrl3 }
+      : {};
 
     return this.prisma.calendarEntry.update({
       where: { id: input.id },
@@ -245,7 +265,9 @@ export class CalendarsService {
         ...this.getUpdateLegacyFields(contentLocale, input),
         ...(input.imageUrl1 ? { imageUrl1: input.imageUrl1 } : {}),
         ...(input.imageUrl2 ? { imageUrl2: input.imageUrl2 } : {}),
-        ...(input.imageUrl3 ? { imageUrl3: input.imageUrl3 } : {}),
+        ...(isDefaultLocale && input.imageUrl3
+          ? { imageUrl3: input.imageUrl3 }
+          : {}),
         ...(input.imageUrl4 ? { imageUrl4: input.imageUrl4 } : {}),
         translations: {
           upsert: {
@@ -258,11 +280,13 @@ export class CalendarsService {
             update: {
               title: input.title,
               description: input.description,
+              ...translationImageUrl3Update,
             },
             create: {
               locale: contentLocale,
               title: input.title,
               description: input.description,
+              imageUrl3: input.imageUrl3 ?? '',
             },
           },
         },
@@ -279,6 +303,11 @@ export class CalendarsService {
         imageUrl2: true,
         imageUrl3: true,
         imageUrl4: true,
+        translations: {
+          select: {
+            imageUrl3: true,
+          },
+        },
       },
     });
 

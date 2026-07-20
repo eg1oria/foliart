@@ -289,7 +289,11 @@ export class CalendarsController {
           file ? optimizeUploadedImage(file) : Promise.resolve(undefined),
         ),
       );
-      const currentEntry = await this.calendarsService.findOne(id);
+      const currentEntry = await this.calendarsService.findOne(
+        id,
+        undefined,
+        contentLocale,
+      );
       const updatedEntry = await this.calendarsService.update({
         id,
         contentLocale,
@@ -308,11 +312,15 @@ export class CalendarsController {
           ? { imageUrl4: `calendars/${optimizedFiles[3].filename}` }
           : {}),
       });
+      const previousLocalizedImageUrl3 =
+        contentLocale === DEFAULT_CONTENT_LOCALE
+          ? currentEntry.imageUrl3
+          : currentEntry.adminTranslation?.imageUrl3;
 
       const previousImageUrls = [
         currentEntry.imageUrl1,
         currentEntry.imageUrl2,
-        currentEntry.imageUrl3,
+        previousLocalizedImageUrl3,
         currentEntry.imageUrl4,
       ];
 
@@ -341,6 +349,9 @@ export class CalendarsController {
       getStoredCalendarImagePath(deletedEntry.imageUrl2),
       getStoredCalendarImagePath(deletedEntry.imageUrl3),
       getStoredCalendarImagePath(deletedEntry.imageUrl4),
+      ...deletedEntry.translations.map((translation) =>
+        getStoredCalendarImagePath(translation.imageUrl3),
+      ),
     ]);
 
     return { id: deletedEntry.id };

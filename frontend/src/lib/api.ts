@@ -32,6 +32,7 @@ export type ArticleContentPayload =
 export type CalendarAdminTranslation = AdminTranslationBase & {
   title: string;
   description: string;
+  imageUrl3: string;
 };
 
 export type Category = {

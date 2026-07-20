@@ -6,6 +6,7 @@ describe('CalendarsService', () => {
   let service: CalendarsService;
   const calendarEntryMock = {
     create: jest.fn(),
+    findMany: jest.fn(),
     findFirst: jest.fn(),
     findUnique: jest.fn(),
     update: jest.fn(),
@@ -74,5 +75,83 @@ describe('CalendarsService', () => {
       [CalendarUpdateCall]
     >;
     expect(updateCalls[0]?.[0].data.slug).toBeUndefined();
+  });
+
+  it('returns the localized large showcase image when a translation has one', async () => {
+    calendarEntryMock.findMany.mockResolvedValue([
+      {
+        id: 1,
+        slug: 'kukuruza',
+        title: 'Кукуруза',
+        titleEn: 'Corn',
+        description: 'Описание',
+        descriptionEn: 'Description',
+        imageUrl1: 'calendars/1.webp',
+        imageUrl2: 'calendars/2.webp',
+        imageUrl3: 'calendars/ru-showcase.webp',
+        imageUrl4: 'calendars/4.webp',
+        translations: [
+          {
+            locale: 'en',
+            title: 'Corn',
+            description: 'Description',
+            imageUrl3: 'calendars/en-showcase.webp',
+          },
+        ],
+      },
+    ]);
+
+    const entries = await service.findAll('en');
+
+    expect(entries[0]?.imageUrl3).toBe('calendars/en-showcase.webp');
+    expect(entries[0]?.imageUrls).toEqual([
+      'calendars/1.webp',
+      'calendars/2.webp',
+      'calendars/en-showcase.webp',
+      'calendars/4.webp',
+    ]);
+  });
+
+  it('stores a translated showcase image without replacing the base image', async () => {
+    calendarEntryMock.findUnique.mockResolvedValue({
+      id: 1,
+      slug: 'kukuruza',
+    });
+    calendarEntryMock.update.mockResolvedValue({
+      id: 1,
+      slug: 'kukuruza',
+    });
+
+    await service.update({
+      id: 1,
+      contentLocale: 'en',
+      title: 'Corn',
+      description: 'Description',
+      imageUrl3: 'calendars/en-showcase.webp',
+    });
+
+    type CalendarUpdateCall = {
+      data: {
+        imageUrl3?: string;
+        translations: {
+          upsert: {
+            update: { imageUrl3?: string };
+            create: { imageUrl3: string };
+          };
+        };
+      };
+    };
+    const updateCalls = calendarEntryMock.update.mock.calls as unknown as Array<
+      [CalendarUpdateCall]
+    >;
+    const updateData = updateCalls[0]?.[0].data;
+
+    expect(updateData.imageUrl3).toBeUndefined();
+    expect(updateData.translations.upsert.update.imageUrl3).toBe(
+      'calendars/en-showcase.webp',
+    );
+    expect(updateData.translations.upsert.create.imageUrl3).toBe(
+      'calendars/en-showcase.webp',
+    );
   });
 });

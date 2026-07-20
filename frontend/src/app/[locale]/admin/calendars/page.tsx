@@ -117,7 +117,7 @@ function getCalendarImageSlotCopy(locale: string): CalendarImageSlotCopy {
       },
       image3: {
         title: 'Large showcase image',
-        hint: 'Displayed large in the lower block of the crop page.',
+        hint: 'Displayed large in the lower block of the crop page. Can be uploaded separately for each content language.',
       },
       image4: {
         title: 'Background for the lower block',
@@ -144,7 +144,7 @@ function getCalendarImageSlotCopy(locale: string): CalendarImageSlotCopy {
     },
     image3: {
       title: 'Большая акцентная картинка',
-      hint: 'Отображается крупно в нижнем блоке страницы культуры.',
+      hint: 'Отображается крупно в нижнем блоке страницы культуры. Можно загружать отдельно для каждого языка контента.',
     },
     image4: {
       title: 'Фон нижнего блока',
