@@ -14,20 +14,20 @@ import { renderArticleContent } from '@/lib/renderArticleContent';
 // т.к. корневой layout с <html>/<body> находится в app/[locale]/layout.tsx)
 
 export default async function ArticlesFrenchListPage() {
-  const articleSummaries = await getArticles('fr', undefined, 'fr');
+  const articleSummaries = await getArticles('ru', undefined, 'ru');
 
   const articles = await Promise.all(
     articleSummaries.map((summary) =>
-      getArticle(summary.id, 'fr', undefined, 'fr').catch(() => summary),
+      getArticle(summary.id, 'ru', undefined, 'ru').catch(() => summary),
     ),
   );
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10 pt-50">
-      <h1 className="mb-8 text-2xl font-semibold text-[#0b5a45]">Articles</h1>
+      <h1 className="mb-8 text-2xl font-semibold text-[#0b5a45]">Статьи</h1>
 
       {articles.length === 0 ? (
-        <p className="italic text-[#8a978f]">Aucun article disponible pour le moment.</p>
+        <p className="italic text-[#8a978f]">Нет доступных статей на данный момент.</p>
       ) : (
         <div className="space-y-14">
           {articles.map((article) => {
@@ -51,7 +51,7 @@ export default async function ArticlesFrenchListPage() {
                   />
                 ) : (
                   <p className="italic text-[#8a978f]">
-                    Cet article n&apos;est pas encore renseigné en français.
+                    Эта статья пока не заполнена на русском языке.
                   </p>
                 )}
               </article>

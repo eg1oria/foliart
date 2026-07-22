@@ -8,22 +8,22 @@ import { getProducts, publicApiFetchOptions } from '@/lib/api';
 // или под любым другим сегментом — компонент от params не зависит.
 
 export default async function ProductsFrenchListPage() {
-  const products = await getProducts(undefined, 'fr', publicApiFetchOptions, 'fr');
+  const products = await getProducts(undefined, 'ru', publicApiFetchOptions, 'ru');
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10 pt-30">
-      <h1 className="mb-8 text-2xl font-semibold text-[#0b5a45]">Nos produits</h1>
+      <h1 className="mb-8 text-2xl font-semibold text-[#0b5a45]">Наши продукты</h1>
 
       {products.length === 0 ? (
-        <p className="italic text-[#8a978f]">Aucun produit disponible pour le moment.</p>
+        <p className="italic text-[#8a978f]">Нет доступных продуктов на данный момент.</p>
       ) : (
         <div className="space-y-12">
           {products.map((product) => {
             const sections = [
-              { title: 'Description', content: product.description },
-              { title: 'Composition', content: product.composition },
-              { title: 'Avantages', content: product.advantages },
-              { title: "Modalités d'utilisation", content: product.application },
+              { title: 'Описание', content: product.description },
+              { title: 'Состав', content: product.composition },
+              { title: 'Преимущества', content: product.advantages },
+              { title: 'Регламент применения', content: product.application },
             ];
 
             return (
@@ -46,7 +46,7 @@ export default async function ProductsFrenchListPage() {
                         </p>
                       ) : (
                         <p className="italic text-[#8a978f]">
-                          Cette section n&apos;est pas encore renseignée en français.
+                          Эта секция пока не заполнена на русском языке.
                         </p>
                       )}
                     </div>

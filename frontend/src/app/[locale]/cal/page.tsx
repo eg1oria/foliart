@@ -9,14 +9,14 @@ import { getCalendars } from '@/lib/api';
 // корневой layout с <html>/<body> находится в app/[locale]/layout.tsx)
 
 export default async function CalendarsFrenchListPage() {
-  const calendars = await getCalendars('fr', undefined, 'fr');
+  const calendars = await getCalendars('ru', undefined, 'ru');
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
-      <h1 className="mb-8 text-2xl font-semibold text-[#0b5a45]">Calendriers</h1>
+      <h1 className="mb-8 text-2xl font-semibold text-[#0b5a45]">Календари</h1>
 
       {calendars.length === 0 ? (
-        <p className="italic text-[#8a978f]">Aucun calendrier disponible pour le moment.</p>
+        <p className="italic text-[#8a978f]">Нет доступных календарей на данный момент.</p>
       ) : (
         <div className="space-y-10">
           {calendars.map((calendar) => (
@@ -31,7 +31,7 @@ export default async function CalendarsFrenchListPage() {
                 </p>
               ) : (
                 <p className="italic text-[#8a978f]">
-                  Cette section n&apos;est pas encore renseignée en français.
+                  Эта секция пока не заполнена на русском языке.
                 </p>
               )}
 
