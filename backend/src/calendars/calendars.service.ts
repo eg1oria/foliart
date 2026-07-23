@@ -12,6 +12,7 @@ type CalendarTranslationFields = {
   title: string;
   description: string;
   imageUrl3: string;
+  pdfUrl: string;
 };
 
 type CalendarTextFields = Pick<
@@ -71,6 +72,7 @@ export class CalendarsService {
         title: entry.title,
         description: entry.description,
         imageUrl3: entry.imageUrl3,
+        pdfUrl: entry.pdfUrl,
         hasTranslation: false,
       };
     }
@@ -80,6 +82,7 @@ export class CalendarsService {
         title: entry.titleEn,
         description: entry.descriptionEn,
         imageUrl3: '',
+        pdfUrl: '',
         hasTranslation: false,
       };
     }
@@ -88,6 +91,7 @@ export class CalendarsService {
       title: '',
       description: '',
       imageUrl3: '',
+      pdfUrl: '',
       hasTranslation: false,
     };
   }
@@ -112,6 +116,8 @@ export class CalendarsService {
       locale && selected.imageUrl3.trim()
         ? selected.imageUrl3
         : entry.imageUrl3;
+    const resolvedPdfUrl =
+      locale && selected.pdfUrl.trim() ? selected.pdfUrl : entry.pdfUrl;
 
     const resolve = (
       selectedValue: string,
@@ -132,6 +138,7 @@ export class CalendarsService {
         entry.description,
       ),
       imageUrl3: resolvedImageUrl3,
+      pdfUrl: resolvedPdfUrl,
       imageUrls: [
         entry.imageUrl1,
         entry.imageUrl2,
@@ -150,6 +157,7 @@ export class CalendarsService {
               title: adminTranslation.title,
               description: adminTranslation.description,
               imageUrl3: adminTranslation.imageUrl3,
+              pdfUrl: adminTranslation.pdfUrl,
             },
           }
         : {}),
@@ -241,6 +249,7 @@ export class CalendarsService {
             title: input.title,
             description: input.description,
             imageUrl3: input.imageUrl3,
+            pdfUrl: input.pdfUrl ?? '',
           },
         },
       },
@@ -262,6 +271,9 @@ export class CalendarsService {
     const translationImageUrl3Update = input.imageUrl3
       ? { imageUrl3: input.imageUrl3 }
       : {};
+    const translationPdfUrlUpdate = input.pdfUrl
+      ? { pdfUrl: input.pdfUrl }
+      : {};
 
     return this.prisma.calendarEntry.update({
       where: { id: input.id },
@@ -273,7 +285,7 @@ export class CalendarsService {
           ? { imageUrl3: input.imageUrl3 }
           : {}),
         ...(input.imageUrl4 ? { imageUrl4: input.imageUrl4 } : {}),
-        ...(input.pdfUrl ? { pdfUrl: input.pdfUrl } : {}),
+        ...(isDefaultLocale && input.pdfUrl ? { pdfUrl: input.pdfUrl } : {}),
         translations: {
           upsert: {
             where: {
@@ -286,12 +298,14 @@ export class CalendarsService {
               title: input.title,
               description: input.description,
               ...translationImageUrl3Update,
+              ...translationPdfUrlUpdate,
             },
             create: {
               locale: contentLocale,
               title: input.title,
               description: input.description,
               imageUrl3: input.imageUrl3 ?? '',
+              pdfUrl: input.pdfUrl ?? '',
             },
           },
         },
@@ -312,6 +326,7 @@ export class CalendarsService {
         translations: {
           select: {
             imageUrl3: true,
+            pdfUrl: true,
           },
         },
       },

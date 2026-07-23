@@ -190,6 +190,7 @@ model CalendarEntryTranslation {
   title           String        @default("")
   description     String        @default("")
   imageUrl3       String        @default("")
+  pdfUrl          String        @default("")
 
   @@unique([calendarEntryId, locale])
   @@index([locale])

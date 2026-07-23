@@ -90,12 +90,14 @@ describe('CalendarsService', () => {
         imageUrl2: 'calendars/2.webp',
         imageUrl3: 'calendars/ru-showcase.webp',
         imageUrl4: 'calendars/4.webp',
+        pdfUrl: 'calendars/ru.pdf',
         translations: [
           {
             locale: 'en',
             title: 'Corn',
             description: 'Description',
             imageUrl3: 'calendars/en-showcase.webp',
+            pdfUrl: 'calendars/en.pdf',
           },
         ],
       },
@@ -104,12 +106,45 @@ describe('CalendarsService', () => {
     const entries = await service.findAll('en');
 
     expect(entries[0]?.imageUrl3).toBe('calendars/en-showcase.webp');
+    expect(entries[0]?.pdfUrl).toBe('calendars/en.pdf');
     expect(entries[0]?.imageUrls).toEqual([
       'calendars/1.webp',
       'calendars/2.webp',
       'calendars/en-showcase.webp',
       'calendars/4.webp',
     ]);
+  });
+
+  it('falls back to the base PDF when a translation has no PDF', async () => {
+    calendarEntryMock.findMany.mockResolvedValue([
+      {
+        id: 1,
+        slug: 'kukuruza',
+        title: 'Кукуруза',
+        titleEn: 'Corn',
+        description: 'Описание',
+        descriptionEn: 'Description',
+        imageUrl1: 'calendars/1.webp',
+        imageUrl2: 'calendars/2.webp',
+        imageUrl3: 'calendars/ru-showcase.webp',
+        imageUrl4: 'calendars/4.webp',
+        pdfUrl: 'calendars/ru.pdf',
+        translations: [
+          {
+            locale: 'en',
+            title: 'Corn',
+            description: 'Description',
+            imageUrl3: '',
+            pdfUrl: '',
+          },
+        ],
+      },
+    ]);
+
+    const entries = await service.findAll('en', 'en');
+
+    expect(entries[0]?.pdfUrl).toBe('calendars/ru.pdf');
+    expect(entries[0]?.adminTranslation?.pdfUrl).toBe('');
   });
 
   it('stores a translated showcase image without replacing the base image', async () => {
@@ -152,6 +187,49 @@ describe('CalendarsService', () => {
     );
     expect(updateData.translations.upsert.create.imageUrl3).toBe(
       'calendars/en-showcase.webp',
+    );
+  });
+
+  it('stores a translated PDF without replacing the base PDF', async () => {
+    calendarEntryMock.findUnique.mockResolvedValue({
+      id: 1,
+      slug: 'kukuruza',
+    });
+    calendarEntryMock.update.mockResolvedValue({
+      id: 1,
+      slug: 'kukuruza',
+    });
+
+    await service.update({
+      id: 1,
+      contentLocale: 'en',
+      title: 'Corn',
+      description: 'Description',
+      pdfUrl: 'calendars/en.pdf',
+    });
+
+    type CalendarUpdateCall = {
+      data: {
+        pdfUrl?: string;
+        translations: {
+          upsert: {
+            update: { pdfUrl?: string };
+            create: { pdfUrl: string };
+          };
+        };
+      };
+    };
+    const updateCalls = calendarEntryMock.update.mock.calls as unknown as Array<
+      [CalendarUpdateCall]
+    >;
+    const updateData = updateCalls[0]?.[0].data;
+
+    expect(updateData.pdfUrl).toBeUndefined();
+    expect(updateData.translations.upsert.update.pdfUrl).toBe(
+      'calendars/en.pdf',
+    );
+    expect(updateData.translations.upsert.create.pdfUrl).toBe(
+      'calendars/en.pdf',
     );
   });
 });

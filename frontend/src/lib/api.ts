@@ -33,6 +33,7 @@ export type CalendarAdminTranslation = AdminTranslationBase & {
   title: string;
   description: string;
   imageUrl3: string;
+  pdfUrl: string;
 };
 
 export type Category = {

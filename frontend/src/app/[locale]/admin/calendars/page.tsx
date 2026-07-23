@@ -156,7 +156,7 @@ function getCalendarPdfCopy(locale: string) {
   if (locale === 'en') {
     return {
       label: 'Calendar PDF',
-      hint: 'Upload a PDF (up to 20 MB). If a PDF is uploaded, the "View calendar" button on the site opens it instead of the showcase image.',
+      hint: 'Upload a separate PDF for each content language (up to 20 MB). If a PDF is uploaded, the "View calendar" button on the site opens it instead of the showcase image.',
       current: 'Current file:',
       none: 'No PDF uploaded yet.',
       view: 'Open PDF',
@@ -166,7 +166,7 @@ function getCalendarPdfCopy(locale: string) {
 
   return {
     label: 'PDF календаря',
-    hint: 'Загрузите PDF (до 20 МБ). Если PDF загружен, кнопка «Смотреть календарь» на сайте будет открывать именно его вместо акцентной картинки.',
+    hint: 'Загрузите отдельный PDF для каждого языка контента (до 20 МБ). Если PDF загружен, кнопка «Смотреть календарь» на сайте будет открывать именно его вместо акцентной картинки.',
     current: 'Текущий файл:',
     none: 'PDF еще не загружен.',
     view: 'Открыть PDF',
@@ -642,9 +642,11 @@ export default async function AdminCalendarsPage({
                         </p>
 
                         <div className="mt-2 flex items-center gap-1.5 text-xs">
-                          {calendarItem.pdfUrl ? (
+                          {calendarItem.adminTranslation?.pdfUrl ? (
                             <a
-                              href={resolveMediaUrl(calendarItem.pdfUrl) ?? undefined}
+                              href={
+                                resolveMediaUrl(calendarItem.adminTranslation.pdfUrl) ?? undefined
+                              }
                               target="_blank"
                               rel="noreferrer"
                               className="inline-flex items-center gap-1 font-semibold text-[#0b5a45] underline underline-offset-2">
@@ -694,7 +696,7 @@ export default async function AdminCalendarsPage({
                             values={{
                               title: calendarItem.adminTranslation?.title ?? '',
                               description: calendarItem.adminTranslation?.description ?? '',
-                              pdfUrl: calendarItem.pdfUrl,
+                              pdfUrl: calendarItem.adminTranslation?.pdfUrl ?? '',
                             }}
                             imageRequired={false}
                           />

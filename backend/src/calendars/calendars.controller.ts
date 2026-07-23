@@ -412,6 +412,10 @@ export class CalendarsController {
         contentLocale === DEFAULT_CONTENT_LOCALE
           ? currentEntry.imageUrl3
           : currentEntry.adminTranslation?.imageUrl3;
+      const previousLocalizedPdfUrl =
+        contentLocale === DEFAULT_CONTENT_LOCALE
+          ? currentEntry.pdfUrl
+          : currentEntry.adminTranslation?.pdfUrl;
 
       const previousImageUrls = [
         currentEntry.imageUrl1,
@@ -427,7 +431,7 @@ export class CalendarsController {
             : undefined,
         ),
         uploadedPdfFile?.filename
-          ? getStoredCalendarFilePath(currentEntry.pdfUrl)
+          ? getStoredCalendarFilePath(previousLocalizedPdfUrl)
           : undefined,
       ]);
 
@@ -451,6 +455,9 @@ export class CalendarsController {
       getStoredCalendarFilePath(deletedEntry.pdfUrl),
       ...deletedEntry.translations.map((translation) =>
         getStoredCalendarFilePath(translation.imageUrl3),
+      ),
+      ...deletedEntry.translations.map((translation) =>
+        getStoredCalendarFilePath(translation.pdfUrl),
       ),
     ]);
 
