@@ -684,7 +684,10 @@ export default async function AdminCalendarsPage({
                           ) : null}
                         </div>
 
-                        <form action={updateCalendarAction} className="mt-5 space-y-6">
+                        <form
+                          key={`${calendarItem.id}:${contentLocale}`}
+                          action={updateCalendarAction}
+                          className="mt-5 space-y-6">
                           <input type="hidden" name="locale" value={locale} />
                           <input type="hidden" name="contentLocale" value={contentLocale} />
                           <input type="hidden" name="calendarId" value={calendarItem.id} />
