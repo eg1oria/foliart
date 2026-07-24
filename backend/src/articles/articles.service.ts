@@ -88,6 +88,18 @@ export class ArticlesService {
     };
   }
 
+  private hasCompleteTranslation(
+    article: ArticleWithLegacyAndTranslations,
+    locale: string,
+  ) {
+    const translation = this.getTranslation(article, locale);
+
+    return (
+      Boolean(translation.title.trim()) &&
+      (Boolean(translation.content.trim()) || Boolean(translation.contentJson))
+    );
+  }
+
   private resolveLocale<T extends ArticleWithLegacyAndTranslations>(
     article: T,
     locale?: string,
@@ -126,10 +138,7 @@ export class ArticlesService {
             adminTranslation: {
               locale: adminLocale,
               hasTranslation: adminTranslation.hasTranslation,
-              isComplete:
-                Boolean(adminTranslation.title.trim()) &&
-                (Boolean(adminTranslation.content.trim()) ||
-                  Boolean(adminTranslation.contentJson)),
+              isComplete: this.hasCompleteTranslation(article, adminLocale),
               title: adminTranslation.title,
               excerpt: adminTranslation.excerpt,
               content: adminTranslation.content,
@@ -184,7 +193,14 @@ export class ArticlesService {
       orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
     });
 
-    return articles.map((article) => {
+    const visibleArticles =
+      locale && !contentLocale
+        ? articles.filter((article) =>
+            this.hasCompleteTranslation(article, locale),
+          )
+        : articles;
+
+    return visibleArticles.map((article) => {
       const resolved = this.resolveLocale(article, locale, contentLocale);
       const {
         content: _content,
@@ -215,6 +231,16 @@ export class ArticlesService {
 
     if (!article) {
       throw new NotFoundException(`Article #${id} not found`);
+    }
+
+    if (
+      locale &&
+      !contentLocale &&
+      !this.hasCompleteTranslation(article, locale)
+    ) {
+      throw new NotFoundException(
+        `Article #${id} is not available in locale "${normalizeContentLocale(locale)}"`,
+      );
     }
 
     const resolved = this.resolveLocale(article, locale, contentLocale);
