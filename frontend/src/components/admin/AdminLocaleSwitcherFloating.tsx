@@ -43,7 +43,7 @@ export function AdminLocaleSwitcherFloating({
     <div
       aria-hidden={!visible}
       className={adminCx(
-        'fixed bottom-5 right-5 z-50 rounded-xl border border-[#0b5a45]/15 bg-white shadow-[0_8px_32px_-8px_rgba(11,62,49,0.22)] transition-all duration-200',
+        'fixed bottom-25 right-5 z-50 rounded-xl border border-[#0b5a45]/15 bg-white shadow-[0_8px_32px_-8px_rgba(11,62,49,0.22)] transition-all duration-200',
         visible
           ? 'translate-y-0 opacity-100 pointer-events-auto'
           : 'translate-y-3 opacity-0 pointer-events-none',
@@ -53,7 +53,7 @@ export function AdminLocaleSwitcherFloating({
           {title}
         </p>
       </div>
-      <div className="grid grid-cols-2 gap-1.5 p-2">
+      <div className="flex flex-col gap-1.5 p-2">
         {contentLocales.map((item) => {
           const isActive = item === contentLocale;
           return (
@@ -74,7 +74,6 @@ export function AdminLocaleSwitcherFloating({
           );
         })}
       </div>
-      <p className="px-3 pb-2.5 text-[11px] leading-4 text-[#6a7f76]">{hint}</p>
     </div>
   );
 }

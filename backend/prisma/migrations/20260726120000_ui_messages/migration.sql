@@ -1,0 +1,7 @@
+CREATE TABLE "UiMessage" (
+    "locale" TEXT NOT NULL PRIMARY KEY,
+    "messages" JSONB,
+    "revision" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);

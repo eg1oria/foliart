@@ -10,6 +10,7 @@ import { CategoriesModule } from './categories/categories.module';
 import { ContactModule } from './contact/contact.module';
 import { ProductsModule } from './products/products.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { UiMessagesModule } from './ui-messages/ui-messages.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { PrismaModule } from './prisma/prisma.module';
     CalendarsModule,
     ContactModule,
     PrismaModule,
+    UiMessagesModule,
   ],
   controllers: [AppController],
   providers: [

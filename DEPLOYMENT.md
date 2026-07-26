@@ -266,6 +266,36 @@ docker compose logs --tail=100 backend frontend
 docker image prune -f
 ```
 
+### Первоначальное включение runtime-переводов
+
+Версия с редактором интерфейсных переводов требует одного обычного обновления
+backend и frontend. Перед ним обязательно сделай резервную копию:
+
+```bash
+cd /opt/foliart
+sudo ./scripts/backup.sh
+git pull --ff-only
+docker compose up -d --build backend frontend
+docker compose ps
+curl -fsS http://127.0.0.1:5000/api/ui-messages/ru
+curl -I http://127.0.0.1:3000/ru
+```
+
+Backend entrypoint автоматически применит миграцию `UiMessage` к SQLite в
+постоянном volume `backend_data`. Для этой миграции не нужен `prisma db seed`:
+встроенные `frontend/messages/*.json` используются как значения по умолчанию,
+пока администратор не сохранит язык впервые.
+
+После первоначального обновления открой `/ru/admin/messages`, выбери
+редактируемый язык и сохрани изменения. Для последующих правок переводов не
+нужны `docker compose build`, `docker compose restart`, очистка `.next/cache`
+или повторный deploy. Сохранение инвалидирует только кеш выбранного языка.
+
+Редактор управляет только строковыми листьями из
+`frontend/messages/ru.json`, `en.json`, `fr.json` и `es.json`. Тексты каталога,
+статей и календаря, хранящиеся в SQLite, а также захардкоженные SEO/fallback
+строки редактируются своими существующими механизмами.
+
 ## 13. Восстановление
 
 `restore.sh` проверяет checksum (если файл `.sha256` лежит рядом), отклоняет неожиданные пути в архиве и перед заменой данных автоматически делает страховочную копию текущего состояния. Затем он восстанавливает оба volume, выставляет права непривилегированного backend-пользователя и запускает backend с миграциями.

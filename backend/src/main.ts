@@ -9,6 +9,7 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   getAdminApiSecret();
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.useBodyParser('json', { limit: '256kb' });
   app.set('trust proxy', 1);
   app.set('x-powered-by', false);
   app.use((_request: Request, response: Response, next: NextFunction) => {

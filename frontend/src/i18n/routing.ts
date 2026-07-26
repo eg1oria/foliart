@@ -1,8 +1,9 @@
 import { defineRouting } from 'next-intl/routing';
 import { createNavigation } from 'next-intl/navigation';
+import { uiMessageLocales } from './uiMessages';
 
 export const routing = defineRouting({
-  locales: ['ru', 'en', 'fr', 'es'],
+  locales: uiMessageLocales,
   defaultLocale: 'ru',
 });
 

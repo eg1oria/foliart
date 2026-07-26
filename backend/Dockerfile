@@ -31,4 +31,4 @@ USER node
 EXPOSE 5000
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && exec node dist/src/main.js"]
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && exec node dist/main.js"]

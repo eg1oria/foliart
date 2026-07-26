@@ -1,7 +1,7 @@
 import { Link } from '@/i18n/routing';
 import { withContentLocale } from '@/lib/contentLocales';
 import type { IconType } from 'react-icons';
-import { FiBookOpen, FiBox, FiCalendar } from 'react-icons/fi';
+import { FiBookOpen, FiBox, FiCalendar, FiGlobe } from 'react-icons/fi';
 
 import { adminCx } from './adminStyles';
 
@@ -9,7 +9,7 @@ import { adminCx } from './adminStyles';
 // FIX 2: Unicode escape-последовательности заменены на читаемый текст
 const tabsI18n: Record<
   string,
-  Record<'products' | 'articles' | 'calendars', { label: string; description: string }>
+  Record<'products' | 'articles' | 'calendars' | 'messages', { label: string; description: string }>
 > = {
   en: {
     products: {
@@ -23,6 +23,10 @@ const tabsI18n: Record<
     calendars: {
       label: 'Calendar',
       description: 'Crop pages and image slots',
+    },
+    messages: {
+      label: 'Translations',
+      description: 'Public interface messages',
     },
   },
   ru: {
@@ -38,17 +42,23 @@ const tabsI18n: Record<
       label: 'Календарь',
       description: 'Страницы культур и фотослоты',
     },
+    messages: {
+      label: 'Переводы',
+      description: 'Интерфейсные тексты публичного сайта',
+    },
   },
 };
 
 const TAB_ITEMS: Array<{
   href: '/admin/products' | '/admin/articles' | '/admin/calendars';
+  // | '/admin/messages';
   icon: IconType;
-  key: 'products' | 'articles' | 'calendars';
+  key: 'products' | 'articles' | 'calendars' | 'messages';
 }> = [
   { key: 'products', href: '/admin/products', icon: FiBox },
   { key: 'articles', href: '/admin/articles', icon: FiBookOpen },
   { key: 'calendars', href: '/admin/calendars', icon: FiCalendar },
+  // { key: 'messages', href: '/admin/messages', icon: FiGlobe },
 ];
 
 export default function AdminTabs({
@@ -56,7 +66,7 @@ export default function AdminTabs({
   contentLocale,
   locale,
 }: {
-  active: 'products' | 'articles' | 'calendars';
+  active: 'products' | 'articles' | 'calendars' | 'messages';
   contentLocale: string;
   locale: string;
 }) {

@@ -59,16 +59,20 @@ export function AdminShell({
   children,
   contentLocale,
   contentLocaleHref,
+  contentLocaleHint,
+  contentLocaleTitle,
   description,
   locale,
   title,
 }: {
-  activeTab: 'products' | 'articles' | 'calendars';
+  activeTab: 'products' | 'articles' | 'calendars' | 'messages';
   backHref: string;
   backLabel: string;
   children: ReactNode;
   contentLocale: string;
   contentLocaleHref?: string;
+  contentLocaleHint?: string;
+  contentLocaleTitle?: string;
   description: string;
   locale: string;
   shortcuts?: AdminShortcut[];
@@ -77,6 +81,10 @@ export function AdminShell({
 }) {
   const safeContentLocale = normalizeContentLocale(contentLocale);
   const currentAdminHref = contentLocaleHref ?? `/admin/${activeTab}`;
+  const localeSwitcherTitle =
+    contentLocaleTitle ?? t(locale, 'inputLanguage');
+  const localeSwitcherHint =
+    contentLocaleHint ?? t(locale, 'inputLanguageHint');
   const headerRef = useRef<HTMLElement>(null);
 
   return (
@@ -128,7 +136,7 @@ export function AdminShell({
 
               <div className="w-full rounded-lg border border-[#0b5a45]/10 bg-[#f7f9f6] p-3">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6a7f76]">
-                  {t(locale, 'inputLanguage')}
+                  {localeSwitcherTitle}
                 </p>
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   {contentLocales.map((item) => {
@@ -152,7 +160,7 @@ export function AdminShell({
                   })}
                 </div>
                 <p className="mt-2 text-xs leading-5 text-[#6a7f76]">
-                  {t(locale, 'inputLanguageHint')}
+                  {localeSwitcherHint}
                 </p>
               </div>
             </div>
@@ -170,8 +178,8 @@ export function AdminShell({
         contentLocales={contentLocales}
         getContentLocaleLabel={getContentLocaleLabel}
         headerRef={headerRef}
-        hint={t(locale, 'inputLanguageHint')}
-        title={t(locale, 'inputLanguage')}
+        hint={localeSwitcherHint}
+        title={localeSwitcherTitle}
       />
     </main>
   );
