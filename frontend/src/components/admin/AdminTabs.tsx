@@ -1,7 +1,7 @@
 import { Link } from '@/i18n/routing';
 import { withContentLocale } from '@/lib/contentLocales';
 import type { IconType } from 'react-icons';
-import { FiBookOpen, FiBox, FiCalendar, FiGlobe } from 'react-icons/fi';
+import { FiBookOpen, FiBox, FiCalendar } from 'react-icons/fi';
 
 import { adminCx } from './adminStyles';
 

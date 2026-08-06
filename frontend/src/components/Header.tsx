@@ -49,6 +49,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
+  const isAdminPath = /^\/(?:[a-z]{2}\/)?admin(?:\/|$)/.test(pathname);
   const [isPending, startTransition] = useTransition();
   const [isLocaleSwitcherOpen, setIsLocaleSwitcherOpen] = useState(false);
 
@@ -123,6 +124,8 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
   ];
 
   useEffect(() => {
+    if (isAdminPath) return;
+
     const updateScrollState = () => {
       scrollFrame.current = null;
       setIsScrolled((current) => {
@@ -143,7 +146,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
       window.removeEventListener('scroll', handleScroll);
       if (scrollFrame.current !== null) window.cancelAnimationFrame(scrollFrame.current);
     };
-  }, []);
+  }, [isAdminPath]);
 
   useEffect(() => {
     return () => {
@@ -152,6 +155,8 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
       }
     };
   }, []);
+
+  if (isAdminPath) return null;
 
   const phoneBadgeClassName =
     'flex cursor-pointer items-center justify-center rounded-full text-white transition-colors hover:bg-[#074031]/80';

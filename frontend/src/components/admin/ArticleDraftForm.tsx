@@ -3,21 +3,26 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { FiImage, FiSave } from 'react-icons/fi';
 import ArticleRichTextEditor, {
   type UploadedArticleMedia,
 } from './ArticleRichTextEditor';
+import { Link } from '@/i18n/routing';
 import {
   EMPTY_ARTICLE_DOCUMENT,
   hasPendingUploads,
   sanitizeArticleDocumentImages,
   type ArticleDocument,
 } from '@/lib/articleContent';
+import { withContentLocale } from '@/lib/contentLocales';
 import {
+  adminFieldClassName,
   adminFileInputClassName,
   adminHintClassName,
   adminInputClassName,
   adminLabelClassName,
   adminPrimaryButtonClassName,
+  adminSecondaryButtonClassName,
   adminTextareaClassName,
 } from './adminStyles';
 
@@ -390,13 +395,54 @@ export default function ArticleDraftForm({
     }
   };
 
+  const uploadCover = async (file: File) => {
+    const expectedDraftId = draftRef.current?.id;
+    if (!expectedDraftId) return;
+    try {
+      await saveNow();
+      if (draftRef.current?.id !== expectedDraftId) return;
+      const media = await uploadMedia(
+        file,
+        crypto.randomUUID(),
+        'COVER',
+        expectedDraftId,
+      );
+      if (draftRef.current?.id !== expectedDraftId) return;
+      setCover(media);
+      if (draftRef.current) {
+        draftRef.current = { ...draftRef.current, coverMediaId: media.id };
+      }
+      markDirty();
+      await saveNow();
+    } catch (error) {
+      setStatus('error');
+      setMessage(error instanceof Error ? error.message : 'Cover upload failed');
+    }
+  };
+
   if (!draft) {
-    return <p className="mt-6 text-sm text-[#567068]">{message || (locale === 'ru' ? 'Загрузка черновика…' : 'Loading draft…')}</p>;
+    return <p className="text-sm text-[#567068]">{message || (locale === 'ru' ? 'Загрузка черновика…' : 'Loading draft…')}</p>;
   }
+
+  const coverHint = cover
+    ? cover.status === 'DRAFT'
+      ? locale === 'ru'
+        ? 'Новая обложка будет общей для всех языков после публикации.'
+        : 'The new cover will be shared by every language after publishing.'
+      : locale === 'ru'
+        ? 'Эта обложка используется во всех языках статьи.'
+        : 'This cover is used by every article language.'
+    : articleId
+      ? locale === 'ru'
+        ? 'Обложка общая для всех языков. Обновите страницу, если она не появилась.'
+        : 'The cover is shared by every language. Refresh if it is not shown.'
+      : locale === 'ru'
+        ? 'Обложка обязательна и будет общей для всех языков.'
+        : 'A cover is required and will be shared by every language.';
 
   return (
     <div
-      className="mt-6 space-y-5"
+      className="space-y-5"
       onBlur={(event) => {
         if (
           !event.currentTarget.contains(event.relatedTarget) &&
@@ -406,179 +452,201 @@ export default function ArticleDraftForm({
         }
       }}
     >
-      <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_220px]">
-        <label className="space-y-2">
-          <span className={adminLabelClassName}>{locale === 'ru' ? 'Заголовок' : 'Title'}</span>
-          <input
-            className={adminInputClassName}
-            value={title}
-            onChange={(event) => {
-              const value = event.target.value;
-              setTitle(value);
-              fieldsRef.current.title = value;
-              markDirty();
-            }}
-            required
-          />
-        </label>
-        <label className="space-y-2">
-          <span className={adminLabelClassName}>{locale === 'ru' ? 'Дата публикации' : 'Publication date'}</span>
-          <input
-            className={adminInputClassName}
-            type="date"
-            value={publishedAt}
-            onChange={(event) => {
-              const value = event.target.value;
-              setPublishedAt(value);
-              fieldsRef.current.publishedAt = value;
-              markDirty();
-            }}
-          />
-        </label>
-      </div>
+      <section className="rounded-lg border border-[#0b5a45]/10 bg-white p-4 sm:p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#0b5a45]">
+              {locale === 'ru' ? 'Основные данные' : 'Basic information'}
+            </p>
+            <h2 className="mt-2 text-lg font-semibold text-[#0b3e31]">
+              {articleId
+                ? locale === 'ru'
+                  ? 'Содержание статьи'
+                  : 'Article details'
+                : locale === 'ru'
+                  ? 'Новая статья'
+                  : 'New article'}
+            </h2>
+          </div>
+          <span className="rounded-md bg-[#eef4ef] px-2.5 py-1 text-xs font-semibold text-[#0b5a45]">
+            {contentLocale.toUpperCase()}
+          </span>
+        </div>
 
-      <label className="block space-y-2">
-        <span className={adminLabelClassName}>
-          {locale === 'ru' ? 'Общая обложка' : 'Shared cover image'}
-        </span>
-        {cover ? (
-          <Image
-            className="max-h-64 w-auto max-w-full rounded-lg border border-[#0b5a45]/10 object-contain"
-            src={cover.previewUrl || cover.publicUrl}
-            alt={locale === 'ru' ? 'Текущая обложка статьи' : 'Current article cover'}
-            width={cover.width}
-            height={cover.height}
-          />
-        ) : null}
-        <input
-          className={adminFileInputClassName}
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            event.currentTarget.value = '';
-            if (!file) return;
-            void (async () => {
-              const expectedDraftId = draftRef.current?.id;
-              if (!expectedDraftId) return;
-              try {
-                await saveNow();
-                if (draftRef.current?.id !== expectedDraftId) return;
-                const media = await uploadMedia(
-                  file,
-                  crypto.randomUUID(),
-                  'COVER',
-                  expectedDraftId,
-                );
-                if (draftRef.current?.id !== expectedDraftId) return;
-                setCover(media);
-                if (draftRef.current) draftRef.current = { ...draftRef.current, coverMediaId: media.id };
+        <div className="mt-5 grid gap-5 md:grid-cols-[minmax(0,1fr)_220px]">
+          <label className={adminFieldClassName}>
+            <span className={adminLabelClassName}>
+              {locale === 'ru' ? 'Заголовок' : 'Title'}
+            </span>
+            <input
+              className={adminInputClassName}
+              value={title}
+              onChange={(event) => {
+                const value = event.target.value;
+                setTitle(value);
+                fieldsRef.current.title = value;
                 markDirty();
-                await saveNow();
-              } catch (error) {
-                setStatus('error');
-                setMessage(error instanceof Error ? error.message : 'Cover upload failed');
-              }
-            })();
-          }}
-        />
-        <span className={adminHintClassName}>
-          {cover
-            ? cover.status === 'DRAFT'
-              ? locale === 'ru'
-                ? 'Новая обложка будет общей для всех языков после публикации.'
-                : 'The new cover will be shared by every language after publishing.'
-              : locale === 'ru'
-                ? 'Эта обложка используется во всех языках статьи.'
-                : 'This cover is used by every article language.'
-            : articleId
-              ? locale === 'ru'
-                ? 'Обложка общая для всех языков. Обновите страницу, если она не появилась.'
-                : 'The cover is shared by every language. Refresh if it is not shown.'
-              : locale === 'ru'
-                ? 'Обложка обязательна и будет общей для всех языков.'
-                : 'A cover is required and will be shared by every language.'}
-        </span>
-      </label>
+              }}
+              required
+            />
+          </label>
+          <label className={adminFieldClassName}>
+            <span className={adminLabelClassName}>
+              {locale === 'ru' ? 'Дата публикации' : 'Publication date'}
+            </span>
+            <input
+              className={adminInputClassName}
+              type="date"
+              value={publishedAt}
+              onChange={(event) => {
+                const value = event.target.value;
+                setPublishedAt(value);
+                fieldsRef.current.publishedAt = value;
+                markDirty();
+              }}
+            />
+          </label>
+          <label className={`${adminFieldClassName} md:col-span-2`}>
+            <span className={adminLabelClassName}>
+              {locale === 'ru' ? 'Краткое описание' : 'Excerpt'}
+            </span>
+            <textarea
+              className={adminTextareaClassName}
+              rows={4}
+              value={excerpt}
+              onChange={(event) => {
+                const value = event.target.value;
+                setExcerpt(value);
+                fieldsRef.current.excerpt = value;
+                markDirty();
+              }}
+            />
+          </label>
+        </div>
+      </section>
 
-      <label className="block space-y-2">
-        <span className={adminLabelClassName}>{locale === 'ru' ? 'Краткое описание' : 'Excerpt'}</span>
-        <textarea
-          className={adminTextareaClassName}
-          rows={4}
-          value={excerpt}
-          onChange={(event) => {
-            const value = event.target.value;
-            setExcerpt(value);
-            fieldsRef.current.excerpt = value;
-            markDirty();
-          }}
-        />
-      </label>
-
-      <div className="space-y-2">
-        <span className={adminLabelClassName}>{locale === 'ru' ? 'Текст статьи' : 'Article content'}</span>
-        <ArticleRichTextEditor
-          defaultDocument={editorDocument}
-          locale={locale}
-          placeholder={locale === 'ru' ? 'Начните писать статью…' : 'Start writing the article…'}
-          onChange={(document) => {
-            documentRef.current = document;
-            markDirty();
-          }}
-          onBeforeUpload={async (document) => {
-            await saveNow(document);
-          }}
-          onUpload={(file, uploadId) => uploadMedia(file, uploadId, 'CONTENT')}
-        />
-      </div>
-
-      <div className="flex flex-wrap items-center gap-4 border-t border-[#0b5a45]/10 pt-5">
-        <button
-          type="button"
-          className={`${adminPrimaryButtonClassName} disabled:cursor-not-allowed disabled:opacity-60`}
-          onClick={() => void publish()}
-          disabled={isPublishing}
-          aria-busy={isPublishing}
-        >
-          {isPublishing
-            ? locale === 'ru'
-              ? 'Публикация…'
-              : 'Publishing…'
-            : articleId
-              ? locale === 'ru'
-                ? 'Сохранить и опубликовать'
-                : 'Save and publish'
-              : locale === 'ru'
-                ? 'Опубликовать'
-                : 'Publish'}
-        </button>
-        <p
-          role={status === 'error' || status === 'conflict' ? 'alert' : 'status'}
-          className={`text-sm ${status === 'error' || status === 'conflict' ? 'text-red-700' : 'text-[#567068]'}`}
-        >
-          {message ||
-            (status === 'saving'
-              ? locale === 'ru'
-                ? 'Сохраняется…'
-                : 'Saving…'
-              : locale === 'ru'
-                ? 'Черновик сохранён'
-                : 'Draft saved')}
+      <section className="rounded-lg border border-[#0b5a45]/10 bg-white p-4 sm:p-5">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#0b5a45]">
+          {locale === 'ru' ? 'Изображение' : 'Image'}
         </p>
-        {(status === 'error' || status === 'conflict') && (
+        <h2 className="mt-2 text-lg font-semibold text-[#0b3e31]">
+          {locale === 'ru' ? 'Общая обложка статьи' : 'Shared article cover'}
+        </h2>
+
+        <label className={`${adminFieldClassName} mt-5 max-w-2xl`}>
+          <span className={adminLabelClassName}>
+            {locale === 'ru' ? 'Обложка для всех языков' : 'Cover for every language'}
+          </span>
+          <div className="grid gap-3 rounded-lg border border-[#0b5a45]/10 bg-[#f7f9f6] p-3 sm:grid-cols-[160px_minmax(0,1fr)] sm:items-center">
+            <div className="relative aspect-[16/10] w-full overflow-hidden rounded-md border border-[#0b5a45]/10 bg-white sm:w-40">
+              {cover ? (
+                <Image
+                  src={cover.previewUrl || cover.publicUrl}
+                  alt={locale === 'ru' ? 'Текущая обложка статьи' : 'Current article cover'}
+                  fill
+                  sizes="160px"
+                  className="object-cover"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center text-[#8a9a93]">
+                  <FiImage aria-hidden="true" className="text-2xl" />
+                </div>
+              )}
+            </div>
+            <div className="min-w-0">
+              <input
+                className={adminFileInputClassName}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  event.currentTarget.value = '';
+                  if (file) void uploadCover(file);
+                }}
+              />
+              <p className={`mt-2 ${adminHintClassName}`}>{coverHint}</p>
+            </div>
+          </div>
+        </label>
+      </section>
+
+      <section className="rounded-lg border border-[#0b5a45]/10 bg-white p-4 sm:p-5">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#0b5a45]">
+          {locale === 'ru' ? 'Контент статьи' : 'Article content'}
+        </p>
+        <h2 className="mt-2 text-lg font-semibold text-[#0b3e31]">
+          {locale === 'ru' ? 'Основной текст' : 'Main text'}
+        </h2>
+        <div className="mt-5">
+          <ArticleRichTextEditor
+            defaultDocument={editorDocument}
+            locale={locale}
+            placeholder={locale === 'ru' ? 'Начните писать статью…' : 'Start writing the article…'}
+            onChange={(document) => {
+              documentRef.current = document;
+              markDirty();
+            }}
+            onBeforeUpload={async (document) => {
+              await saveNow(document);
+            }}
+            onUpload={(file, uploadId) => uploadMedia(file, uploadId, 'CONTENT')}
+          />
+        </div>
+      </section>
+
+      <div className="sticky bottom-4 z-30 rounded-xl border border-[#0b5a45]/15 bg-white/95 p-3 shadow-[0_18px_45px_-20px_rgba(11,62,49,0.35)] backdrop-blur sm:p-4">
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 flex-wrap items-center gap-3">
+            <Link
+              href={withContentLocale('/admin/articles', contentLocale)}
+              className={adminSecondaryButtonClassName}>
+              {locale === 'ru' ? 'Отмена' : 'Cancel'}
+            </Link>
+            <p
+              role={status === 'error' || status === 'conflict' ? 'alert' : 'status'}
+              className={`text-sm ${status === 'error' || status === 'conflict' ? 'text-red-700' : 'text-[#567068]'}`}>
+              {message ||
+                (status === 'saving'
+                  ? locale === 'ru'
+                    ? 'Сохраняется…'
+                    : 'Saving…'
+                  : locale === 'ru'
+                    ? 'Черновик сохранён'
+                    : 'Draft saved')}
+            </p>
+            {(status === 'error' || status === 'conflict') && (
+              <button
+                type="button"
+                className="text-sm underline"
+                onClick={() => {
+                  validationErrorRef.current = false;
+                  dirtyRef.current = true;
+                  void saveNow().catch(() => undefined);
+                }}>
+                {locale === 'ru' ? 'Повторить' : 'Retry'}
+              </button>
+            )}
+          </div>
           <button
             type="button"
-            className="text-sm underline"
-            onClick={() => {
-              validationErrorRef.current = false;
-              dirtyRef.current = true;
-              void saveNow().catch(() => undefined);
-            }}
-          >
-            {locale === 'ru' ? 'Повторить' : 'Retry'}
+            className={`${adminPrimaryButtonClassName} min-w-44 gap-2 disabled:cursor-not-allowed disabled:opacity-60`}
+            onClick={() => void publish()}
+            disabled={isPublishing}
+            aria-busy={isPublishing}>
+            <FiSave aria-hidden="true" />
+            {isPublishing
+              ? locale === 'ru'
+                ? 'Публикация…'
+                : 'Publishing…'
+              : articleId
+                ? locale === 'ru'
+                  ? 'Сохранить и опубликовать'
+                  : 'Save and publish'
+                : locale === 'ru'
+                  ? 'Опубликовать'
+                  : 'Publish'}
           </button>
-        )}
+        </div>
       </div>
     </div>
   );

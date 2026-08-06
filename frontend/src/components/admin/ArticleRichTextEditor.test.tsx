@@ -10,14 +10,39 @@ const editorMock = vi.hoisted(() => {
   let options: { onUpdate?: (args: { editor: typeof editor }) => void } = {};
   let nodes: Array<{ type: string; attrs?: Record<string, unknown>; nodeSize: number }> = [];
   let actions: Array<{ name: string; value?: unknown }> = [];
+  let setContentCalls = 0;
+  const normalizeDocument = (document: {
+    type?: string;
+    content?: Array<{ type: string; attrs?: Record<string, unknown> }>;
+  }) => ({
+    type: document.type ?? 'doc',
+    content: (document.content ?? []).map((node) => ({
+      ...node,
+      ...(node.type === 'image'
+        ? {
+            attrs: {
+              src: null,
+              alt: null,
+              title: null,
+              width: null,
+              height: null,
+              mediaId: null,
+              ...node.attrs,
+            },
+          }
+        : {}),
+    })),
+  });
   const notify = () => options.onUpdate?.({ editor });
   const commands = {
     setContent: (
       document: {
+        type?: string;
         content?: Array<{ type: string; attrs?: Record<string, unknown> }>;
       },
     ) => {
-      nodes = (document.content ?? []).map((node) => ({
+      setContentCalls += 1;
+      nodes = normalizeDocument(document).content.map((node) => ({
         ...node,
         nodeSize: 1,
       }));
@@ -35,6 +60,10 @@ const editorMock = vi.hoisted(() => {
       return true;
     },
     deleteRange: () => true,
+    setTextSelection: (value: unknown) => {
+      actions.push({ name: 'setTextSelection', value });
+      return true;
+    },
   };
   const chain = {
     focus: () => chain,
@@ -85,11 +114,17 @@ const editorMock = vi.hoisted(() => {
       type: 'doc',
       content: nodes.map((node) => ({ type: node.type, attrs: node.attrs })),
     }),
+    schema: {
+      nodeFromJSON: normalizeDocument,
+    },
     isActive: () => false,
     isEmpty: false,
+    isFocused: false,
     state: {
-      selection: { from: 0 },
+      selection: { from: 0, to: 0 },
       doc: {
+        eq: (document: ReturnType<typeof normalizeDocument>) =>
+          JSON.stringify(editor.getJSON()) === JSON.stringify(document),
         descendants: (callback: (node: { type: { name: string }; attrs: Record<string, unknown>; nodeSize: number }, pos: number) => boolean) => {
           nodes.forEach((node, index) => callback({ type: { name: node.type }, attrs: node.attrs ?? {}, nodeSize: 1 }, index));
         },
@@ -104,10 +139,22 @@ const editorMock = vi.hoisted(() => {
     getActions() {
       return actions;
     },
+    getSetContentCalls() {
+      return setContentCalls;
+    },
+    setFocused(value: boolean) {
+      editor.isFocused = value;
+    },
+    setSelection(from: number, to = from) {
+      editor.state.selection = { from, to };
+    },
     reset() {
       options = {};
       nodes = [];
       actions = [];
+      setContentCalls = 0;
+      editor.isFocused = false;
+      editor.state.selection = { from: 0, to: 0 };
     },
   };
 });
@@ -212,6 +259,62 @@ describe('ArticleRichTextEditor', () => {
 
     expect(button.dispatchEvent(pointerDown)).toBe(false);
     expect(pointerDown.defaultPrevented).toBe(true);
+  });
+
+  it('does not replace semantically equal content after a normalized server echo', () => {
+    const defaultDocument = {
+      type: 'doc',
+      content: [
+        {
+          type: 'image',
+          attrs: {
+            mediaId: 'd87ed781-53f8-4a20-90f3-927c75ef7842',
+            src: '/media/articles/media/d87ed781-53f8-4a20-90f3-927c75ef7842/original.webp',
+            alt: 'Leaf',
+            width: 800,
+            height: 600,
+          },
+        },
+      ],
+    };
+    const props = render({ defaultDocument });
+
+    expect(editorMock.editor.getJSON()).not.toEqual(defaultDocument);
+    expect(editorMock.getSetContentCalls()).toBe(1);
+
+    act(() => {
+      root.render(
+        <ArticleRichTextEditor
+          {...props}
+          defaultDocument={structuredClone(defaultDocument)}
+        />,
+      );
+    });
+
+    expect(editorMock.getSetContentCalls()).toBe(1);
+  });
+
+  it('restores the cursor when genuinely different external content arrives', () => {
+    const props = render();
+    editorMock.setFocused(true);
+    editorMock.setSelection(7);
+
+    act(() => {
+      root.render(
+        <ArticleRichTextEditor
+          {...props}
+          defaultDocument={{
+            type: 'doc',
+            content: [{ type: 'heading', attrs: { level: 2 } }],
+          }}
+        />,
+      );
+    });
+
+    expect(editorMock.getActions()).toContainEqual({
+      name: 'setTextSelection',
+      value: { from: 7, to: 7 },
+    });
   });
 
   it('normalizes a domain link and removes a link when the prompt is empty', () => {

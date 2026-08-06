@@ -1,9 +1,13 @@
 import { notFound } from 'next/navigation';
-import { AdminPanel, AdminShell, AdminWorkspace } from '@/components/admin/AdminShell';
+import { FiArrowLeft } from 'react-icons/fi';
+
+import { AdminPanel, AdminShell } from '@/components/admin/AdminShell';
 import ArticleDraftForm from '@/components/admin/ArticleDraftForm';
+import { adminCx, adminSecondaryButtonClassName } from '@/components/admin/adminStyles';
+import { Link } from '@/i18n/routing';
 import { requireAdminSession } from '@/lib/adminAuthServer';
 import { getArticlesCopy } from '@/lib/articles';
-import { normalizeContentLocale } from '@/lib/contentLocales';
+import { normalizeContentLocale, withContentLocale } from '@/lib/contentLocales';
 
 export default async function EditArticlePage({
   params,
@@ -23,7 +27,7 @@ export default async function EditArticlePage({
   return (
     <AdminShell
       activeTab="articles"
-      backHref="/admin/articles"
+      backHref={withContentLocale('/admin/articles', contentLocale)}
       backLabel={locale === 'ru' ? 'К списку статей' : 'Back to articles'}
       description={copy.adminSubtitle}
       contentLocale={contentLocale}
@@ -32,7 +36,16 @@ export default async function EditArticlePage({
       stats={[]}
       title={copy.editLabel}
     >
-      <AdminWorkspace>
+      <div className="mx-auto max-w-5xl">
+        <div className="mb-4">
+          <Link
+            href={withContentLocale('/admin/articles', contentLocale)}
+            className={adminCx(adminSecondaryButtonClassName, 'gap-2')}>
+            <FiArrowLeft aria-hidden="true" />
+            {locale === 'ru' ? 'Назад к статьям' : 'Back to articles'}
+          </Link>
+        </div>
+
         <AdminPanel
           id="article-editor"
           badge={`#${articleId}`}
@@ -46,7 +59,7 @@ export default async function EditArticlePage({
             locale={locale}
           />
         </AdminPanel>
-      </AdminWorkspace>
+      </div>
     </AdminShell>
   );
 }

@@ -50,9 +50,7 @@ export default async function AdminLoginPage({
   };
 
   return (
-    <main className="relative flex min-h-screen w-full flex-1 items-center bg-[#f3f5f1] px-4 pb-12 pt-28 sm:px-6 sm:pb-16 sm:pt-32 md:pt-52 lg:px-8">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[#0b5a45] sm:h-28 md:h-52" />
-
+    <main className="relative flex min-h-screen w-full flex-1 items-center bg-[#f3f5f1] px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
       <section className="relative mx-auto grid w-full max-w-[980px] overflow-hidden rounded-lg border border-[#0b5a45]/10 bg-white shadow-[0_24px_70px_-54px_rgba(11,62,49,0.95)] lg:grid-cols-[minmax(0,0.95fr)_minmax(340px,0.62fr)]">
         <div className="bg-[#0b5a45] px-5 py-7 text-white sm:px-7 sm:py-9 lg:px-8 lg:py-12">
           <span className="inline-flex items-center gap-2 rounded-md border border-white/15 bg-white/10 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#d8ead8]">

@@ -90,9 +90,7 @@ export function AdminShell({
   return (
     <main
       aria-label={title}
-      className="relative min-h-screen bg-[#f3f5f1] pt-24 text-[#0b3e31] sm:pt-28 md:pt-52">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[#0b5a45] sm:h-28 md:h-52" />
-
+      className="relative min-h-screen bg-[#f3f5f1] text-[#0b3e31]">
       <section
         ref={headerRef}
         className="relative border-y border-[#0b5a45]/10 bg-white shadow-[0_14px_45px_-36px_rgba(11,62,49,0.75)]">

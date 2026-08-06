@@ -37,7 +37,7 @@ export default function ArticleDraftResumeList({
   if (!drafts.length) return null;
 
   return (
-    <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-4">
+    <div className="mb-5 rounded-lg border border-amber-200 bg-amber-50 p-4">
       <p className="text-sm font-semibold text-amber-900">
         {locale === 'ru' ? 'Незавершённые черновики' : 'Unfinished drafts'}
       </p>

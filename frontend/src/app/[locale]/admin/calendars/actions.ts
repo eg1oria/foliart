@@ -23,6 +23,7 @@ function buildAdminRedirectPath(
   locale: string,
   params: Record<string, string | undefined> = {},
   hash?: string,
+  pathname = '',
 ) {
   const searchParams = new URLSearchParams();
 
@@ -33,7 +34,7 @@ function buildAdminRedirectPath(
   }
 
   const query = searchParams.toString();
-  return `/${locale}/admin/calendars${query ? `?${query}` : ''}${hash ? `#${hash}` : ''}`;
+  return `/${locale}/admin/calendars${pathname}${query ? `?${query}` : ''}${hash ? `#${hash}` : ''}`;
 }
 
 function normalizeLocale(value: FormDataEntryValue | null) {
@@ -84,13 +85,14 @@ export async function createCalendarAction(formData: FormData) {
       buildAdminRedirectPath(
         locale,
         {
-          contentLocale,
+          contentLocale: 'ru',
           error:
             locale === 'en'
               ? 'Create the Russian version first, then add translations.'
               : 'Сначала создайте русскую версию, затем добавьте переводы.',
         },
-        'create-calendar',
+        undefined,
+        '/new',
       ),
     );
   }
@@ -109,7 +111,8 @@ export async function createCalendarAction(formData: FormData) {
               ? 'Fill in the title, description, and upload the first 2 photos.'
               : 'Заполните название, описание и загрузите первые 2 фото.',
         },
-        'create-calendar',
+        undefined,
+        '/new',
       ),
     );
   }
@@ -150,21 +153,25 @@ export async function createCalendarAction(formData: FormData) {
               ? 'Failed to create calendar item.'
               : 'Не удалось создать запись календаря.'),
         },
-        'create-calendar',
+        undefined,
+        '/new',
       ),
     );
   }
 
+  const createdCalendar = (await response.json().catch(() => null)) as { id?: number } | null;
   revalidateCalendarPages();
+
+  if (!createdCalendar?.id) {
+    redirect(buildAdminRedirectPath(locale, { contentLocale, status: 'created' }));
+  }
 
   redirect(
     buildAdminRedirectPath(
       locale,
-      {
-        contentLocale,
-        status: 'created',
-      },
-      'create-calendar',
+      { contentLocale, status: 'created' },
+      undefined,
+      `/${createdCalendar.id}`,
     ),
   );
 }
@@ -244,18 +251,20 @@ export async function updateCalendarAction(formData: FormData) {
   const values = getCalendarFormPayload(formData);
 
   if (!calendarId || !values.title || !values.description) {
+    const editorPath = /^\d+$/.test(calendarId) ? `/${calendarId}` : '';
+
     redirect(
       buildAdminRedirectPath(
         locale,
         {
           contentLocale,
-          edit: calendarId,
           error:
             locale === 'en'
               ? 'Fill in the title and description.'
               : 'Заполните название и описание.',
         },
-        calendarId ? `calendar-${calendarId}` : 'manage-calendars',
+        editorPath ? undefined : 'manage-calendars',
+        editorPath,
       ),
     );
   }
@@ -290,14 +299,14 @@ export async function updateCalendarAction(formData: FormData) {
         locale,
         {
           contentLocale,
-          edit: calendarId,
           error:
             rawMessage ||
             (locale === 'en'
               ? 'Failed to update calendar item.'
               : 'Не удалось обновить запись календаря.'),
         },
-        calendarId ? `calendar-${calendarId}` : 'manage-calendars',
+        undefined,
+        `/${calendarId}`,
       ),
     );
   }
@@ -310,10 +319,9 @@ export async function updateCalendarAction(formData: FormData) {
       {
         contentLocale,
         status: 'updated',
-        calendar: calendarId,
-        edit: calendarId,
       },
-      `calendar-${calendarId}`,
+      undefined,
+      `/${calendarId}`,
     ),
   );
 }

@@ -150,8 +150,13 @@ export default function ArticleRichTextEditor({
 
   useEffect(() => {
     if (!editor) return;
-    if (JSON.stringify(editor.getJSON()) === JSON.stringify(defaultDocument)) return;
-    editor.commands.setContent(defaultDocument, { emitUpdate: false });
+    const nextDocument = editor.schema.nodeFromJSON(defaultDocument);
+    if (editor.state.doc.eq(nextDocument)) return;
+
+    const { from, to } = editor.state.selection;
+    const wasFocused = editor.isFocused;
+    editor.commands.setContent(nextDocument, { emitUpdate: false });
+    if (wasFocused) editor.commands.setTextSelection({ from, to });
   }, [defaultDocument, editor]);
 
   const toolbarState =

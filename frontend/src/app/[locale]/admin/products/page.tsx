@@ -56,9 +56,7 @@ export default async function AdminProductsPage({
   const legacyCategoryId = parseEntityId(query.category ?? '');
 
   if (legacyProductId) {
-    redirect(
-      `/${locale}/admin/products/${legacyProductId}?contentLocale=${contentLocale}`,
-    );
+    redirect(`/${locale}/admin/products/${legacyProductId}?contentLocale=${contentLocale}`);
   }
 
   if (legacyCategoryId) {
@@ -88,29 +86,7 @@ export default async function AdminProductsPage({
       contentLocale={contentLocale}
       description="Быстро находите товары, контролируйте переводы и открывайте отдельный редактор без перегруженных форм."
       locale={locale}
-      title="Управление товарами"
-    >
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-lg border border-[#0b5a45]/10 bg-white px-4 py-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6a7f76]">
-            Всего товаров
-          </p>
-          <p className="mt-1 text-2xl font-semibold text-[#0b3e31]">{products.length}</p>
-        </div>
-        <div className="rounded-lg border border-[#0b5a45]/10 bg-white px-4 py-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6a7f76]">
-            Категорий
-          </p>
-          <p className="mt-1 text-2xl font-semibold text-[#0b3e31]">{categories.length}</p>
-        </div>
-        <div className="rounded-lg border border-[#0b5a45]/10 bg-white px-4 py-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6a7f76]">
-            Нужно заполнить {contentLocale.toUpperCase()}
-          </p>
-          <p className="mt-1 text-2xl font-semibold text-[#0b3e31]">{missingTranslations}</p>
-        </div>
-      </div>
-
+      title="Управление товарами">
       <AdminPanel
         className="mt-5"
         badge="Каталог"
@@ -120,21 +96,18 @@ export default async function AdminProductsPage({
           <div className="flex flex-col gap-2 sm:flex-row">
             <Link
               href={withContentLocale('/admin/products/categories', contentLocale)}
-              className={adminCx(adminSecondaryButtonClassName, 'gap-2')}
-            >
+              className={adminCx(adminSecondaryButtonClassName, 'gap-2')}>
               <FiFolder aria-hidden="true" />
               Переводы категорий
             </Link>
             <Link
               href={withContentLocale('/admin/products/new', 'ru')}
-              className={adminCx(adminPrimaryButtonClassName, 'gap-2')}
-            >
+              className={adminCx(adminPrimaryButtonClassName, 'gap-2')}>
               <FiPlus aria-hidden="true" />
               Добавить товар
             </Link>
           </div>
-        }
-      >
+        }>
         <div className="space-y-4">
           {statusMessage ? <AdminNotice tone="success">{statusMessage}</AdminNotice> : null}
           {query.error ? <AdminNotice tone="error">{query.error}</AdminNotice> : null}

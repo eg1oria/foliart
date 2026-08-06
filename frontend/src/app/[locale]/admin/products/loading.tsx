@@ -1,6 +1,6 @@
 export default function AdminProductsLoading() {
   return (
-    <main className="min-h-screen bg-[#f3f5f1] px-4 pb-10 pt-28 text-[#0b3e31] sm:px-6 md:pt-56 lg:px-8">
+    <main className="min-h-screen bg-[#f3f5f1] px-4 py-10 text-[#0b3e31] sm:px-6 lg:px-8">
       <div className="mx-auto max-w-[1500px] animate-pulse">
         <div className="rounded-xl border border-[#0b5a45]/8 bg-white p-5 sm:p-7">
           <div className="h-4 w-28 rounded bg-[#dfe8e1]" />

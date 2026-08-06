@@ -1,44 +1,30 @@
+import { redirect } from 'next/navigation';
+import { FiEdit3, FiExternalLink, FiFileText, FiPlus } from 'react-icons/fi';
+
+import AdminDeleteButton from '@/components/admin/AdminDeleteButton';
 import {
   AdminEmptyState,
   AdminNotice,
   AdminPanel,
   AdminShell,
-  AdminWorkspace,
 } from '@/components/admin/AdminShell';
-import AdminDeleteButton from '@/components/admin/AdminDeleteButton';
-import RichDescriptionEditor from '@/components/admin/RichDescriptionEditor';
 import {
-  adminBadgeClassName,
   adminCx,
   adminDangerButtonClassName,
-  adminDetailsClassName,
-  adminFieldClassName,
-  adminFileInputClassName,
-  adminHintClassName,
-  adminInputClassName,
-  adminInputOnWhiteClassName,
-  adminLabelClassName,
-  adminOptionalLabelClassName,
   adminPrimaryButtonClassName,
   adminSecondaryButtonClassName,
-  adminSummaryClassName,
-  adminTextareaOnWhiteClassName,
 } from '@/components/admin/adminStyles';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
 import { requireAdminSession } from '@/lib/adminAuthServer';
 import { getCalendars, noStoreApiFetchOptions, type CalendarEntry } from '@/lib/api';
 import { getCalendarHref, getCalendarsAdminCopy } from '@/lib/calendars';
-import {
-  getContentLocaleLabel,
-  normalizeContentLocale,
-  withContentLocale,
-} from '@/lib/contentLocales';
+import { normalizeContentLocale, withContentLocale } from '@/lib/contentLocales';
 import { parseEntityId } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
 import { richDescriptionToPlainText } from '@/lib/richDescription';
-import { FiEdit3, FiExternalLink, FiFileText } from 'react-icons/fi';
-import { createCalendarAction, deleteCalendarAction, updateCalendarAction } from './actions';
+
+import { deleteCalendarAction } from './actions';
 
 type AdminPageSearchParams = {
   calendar?: string;
@@ -49,287 +35,13 @@ type AdminPageSearchParams = {
   status?: string;
 };
 
-type CalendarFormValues = Pick<
-  CalendarEntry,
-  'title' | 'titleEn' | 'description' | 'descriptionEn' | 'pdfUrl'
->;
-
-const calendarImageFields = [
-  {
-    inputName: 'image1',
-    entryKey: 'imageUrl1',
-    index: 1,
-    createRequired: true,
-  },
-  {
-    inputName: 'image2',
-    entryKey: 'imageUrl2',
-    index: 2,
-    createRequired: true,
-  },
-  {
-    inputName: 'image3',
-    entryKey: 'imageUrl3',
-    index: 3,
-    createRequired: false,
-  },
-  {
-    inputName: 'image4',
-    entryKey: 'imageUrl4',
-    index: 4,
-    createRequired: false,
-  },
-] as const;
-
-type CalendarImageInputName = (typeof calendarImageFields)[number]['inputName'];
-
-type CalendarImageSlotCopy = Record<
-  CalendarImageInputName,
-  {
-    hint: string;
-    title: string;
-  }
-> & {
-  adminSubtitle: string;
-  emptySlot: string;
-  formDescription: string;
-  imageHint: string;
-};
-
-function getCalendarImageSlotCopy(locale: string): CalendarImageSlotCopy {
-  if (locale === 'en') {
-    return {
-      adminSubtitle:
-        'Create crop calendar items and keep every image in the right slot for the card, hero, details, and lower showcase block.',
-      formDescription:
-        'Photo 1 is used for the top banner and card cover. Photo 2 is shown beside the description. Photo 3 is the large showcase image, and photo 4 is the background for the lower block.',
-      imageHint:
-        'Upload JPG, PNG, or WEBP up to 5 MB. The first two photos are required for a new item.',
-      emptySlot: 'No photo uploaded yet.',
-      image1: {
-        title: 'Top banner and card cover',
-        hint: 'Shown in the calendar list and at the top of the details page.',
-      },
-      image2: {
-        title: 'Photo beside the description',
-        hint: 'Shown in the main content block of the details page.',
-      },
-      image3: {
-        title: 'Large showcase image',
-        hint: 'Displayed large in the lower block of the crop page. Can be uploaded separately for each content language.',
-      },
-      image4: {
-        title: 'Background for the lower block',
-        hint: 'Stretches across the lower block behind the large showcase image.',
-      },
-    };
-  }
-
-  return {
-    adminSubtitle:
-      'Добавляйте записи календаря и раскладывайте фото по понятным слотам для карточки, шапки, блока с описанием и нижнего акцентного блока.',
-    formDescription:
-      'Фото 1 используется для верхнего баннера и обложки карточки. Фото 2 показывается рядом с описанием. Фото 3 — большая акцентная картинка, а фото 4 идет на фон нижнего блока.',
-    imageHint:
-      'Поддерживаются JPG, PNG и WEBP до 5 МБ. Для новой записи обязательны только первые 2 фото.',
-    emptySlot: 'Фото еще не загружено.',
-    image1: {
-      title: 'Верхний баннер и обложка карточки',
-      hint: 'Показывается в списке календаря и в шапке страницы культуры.',
-    },
-    image2: {
-      title: 'Фото рядом с описанием',
-      hint: 'Показывается в основном контентном блоке страницы культуры.',
-    },
-    image3: {
-      title: 'Большая акцентная картинка',
-      hint: 'Отображается крупно в нижнем блоке страницы культуры. Можно загружать отдельно для каждого языка контента.',
-    },
-    image4: {
-      title: 'Фон нижнего блока',
-      hint: 'Растягивается на весь нижний блок позади большой картинки.',
-    },
-  };
-}
-
-function getCalendarPdfCopy(locale: string) {
-  if (locale === 'en') {
-    return {
-      label: 'Calendar PDF',
-      hint: 'Upload a separate PDF for each content language (up to 20 MB). If a PDF is uploaded, the "View calendar" button on the site opens it instead of the showcase image.',
-      current: 'Current file:',
-      none: 'No PDF uploaded yet.',
-      view: 'Open PDF',
-      replace: 'Upload a new file to replace the current PDF, or leave empty to keep it.',
-    };
-  }
-
-  return {
-    label: 'PDF календаря',
-    hint: 'Загрузите отдельный PDF для каждого языка контента (до 20 МБ). Если PDF загружен, кнопка «Смотреть календарь» на сайте будет открывать именно его вместо акцентной картинки.',
-    current: 'Текущий файл:',
-    none: 'PDF еще не загружен.',
-    view: 'Открыть PDF',
-    replace:
-      'Загрузите новый файл, чтобы заменить текущий PDF, либо оставьте поле пустым, чтобы сохранить его.',
-  };
-}
-
-function CalendarFormFields({
-  contentLocale,
-  copy,
-  locale,
-  values,
-  imageRequired,
-}: {
-  contentLocale: string;
-  copy: ReturnType<typeof getCalendarsAdminCopy>;
-  locale: string;
-  values?: Partial<CalendarFormValues>;
-  imageRequired: boolean;
-}) {
-  const imageSlotCopy = getCalendarImageSlotCopy(locale);
-  const pdfCopy = getCalendarPdfCopy(locale);
-
-  return (
-    <div className="space-y-5">
-      <label className={adminFieldClassName}>
-        <span className={adminLabelClassName}>{copy.titleLabel}</span>
-        <input
-          name="title"
-          type="text"
-          required
-          defaultValue={values?.title ?? ''}
-          placeholder={
-            contentLocale === 'en' ? 'For example, winter wheat' : 'Например, озимая пшеница'
-          }
-          className={adminInputClassName}
-        />
-      </label>
-
-      <div className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-2">
-          {calendarImageFields.map((field) => {
-            const isRequired = imageRequired ? field.createRequired : false;
-            const slotCopy = imageSlotCopy[field.inputName];
-
-            return (
-              <div
-                key={field.inputName}
-                className="rounded-lg border border-[#0b5a45]/10 bg-[#f8f7f2] p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className={adminLabelClassName}>
-                      {copy.imageLabelPrefix} {field.index}
-                    </p>
-                    <p className="mt-1 text-sm font-semibold leading-6 text-[#0b3e31]">
-                      {slotCopy.title}
-                    </p>
-                  </div>
-
-                  {!isRequired ? (
-                    <span className={adminBadgeClassName}>{copy.optionalLabel}</span>
-                  ) : null}
-                </div>
-
-                <p className={adminCx('mt-2', adminHintClassName)}>{slotCopy.hint}</p>
-
-                <input
-                  name={field.inputName}
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  required={isRequired}
-                  className={adminCx('mt-4', adminFileInputClassName)}
-                />
-              </div>
-            );
-          })}
-        </div>
-
-        <p className={adminHintClassName}>
-          {imageRequired ? imageSlotCopy.imageHint : copy.replaceImageHint}
-        </p>
-      </div>
-
-      <div className="rounded-lg border border-[#0b5a45]/10 bg-[#f8f7f2] p-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <p className={adminLabelClassName}>{pdfCopy.label}</p>
-          <span className={adminBadgeClassName}>{copy.optionalLabel}</span>
-        </div>
-
-        <p className={adminCx('mt-2', adminHintClassName)}>{pdfCopy.hint}</p>
-
-        {values?.pdfUrl ? (
-          <p className="mt-2 text-sm text-[#0b3e31]">
-            {pdfCopy.current}{' '}
-            <a
-              href={resolveMediaUrl(values.pdfUrl) ?? undefined}
-              target="_blank"
-              rel="noreferrer"
-              className="font-semibold underline underline-offset-2">
-              {pdfCopy.view}
-            </a>
-          </p>
-        ) : (
-          <p className="mt-2 text-sm text-[#6a7f76]">{pdfCopy.none}</p>
-        )}
-
-        <input
-          name="pdf"
-          type="file"
-          accept="application/pdf"
-          className={adminCx('mt-4', adminFileInputClassName)}
-        />
-
-        <p className={adminCx('mt-2', adminHintClassName)}>{pdfCopy.replace}</p>
-      </div>
-
-      <div className={adminFieldClassName}>
-        <span className={adminLabelClassName}>{copy.descriptionLabel}</span>
-        <RichDescriptionEditor
-          defaultValue={values?.description ?? ''}
-          label={copy.descriptionLabel}
-          placeholder={copy.descriptionLabel}
-          required
-        />
-      </div>
-
-      <div className="hidden">
-        <div>
-          <p className={adminBadgeClassName}>{copy.translationSectionTitle}</p>
-          <p className={adminCx('mt-3', adminHintClassName)}>{copy.translationHint}</p>
-        </div>
-
-        <div className="mt-5 grid gap-5 md:grid-cols-2">
-          <label className={adminFieldClassName}>
-            <span className={adminLabelClassName}>
-              {copy.titleEnLabel}
-              <span className={adminOptionalLabelClassName}> ({copy.optionalLabel})</span>
-            </span>
-            <input
-              name="titleEn"
-              type="text"
-              defaultValue={values?.titleEn ?? ''}
-              className={adminInputOnWhiteClassName}
-            />
-          </label>
-
-          <label className={adminFieldClassName}>
-            <span className={adminLabelClassName}>
-              {copy.descriptionEnLabel}
-              <span className={adminOptionalLabelClassName}> ({copy.optionalLabel})</span>
-            </span>
-            <textarea
-              name="descriptionEn"
-              rows={6}
-              defaultValue={values?.descriptionEn ?? ''}
-              className={adminTextareaOnWhiteClassName}
-            />
-          </label>
-        </div>
-      </div>
-    </div>
-  );
+function getImageCount(calendar: CalendarEntry) {
+  return [
+    calendar.imageUrl1,
+    calendar.imageUrl2,
+    calendar.imageUrl3,
+    calendar.imageUrl4,
+  ].filter((image) => image?.trim()).length;
 }
 
 export default async function AdminCalendarsPage({
@@ -342,383 +54,263 @@ export default async function AdminCalendarsPage({
   const { locale } = await params;
   await requireAdminSession(locale, `/${locale}/admin/calendars`);
 
-  const {
-    calendar,
-    contentLocale: contentLocaleParam,
-    edit,
-    error,
-    manageError,
-    status,
-  } = await searchParams;
-  const contentLocale = normalizeContentLocale(contentLocaleParam);
-  const contentLocaleLabel = getContentLocaleLabel(contentLocale);
+  const query = await searchParams;
+  const contentLocale = normalizeContentLocale(query.contentLocale);
   const copy = getCalendarsAdminCopy(locale);
-  const imageSlotCopy = getCalendarImageSlotCopy(locale);
-  const pdfCopy = getCalendarPdfCopy(locale);
+  const editCalendarId = parseEntityId(query.edit ?? '');
+  const statusCalendarId = parseEntityId(query.calendar ?? '');
+  const legacyEditorId = editCalendarId ?? (query.status === 'updated' ? statusCalendarId : null);
+
+  if (legacyEditorId) {
+    const editorParams = new URLSearchParams({ contentLocale });
+    if (query.error) editorParams.set('error', query.error);
+    if (query.status === 'updated') editorParams.set('status', 'updated');
+    redirect(`/${locale}/admin/calendars/${legacyEditorId}?${editorParams.toString()}`);
+  }
+
   const calendars = await getCalendars(contentLocale, noStoreApiFetchOptions, contentLocale);
-  const editCalendarId = parseEntityId(edit ?? '');
-  const statusCalendarId = parseEntityId(calendar ?? '');
-  const topLevelError = error && !editCalendarId ? error : null;
-  const managePanelError = manageError ?? null;
-  const deletedStatusMessage =
-    locale === 'en' ? 'Calendar item deleted successfully.' : 'Запись календаря удалена.';
-  const topLevelStatus = status === 'created' ? copy.statusCreated : null;
-  const manageStatus = status === 'deleted' ? deletedStatusMessage : null;
-  const completeGalleryCount = calendars.filter(
-    (calendarItem) =>
-      calendarItem.imageUrl1?.trim() &&
-      calendarItem.imageUrl2?.trim() &&
-      calendarItem.imageUrl3?.trim() &&
-      calendarItem.imageUrl4?.trim(),
-  ).length;
-  const requiredPhotosReadyCount = calendars.filter(
-    (calendarItem) => calendarItem.imageUrl1?.trim() && calendarItem.imageUrl2?.trim(),
-  ).length;
-  const untranslatedCalendars = calendars.filter(
-    (calendarItem) => !calendarItem.adminTranslation?.isComplete,
-  ).length;
-  const createBadge = locale === 'en' ? 'Create' : 'Создание';
+  const successMessage =
+    query.status === 'created'
+      ? copy.statusCreated
+      : query.status === 'deleted'
+        ? locale === 'en'
+          ? 'Calendar item deleted successfully.'
+          : 'Запись календаря удалена.'
+        : null;
   const manageBadge = locale === 'en' ? 'Manage' : 'Управление';
-  const openEditorLabel = locale === 'en' ? 'Open editor' : 'Открыть редактор';
+  const addLabel = locale === 'en' ? 'Add calendar item' : 'Добавить запись';
+  const editLabel = locale === 'en' ? 'Edit' : 'Изменить';
   const deleteLabel = locale === 'en' ? 'Delete' : 'Удалить';
   const deletingLabel = locale === 'en' ? 'Deleting...' : 'Удаление...';
-  const stats = [
-    {
-      label: locale === 'en' ? 'Entries' : 'Записи',
-      value: String(calendars.length),
-      hint:
-        locale === 'en'
-          ? 'Crop pages currently available in the calendar.'
-          : 'Страницы культур, которые сейчас доступны в календаре.',
-    },
-    {
-      label: locale === 'en' ? 'Required photos' : 'Обязательные фото',
-      value: String(requiredPhotosReadyCount),
-      hint:
-        locale === 'en'
-          ? 'Entries that already have the first two required images.'
-          : 'Записи, в которых уже есть первые два обязательных изображения.',
-    },
-    {
-      label: locale === 'en' ? 'Full gallery' : 'Полная галерея',
-      value: String(completeGalleryCount),
-      hint:
-        locale === 'en'
-          ? 'Entries with all four image slots filled.'
-          : 'Записи, в которых заполнены все четыре фотослота.',
-    },
-    {
-      label: locale === 'en' ? `Need ${contentLocaleLabel}` : `Нужен ${contentLocaleLabel}`,
-      value: String(untranslatedCalendars),
-      hint:
-        locale === 'en'
-          ? 'Entries still missing English title or description.'
-          : 'Записи, в которых еще не хватает английского названия или описания.',
-    },
-  ];
-  const shortcuts = [
-    {
-      href: '#create-calendar',
-      label: locale === 'en' ? 'Add entry' : 'Добавить запись',
-    },
-    {
-      href: '#manage-calendars',
-      label: locale === 'en' ? 'Browse entries' : 'Список записей',
-    },
-  ];
+
+  const renderTranslationBadge = (calendar: CalendarEntry) => {
+    const complete = Boolean(calendar.adminTranslation?.isComplete);
+
+    return (
+      <span
+        className={adminCx(
+          'inline-flex items-center rounded-md px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.12em]',
+          complete ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700',
+        )}>
+        {complete
+          ? `${contentLocale.toUpperCase()} · ${locale === 'en' ? 'ready' : 'готово'}`
+          : `${contentLocale.toUpperCase()} · ${locale === 'en' ? 'missing' : 'не заполнено'}`}
+      </span>
+    );
+  };
+
+  const renderMediaStatus = (calendar: CalendarEntry) => {
+    const imageCount = getImageCount(calendar);
+    const hasPdf = Boolean(calendar.adminTranslation?.pdfUrl?.trim());
+
+    return (
+      <div className="text-sm text-[#567068]">
+        <p>{locale === 'en' ? `${imageCount}/4 photos` : `${imageCount}/4 фото`}</p>
+        <p
+          className={adminCx(
+            'mt-1 inline-flex items-center gap-1 text-xs',
+            hasPdf ? 'text-[#0b5a45]' : 'text-[#8a9a93]',
+          )}>
+          <FiFileText aria-hidden="true" />
+          {hasPdf
+            ? locale === 'en'
+              ? 'PDF ready'
+              : 'PDF загружен'
+            : locale === 'en'
+              ? 'No PDF'
+              : 'Без PDF'}
+        </p>
+      </div>
+    );
+  };
+
+  const renderActions = (calendar: CalendarEntry) => (
+    <div className="flex items-center justify-end gap-1.5">
+      <Link
+        href={getCalendarHref(calendar)}
+        aria-label={
+          locale === 'en'
+            ? `Open ${calendar.title} on the site`
+            : `Открыть запись «${calendar.title}» на сайте`
+        }
+        className={adminCx(adminSecondaryButtonClassName, 'h-9 min-h-9 w-9 px-0')}>
+        <FiExternalLink aria-hidden="true" />
+      </Link>
+      <Link
+        href={withContentLocale(`/admin/calendars/${calendar.id}`, contentLocale)}
+        className={adminCx(adminSecondaryButtonClassName, 'h-9 min-h-9 gap-1.5 px-3 text-xs')}>
+        <FiEdit3 aria-hidden="true" />
+        {editLabel}
+      </Link>
+      <form action={deleteCalendarAction}>
+        <input type="hidden" name="locale" value={locale} />
+        <input type="hidden" name="contentLocale" value={contentLocale} />
+        <input type="hidden" name="calendarId" value={calendar.id} />
+        <input
+          type="hidden"
+          name="calendarTitle"
+          value={calendar.slugSourceTitle ?? calendar.title}
+        />
+        <AdminDeleteButton
+          className={adminCx(adminDangerButtonClassName, 'h-9 min-h-9 w-9 px-0')}
+          confirmMessage={
+            locale === 'en'
+              ? `Delete calendar item "${calendar.title}"? This cannot be undone.`
+              : `Удалить запись календаря «${calendar.title}»? Это действие нельзя отменить.`
+          }
+          iconOnly
+          pendingLabel={deletingLabel}>
+          {deleteLabel}
+        </AdminDeleteButton>
+      </form>
+    </div>
+  );
 
   return (
     <AdminShell
       activeTab="calendars"
       backHref="/calendar"
       backLabel={copy.backToSite}
-      description={imageSlotCopy.adminSubtitle}
       contentLocale={contentLocale}
+      description={
+        locale === 'en'
+          ? 'Browse calendar entries in a compact list and open a separate editor for content and media.'
+          : 'Просматривайте записи компактным списком и открывайте отдельный редактор для текста и медиа.'
+      }
       locale={locale}
-      shortcuts={shortcuts}
-      stats={stats}
       title={copy.adminTitle}>
-      <AdminWorkspace>
-        <AdminPanel
-          id="create-calendar"
-          badge={createBadge}
-          title={copy.adminFormTitle}
-          description={imageSlotCopy.formDescription}>
-          <div className="space-y-4">
-            {topLevelStatus ? <AdminNotice tone="success">{topLevelStatus}</AdminNotice> : null}
-            {topLevelError ? <AdminNotice tone="error">{topLevelError}</AdminNotice> : null}
+      <AdminPanel
+        id="manage-calendars"
+        badge={manageBadge}
+        title={copy.existingTitle}
+        description={
+          locale === 'en'
+            ? 'The list shows translation, gallery, and PDF readiness for the selected content language.'
+            : 'В списке видны состояние перевода, галереи и PDF для выбранного языка контента.'
+        }
+        tone="muted"
+        headerContent={
+          <Link
+            href={withContentLocale('/admin/calendars/new', 'ru')}
+            className={adminCx(adminPrimaryButtonClassName, 'gap-2')}>
+            <FiPlus aria-hidden="true" />
+            {addLabel}
+          </Link>
+        }>
+        {successMessage ? (
+          <div className="mb-5">
+            <AdminNotice tone="success">{successMessage}</AdminNotice>
           </div>
+        ) : null}
+        {query.error ? (
+          <div className="mb-5">
+            <AdminNotice tone="error">{query.error}</AdminNotice>
+          </div>
+        ) : null}
+        {query.manageError ? (
+          <div className="mb-5">
+            <AdminNotice tone="error">{query.manageError}</AdminNotice>
+          </div>
+        ) : null}
 
-          {contentLocale === 'ru' ? (
-            <form action={createCalendarAction} className="mt-6 space-y-6">
-              <input type="hidden" name="locale" value={locale} />
-              <input type="hidden" name="contentLocale" value={contentLocale} />
-
-              <CalendarFormFields
-                contentLocale={contentLocale}
-                copy={copy}
-                locale={locale}
-                imageRequired
-              />
-
-              <div className="flex flex-col gap-3 border-t border-[#0b5a45]/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
-                <button
-                  type="submit"
-                  className={adminCx(adminPrimaryButtonClassName, 'w-full sm:w-auto')}>
-                  {copy.submitLabel}
-                </button>
-                <p className={adminHintClassName}>{imageSlotCopy.imageHint}</p>
-              </div>
-            </form>
-          ) : (
-            <div className="mt-6">
-              <AdminEmptyState
-                badge={contentLocaleLabel}
-                title={
-                  locale === 'en'
-                    ? 'Create the Russian calendar entry first'
-                    : 'Сначала создайте запись календаря на русском языке'
-                }
-                description={
-                  locale === 'en'
-                    ? 'Switch to RU to create the base entry, then return here to add its translation.'
-                    : 'Переключитесь на RU, создайте основную запись, затем вернитесь сюда и добавьте перевод.'
-                }
-              />
-            </div>
-          )}
-        </AdminPanel>
-
-        <AdminPanel
-          id="manage-calendars"
-          badge={manageBadge}
-          title={copy.existingTitle}
-          description={imageSlotCopy.formDescription}
-          tone="muted"
-          headerContent={<span className={adminBadgeClassName}>{calendars.length}</span>}>
-          {manageStatus ? (
-            <div className="mb-5">
-              <AdminNotice tone="success">{manageStatus}</AdminNotice>
-            </div>
-          ) : null}
-          {managePanelError ? (
-            <div className="mb-5">
-              <AdminNotice tone="error">{managePanelError}</AdminNotice>
-            </div>
-          ) : null}
-          {calendars.length === 0 ? (
-            <AdminEmptyState
-              badge={manageBadge}
-              title={
-                locale === 'en' ? 'Calendar entries will appear here' : 'Записи появятся здесь'
-              }
-              description={copy.emptyState}
-            />
-          ) : (
-            <div className="space-y-5">
-              {calendars.map((calendarItem) => {
-                const isEditing =
-                  editCalendarId === calendarItem.id || statusCalendarId === calendarItem.id;
-                const hasContentTranslation = Boolean(calendarItem.adminTranslation?.isComplete);
-
-                return (
-                  <div
-                    key={calendarItem.id}
-                    id={`calendar-${calendarItem.id}`}
-                    className="scroll-mt-6 rounded-lg border border-[#0b5a45]/10 bg-white p-4 shadow-[0_12px_40px_-30px_rgba(11,62,49,0.8)] sm:p-5">
-                    {/* Header row: title + badges + action buttons */}
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="text-base font-semibold text-[#0b3e31] sm:text-lg">
-                            {calendarItem.title}
-                          </h3>
-                          <span
-                            className={adminCx(
-                              'inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em]',
-                              hasContentTranslation
-                                ? 'bg-emerald-50 text-emerald-700'
-                                : 'bg-amber-50 text-amber-700',
-                            )}>
-                            {hasContentTranslation
-                              ? `${contentLocaleLabel} ✓`
-                              : locale === 'en'
-                                ? `Needs ${contentLocaleLabel}`
-                                : `Нужен ${contentLocaleLabel}`}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="grid w-full grid-cols-[2.5rem_minmax(0,1fr)] gap-1.5 sm:w-auto sm:flex sm:shrink-0">
-                        <Link
-                          href={getCalendarHref(calendarItem)}
-                          className={adminCx(
-                            adminSecondaryButtonClassName,
-                            'min-h-8 px-2.5 py-1.5 text-xs',
-                          )}>
-                          <FiExternalLink />
-                        </Link>
-                        <Link
-                          href={withContentLocale(
-                            `/admin/calendars?edit=${calendarItem.id}#calendar-${calendarItem.id}`,
-                            contentLocale,
-                          )}
-                          className={adminCx(
-                            adminSecondaryButtonClassName,
-                            'min-h-8 px-2.5 py-1.5 text-xs',
-                          )}>
-                          <FiEdit3 className="mr-1" />
-                          {openEditorLabel}
-                        </Link>
-                        <form action={deleteCalendarAction} className="col-span-2 sm:col-span-1">
-                          <input type="hidden" name="locale" value={locale} />
-                          <input type="hidden" name="contentLocale" value={contentLocale} />
-                          <input type="hidden" name="calendarId" value={calendarItem.id} />
-                          <input
-                            type="hidden"
-                            name="calendarTitle"
-                            value={calendarItem.slugSourceTitle ?? calendarItem.title}
-                          />
-                          <AdminDeleteButton
-                            className={adminCx(
-                              adminDangerButtonClassName,
-                              'min-h-8 w-full px-2.5 py-1.5 text-xs sm:w-auto',
-                            )}
-                            confirmMessage={
-                              locale === 'en'
-                                ? `Delete calendar item "${calendarItem.title}"? This cannot be undone.`
-                                : `Удалить запись календаря «${calendarItem.title}»? Это действие нельзя отменить.`
-                            }
-                            pendingLabel={deletingLabel}>
-                            {deleteLabel}
-                          </AdminDeleteButton>
-                        </form>
-                      </div>
-                    </div>
-
-                    {/* Content: image grid + description */}
-                    <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start">
-                      <div className="grid grid-cols-4 gap-2 sm:w-[200px] sm:shrink-0 sm:grid-cols-2">
-                        {calendarImageFields.map((field) => {
-                          const imagePath = calendarItem[field.entryKey]?.trim();
-                          const imageSrc = resolveMediaUrl(imagePath);
-                          const slotCopy = imageSlotCopy[field.inputName];
-
-                          return (
-                            <div
-                              key={`${calendarItem.id}-${field.inputName}`}
-                              className="overflow-hidden rounded-md border border-[#0b5a45]/10 bg-[#eef3ef]">
-                              <div className="relative aspect-[1] overflow-hidden">
-                                {imagePath ? (
-                                  <MediaImage
-                                    src={imageSrc}
-                                    alt={`${calendarItem.title} ${field.index}`}
-                                    fill
-                                    sizes="(max-width: 640px) 22vw, 90px"
-                                    className="object-cover"
-                                    emptyState={
-                                      <div className="h-full w-full bg-[linear-gradient(135deg,#dfe9df,#b1c9b3,#6d8f70)]" />
-                                    }
-                                  />
-                                ) : (
-                                  <div className="flex h-full items-center justify-center text-[9px] text-[#6a7f76]">
-                                    {field.index}
-                                  </div>
-                                )}
-                              </div>
-                              <div className="px-1.5 py-1">
-                                <p className="truncate text-[9px] font-semibold uppercase tracking-[0.1em] text-[#6d826e]">
-                                  {slotCopy.title}
-                                </p>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <p className="line-clamp-3 text-sm leading-6 text-[#567068]">
-                          {richDescriptionToPlainText(calendarItem.description)}
-                        </p>
-
-                        <div className="mt-2 flex items-center gap-1.5 text-xs">
-                          {calendarItem.adminTranslation?.pdfUrl ? (
-                            <a
-                              href={
-                                resolveMediaUrl(calendarItem.adminTranslation.pdfUrl) ?? undefined
+        {calendars.length === 0 ? (
+          <AdminEmptyState
+            badge={manageBadge}
+            title={locale === 'en' ? 'Calendar entries will appear here' : 'Записи появятся здесь'}
+            description={copy.emptyState}
+          />
+        ) : (
+          <>
+            <div className="hidden overflow-hidden rounded-lg border border-[#0b5a45]/10 bg-white md:block">
+              <table className="w-full table-fixed border-collapse text-left">
+                <thead className="bg-[#eef4ef] text-[11px] font-semibold uppercase tracking-[0.12em] text-[#567068]">
+                  <tr>
+                    <th className="w-[45%] px-4 py-3">
+                      {locale === 'en' ? 'Calendar item' : 'Запись календаря'}
+                    </th>
+                    <th className="w-[16%] px-4 py-3">{locale === 'en' ? 'Media' : 'Медиа'}</th>
+                    <th className="w-[17%] px-4 py-3">
+                      {locale === 'en' ? 'Translation' : 'Перевод'}
+                    </th>
+                    <th className="w-[22%] px-4 py-3 text-right">
+                      {locale === 'en' ? 'Actions' : 'Действия'}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#0b5a45]/8">
+                  {calendars.map((calendar) => (
+                    <tr
+                      key={calendar.id}
+                      id={`calendar-${calendar.id}`}
+                      className="scroll-mt-6 transition hover:bg-[#fbfcfa]">
+                      <td className="px-4 py-3">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-[#0b5a45]/10 bg-[#f7f9f6]">
+                            <MediaImage
+                              src={resolveMediaUrl(calendar.imageUrl1)}
+                              alt=""
+                              fill
+                              sizes="48px"
+                              className="object-cover"
+                              emptyState={
+                                <div className="h-full w-full bg-[linear-gradient(135deg,#dfe9df,#b1c9b3,#6d8f70)]" />
                               }
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1 font-semibold text-[#0b5a45] underline underline-offset-2">
-                              <FiFileText />
-                              {pdfCopy.view}
-                            </a>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 text-[#6a7f76]">
-                              <FiFileText />
-                              {pdfCopy.none}
-                            </span>
-                          )}
+                            />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate font-semibold text-[#0b3e31]">{calendar.title}</p>
+                            <p className="mt-0.5 truncate text-xs text-[#6a7f76]">
+                              {richDescriptionToPlainText(calendar.description) ||
+                                (locale === 'en'
+                                  ? 'Description is not filled in'
+                                  : 'Описание не заполнено')}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-
-                    <details open={isEditing} className={adminCx('mt-5', adminDetailsClassName)}>
-                      <summary className={adminSummaryClassName}>
-                        <span>{copy.editLabel}</span>
-                        <span className="text-xs font-medium text-[#6a7f76]">
-                          {locale === 'en'
-                            ? 'Inline calendar editor'
-                            : 'Встроенный редактор записи'}
-                        </span>
-                      </summary>
-
-                      <div className="border-t border-[#0b5a45]/10 p-4 sm:p-5">
-                        <div className="space-y-4">
-                          {status === 'updated' && statusCalendarId === calendarItem.id ? (
-                            <AdminNotice tone="success">{copy.statusUpdated}</AdminNotice>
-                          ) : null}
-
-                          {error && editCalendarId === calendarItem.id ? (
-                            <AdminNotice tone="error">{error}</AdminNotice>
-                          ) : null}
-                        </div>
-
-                        <form
-                          key={`${calendarItem.id}:${contentLocale}`}
-                          action={updateCalendarAction}
-                          className="mt-5 space-y-6">
-                          <input type="hidden" name="locale" value={locale} />
-                          <input type="hidden" name="contentLocale" value={contentLocale} />
-                          <input type="hidden" name="calendarId" value={calendarItem.id} />
-
-                          <CalendarFormFields
-                            contentLocale={contentLocale}
-                            copy={copy}
-                            locale={locale}
-                            values={{
-                              title: calendarItem.adminTranslation?.title ?? '',
-                              description: calendarItem.adminTranslation?.description ?? '',
-                              pdfUrl: calendarItem.adminTranslation?.pdfUrl ?? '',
-                            }}
-                            imageRequired={false}
-                          />
-
-                          <button
-                            type="submit"
-                            className={adminCx(adminPrimaryButtonClassName, 'w-full sm:w-auto')}>
-                            {copy.updateLabel}
-                          </button>
-                        </form>
-                      </div>
-                    </details>
-                  </div>
-                );
-              })}
+                      </td>
+                      <td className="px-4 py-3">{renderMediaStatus(calendar)}</td>
+                      <td className="px-4 py-3">{renderTranslationBadge(calendar)}</td>
+                      <td className="px-4 py-3">{renderActions(calendar)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          )}
-        </AdminPanel>
-      </AdminWorkspace>
+
+            <div className="space-y-3 md:hidden">
+              {calendars.map((calendar) => (
+                <article
+                  key={calendar.id}
+                  id={`calendar-mobile-${calendar.id}`}
+                  className="rounded-lg border border-[#0b5a45]/10 bg-white p-4 shadow-[0_14px_35px_-32px_rgba(11,62,49,0.75)]">
+                  <div className="flex min-w-0 gap-3">
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md border border-[#0b5a45]/10 bg-[#f7f9f6]">
+                      <MediaImage
+                        src={resolveMediaUrl(calendar.imageUrl1)}
+                        alt=""
+                        fill
+                        sizes="64px"
+                        className="object-cover"
+                        emptyState={
+                          <div className="h-full w-full bg-[linear-gradient(135deg,#dfe9df,#b1c9b3,#6d8f70)]" />
+                        }
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="line-clamp-2 font-semibold text-[#0b3e31]">{calendar.title}</h3>
+                      <div className="mt-1">{renderMediaStatus(calendar)}</div>
+                      <div className="mt-2">{renderTranslationBadge(calendar)}</div>
+                    </div>
+                  </div>
+                  <div className="mt-4 border-t border-[#0b5a45]/8 pt-3">
+                    {renderActions(calendar)}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </>
+        )}
+      </AdminPanel>
     </AdminShell>
   );
 }

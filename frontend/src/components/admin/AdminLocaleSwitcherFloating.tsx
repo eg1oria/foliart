@@ -12,7 +12,6 @@ export function AdminLocaleSwitcherFloating({
   contentLocales,
   getContentLocaleLabel,
   headerRef,
-  hint,
   title,
 }: {
   contentLocale: string;
