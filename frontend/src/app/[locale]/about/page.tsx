@@ -6,6 +6,7 @@ import { TbArrowBackUp } from 'react-icons/tb';
 import { useLocale, useTranslations } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import { buildPageMetadata } from '@/lib/seo';
+import { getFullLogo } from '@/lib/logo';
 
 export async function generateMetadata({
   params,
@@ -34,7 +35,7 @@ export async function generateMetadata({
 export default function About() {
   const t = useTranslations('About');
   const locale = useLocale();
-  const logoSrc = locale === 'ru' ? '/logo5.PNG' : '/logo_eng-w.webp';
+  const logo = getFullLogo(locale);
 
   return (
     <main>
@@ -50,7 +51,13 @@ export default function About() {
         <div className="absolute inset-0 bg-black/50 -z-10" />
         <h1 className="mb-4 text-3xl font-bold text-white md:text-6xl">{t('title')}</h1>
         <p className="mb-2 text-lg text-white/70 md:text-xl">{t('subtitle')}</p>
-        <Image src={logoSrc} alt="Foliart logo" width={110} height={40} className="h-auto w-auto" />
+        <Image
+          src={logo.src}
+          alt="Foliart logo"
+          width={logo.width}
+          height={logo.height}
+          className="h-auto w-[110px]"
+        />
       </div>
 
       <div className="catalog-header flex gap-30 py-10">

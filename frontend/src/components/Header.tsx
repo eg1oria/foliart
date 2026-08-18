@@ -9,6 +9,7 @@ import { FiChevronDown } from 'react-icons/fi';
 import { RxHamburgerMenu } from 'react-icons/rx';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { formatProductCount } from '@/lib/catalog';
+import { getFullLogo } from '@/lib/logo';
 import { useLocale, useTranslations } from 'next-intl';
 import ContactModalTrigger from './ContactModalTrigger';
 import SearchTrigger from './search/SearchTrigger';
@@ -214,46 +215,17 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
     </Link>
   );
 
-  // Renders both logo variants stacked in a fixed-size container.
-  // Only the active locale's logo is visible (opacity-based swap),
-  // so the container dimensions never change and the header doesn't jank.
-  // Height is sized to fit the taller RU logo; EN logo uses object-contain to fit within.
-  const renderFullLogo = (width: number, className: string) => {
-    // RU logo (logo5.PNG) is roughly square-ish, EN logo is wide/horizontal.
-    // We use the RU logo's natural height as the container height.
-    // Adjust RU_LOGO_ASPECT to match the actual aspect ratio of logo5.PNG.
-    const RU_LOGO_ASPECT = 0.56; // height / width  →  ~54px at width=135
-    const containerHeight = Math.round(width * RU_LOGO_ASPECT);
+  const renderFullLogo = (className: string) => {
+    const logo = getFullLogo(locale);
 
     return (
-      <Link
-        href="/"
-        aria-label={t('home')}
-        className={`relative block flex-shrink-0 ${className}`}
-        style={{ width, height: containerHeight }}>
-        {/* RU logo */}
+      <Link href="/" aria-label={t('home')} className={`block flex-shrink-0 ${className}`}>
         <Image
-          src="/logo5.PNG"
+          src={logo.src}
           alt="Foliart logo"
-          fill
-          sizes={`${width}px`}
-          className="object-contain object-left transition-opacity duration-150"
-          style={{
-            opacity: locale === 'ru' ? 1 : 0,
-            pointerEvents: locale === 'ru' ? 'auto' : 'none',
-          }}
-        />
-        {/* EN / FR / ES logo */}
-        <Image
-          src="/logo_eng-w.webp"
-          alt="Foliart logo"
-          fill
-          sizes={`${width}px`}
-          className="object-contain object-left transition-opacity duration-150"
-          style={{
-            opacity: locale !== 'ru' ? 1 : 0,
-            pointerEvents: locale !== 'ru' ? 'auto' : 'none',
-          }}
+          width={logo.width}
+          height={logo.height}
+          className="h-auto w-full"
         />
       </Link>
     );
@@ -290,7 +262,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
 
         <div className="hidden items-center justify-between md:flex">
           {renderCompactLogo('h-auto w-14 lg:hidden')}
-          {renderFullLogo(135, 'hidden lg:block')}
+          {renderFullLogo('hidden w-[135px] lg:block')}
           <div className="flex items-center gap-6 lg:gap-9">
             <SearchTrigger className="h-10 w-10" iconSize={21} />
             {renderDesktopLocaleSwitcher()}
@@ -460,7 +432,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
             </button>
 
             {renderCompactLogo('h-auto w-12 lg:hidden')}
-            {renderFullLogo(110, 'hidden lg:block')}
+            {renderFullLogo('hidden w-[110px] lg:block')}
           </div>
 
           <div className="flex items-center gap-6 lg:gap-9">

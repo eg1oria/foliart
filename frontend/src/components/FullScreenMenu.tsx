@@ -6,6 +6,7 @@ import { FiChevronDown, FiSearch } from 'react-icons/fi';
 import { RxCross1 } from 'react-icons/rx';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { formatProductCount } from '@/lib/catalog';
+import { getFullLogo } from '@/lib/logo';
 import { useLocale, useTranslations } from 'next-intl';
 import ContactModalTrigger from './ContactModalTrigger';
 import SocialLinks from './SocialLinks';
@@ -40,7 +41,7 @@ export default function FullscreenMenu({
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
   const localeOptions: LocaleOption[] = ['ru', 'en', 'fr', 'es'];
-  const fullLogoSrc = locale === 'ru' ? '/logo5.PNG' : '/logo_eng-w.webp';
+  const fullLogo = getFullLogo(locale);
   const [isLocaleSwitcherOpen, setIsLocaleSwitcherOpen] = useState(false);
 
   const changeLocale = (nextLocale: LocaleOption) => {
@@ -78,7 +79,13 @@ export default function FullscreenMenu({
   );
 
   const renderFullLogo = (className: string) => (
-    <Image src={fullLogoSrc} alt="Foliart logo" width={135} height={80} className={className} />
+    <Image
+      src={fullLogo.src}
+      alt="Foliart logo"
+      width={fullLogo.width}
+      height={fullLogo.height}
+      className={className}
+    />
   );
 
   const renderDesktopLocaleSwitcher = () => (

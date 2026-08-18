@@ -1,13 +1,13 @@
 import Image from 'next/image';
 import { useLocale, useTranslations } from 'next-intl';
+import { getFullLogo } from '@/lib/logo';
 
 export default function Hero() {
   const t = useTranslations('Hero');
   const locale = useLocale();
   const isRu = locale === 'ru';
-  const logoSrc = isRu ? '/logo5.PNG' : '/logo_eng-w.webp';
   const logoWidth = 480;
-  const logoHeight = isRu ? 238 : 262;
+  const logo = getFullLogo(locale, logoWidth);
 
   const items = [
     {
@@ -33,10 +33,10 @@ export default function Hero() {
       <Image src="/hero.webp" alt="" fill sizes="100vw" className="object-cover -z-10" priority />
       <div className="absolute inset-0 bg-black/50 -z-10" />
       <Image
-        src={logoSrc}
+        src={logo.src}
         alt="Foliart logo"
-        width={logoWidth}
-        height={logoHeight}
+        width={logo.width}
+        height={logo.height}
         priority
         sizes="(max-width: 767px) calc(100vw - 32px), 520px"
         className={`mt-0 h-auto ${isRu ? 'md:mt-24' : 'md:mt-18'}`}
