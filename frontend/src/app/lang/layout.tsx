@@ -1,4 +1,7 @@
 import type { Metadata, Viewport } from 'next';
+import { notFound } from 'next/navigation';
+
+import { internalToolsEnabled } from '@/lib/internalTools';
 
 import '../globals.css';
 
@@ -16,6 +19,10 @@ export const viewport: Viewport = {
 };
 
 export default function LanguageComparisonLayout({ children }: { children: React.ReactNode }) {
+  if (!internalToolsEnabled) {
+    notFound();
+  }
+
   return (
     <html lang="ru">
       <body>{children}</body>

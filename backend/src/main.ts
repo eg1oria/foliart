@@ -6,10 +6,7 @@ import type { NextFunction, Request, Response } from 'express';
 import { getAdminApiSecret } from './admin-api.guard';
 import { AppModule } from './app.module';
 
-const developmentOrigins = [
-  'http://localhost:3000',
-  'http://127.0.0.1:3000',
-];
+const developmentOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000'];
 
 // Never fall back to `*`: an unset FRONTEND_URL must fail closed in production
 // and fall back to the local dev frontend everywhere else.

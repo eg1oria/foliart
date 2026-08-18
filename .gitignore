@@ -24,9 +24,11 @@ prod-from-server.db
 uploads/
 test_output.txt
 
-# IDE and OS files
+# IDE, agent and OS files
 .idea/
 .vscode/
+.claude/launch.json
+.claude/settings.local.json
 *.swp
 .DS_Store
 Thumbs.db

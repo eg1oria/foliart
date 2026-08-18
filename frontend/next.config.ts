@@ -41,8 +41,18 @@ const createConfig = (): NextConfig => {
         bodySizeLimit: maxAdminRequestBodySize,
       },
     },
+    // In production nginx terminates `/api/` and `/media/` in front of Next and
+    // proxies them straight to the backend; these rewrites are what make the
+    // very same client-side URLs work when Next is served on its own (local
+    // dev, `next start`). Keeping them as pure proxies — rather than as route
+    // handlers under `src/app/api` — means there is exactly one implementation
+    // of every endpoint, and it lives in the backend.
     async rewrites() {
       return [
+        {
+          source: '/api/:path*',
+          destination: `${backendUrl}/api/:path*`,
+        },
         {
           source: '/media/:path*',
           destination: `${backendUrl}/images/:path*`,

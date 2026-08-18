@@ -4,9 +4,7 @@ export const UI_MESSAGE_LOCALES = ['ru', 'en', 'fr', 'es'] as const;
 export type UiMessageLocale = (typeof UI_MESSAGE_LOCALES)[number];
 
 export type UiMessageValue =
-  | string
-  | UiMessageValue[]
-  | { [key: string]: UiMessageValue };
+  string | UiMessageValue[] | { [key: string]: UiMessageValue };
 export type UiMessageDocument = { [key: string]: UiMessageValue };
 
 const MAX_PAYLOAD_BYTES = 256 * 1024;
