@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { routing } from './i18n/routing';
 import {
   ADMIN_SESSION_COOKIE,
+  getCanonicalAdminPath,
   getDefaultAdminPath,
   getLocaleFromAdminPath,
   getSafeAdminNextPath,
@@ -23,6 +24,18 @@ export async function proxy(request: NextRequest) {
 
   if (!isAdminPath(pathname)) {
     return intlMiddleware(request);
+  }
+
+  // The admin UI only exists in Russian, but `/<locale>/admin/*` resolves for
+  // every routed locale. Send those to the canonical `ru` path so a single set
+  // of routes carries the session check.
+  const canonicalPath = getCanonicalAdminPath(pathname);
+
+  if (canonicalPath) {
+    const canonicalUrl = request.nextUrl.clone();
+    canonicalUrl.pathname = canonicalPath;
+
+    return NextResponse.redirect(canonicalUrl);
   }
 
   const locale = getLocaleFromAdminPath(pathname) ?? routing.defaultLocale;

@@ -1,10 +1,11 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, updateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getAdminApiHeaders } from '@/lib/adminApi';
 import { adminApiFetch, getAdminApiErrorMessage } from '@/lib/adminBackend';
 import { requireAdminSession } from '@/lib/adminAuthServer';
+import { articlesCacheTag } from '@/lib/api';
 import { getArticleHref } from '@/lib/articles';
 import { normalizeContentLocale } from '@/lib/contentLocales';
 
@@ -66,6 +67,11 @@ function appendArticlePayload(
 async function revalidateArticlePages(args: { articleTitle: string; previousTitle?: string }) {
   const { articleTitle, previousTitle } = args;
 
+  // The paths below only cover the routes named here; the tag is what drops the
+  // cached `/api/articles` responses that every locale, the sitemap and the
+  // search index share.
+  updateTag(articlesCacheTag);
+
   for (const locale of articleLocales) {
     revalidatePath(`/${locale}/articles`);
     revalidatePath(`/${locale}/admin/articles`);
@@ -75,6 +81,8 @@ async function revalidateArticlePages(args: { articleTitle: string; previousTitl
       revalidatePath(`/${locale}${getArticleHref({ title: previousTitle })}`);
     }
   }
+
+  revalidatePath('/sitemap.xml');
 }
 
 export async function createArticleAction(formData: FormData) {

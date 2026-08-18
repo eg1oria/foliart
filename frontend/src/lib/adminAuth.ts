@@ -3,6 +3,7 @@ export const ADMIN_SESSION_MAX_AGE_SECONDS = 60 * 60 * 12;
 
 const DEFAULT_ADMIN_USERNAME = 'admin';
 const SUPPORTED_ADMIN_LOCALES = ['ru'] as const;
+const DEFAULT_ADMIN_LOCALE = 'ru';
 
 type AdminLocale = (typeof SUPPORTED_ADMIN_LOCALES)[number];
 
@@ -101,26 +102,51 @@ export function isSupportedAdminLocale(value: string): value is AdminLocale {
   return SUPPORTED_ADMIN_LOCALES.includes(value as AdminLocale);
 }
 
+// Admin paths are matched for *any* locale segment, not just the supported
+// ones. The admin UI itself is Russian-only, but every `/<locale>/admin/*`
+// route exists in the app, so middleware has to gate all of them; anything
+// outside SUPPORTED_ADMIN_LOCALES is redirected to its `ru` equivalent.
+const ADMIN_PATH_PATTERN = /^\/([^/]+)\/admin(?:\/|$)/;
+const ADMIN_LOGIN_PATH_PATTERN = /^\/[^/]+\/admin\/login(?:\/|$)/;
+
+export function getAdminPathLocale(pathname: string) {
+  const [, locale] = pathname.match(ADMIN_PATH_PATTERN) ?? [];
+
+  return locale ?? null;
+}
+
 export function getLocaleFromAdminPath(pathname: string) {
-  const [, locale] = pathname.match(/^\/([^/]+)\/admin(?:\/|$)/) ?? [];
+  const locale = getAdminPathLocale(pathname);
 
   return locale && isSupportedAdminLocale(locale) ? locale : null;
 }
 
 export function isAdminPath(pathname: string) {
-  return getLocaleFromAdminPath(pathname) !== null;
+  return ADMIN_PATH_PATTERN.test(pathname);
 }
 
 export function isAdminLoginPath(pathname: string) {
-  return /^\/(ru|en)\/admin\/login(?:\/|$)/.test(pathname);
+  return ADMIN_LOGIN_PATH_PATTERN.test(pathname);
+}
+
+// Rewrites `/en/admin/products` to `/ru/admin/products`, leaving already
+// canonical paths untouched.
+export function getCanonicalAdminPath(pathname: string) {
+  const locale = getAdminPathLocale(pathname);
+
+  if (!locale || isSupportedAdminLocale(locale)) {
+    return null;
+  }
+
+  return pathname.replace(`/${locale}/admin`, `/${DEFAULT_ADMIN_LOCALE}/admin`);
 }
 
 export function getDefaultAdminPath(locale: string) {
-  return `/${isSupportedAdminLocale(locale) ? locale : 'ru'}/admin/products`;
+  return `/${isSupportedAdminLocale(locale) ? locale : DEFAULT_ADMIN_LOCALE}/admin/products`;
 }
 
 export function getAdminLoginPath(locale: string, nextPath?: string) {
-  const safeLocale = isSupportedAdminLocale(locale) ? locale : 'ru';
+  const safeLocale = isSupportedAdminLocale(locale) ? locale : DEFAULT_ADMIN_LOCALE;
   const searchParams = new URLSearchParams();
 
   if (nextPath) {

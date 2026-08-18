@@ -7,6 +7,12 @@ export const allowedImageMimeTypes = new Set([
   'image/jpeg',
   'image/png',
   'image/webp',
+]);
+
+// Article body media additionally accepts animated GIFs; product, calendar and
+// article cover uploads deliberately do not.
+export const allowedArticleMediaMimeTypes = new Set([
+  ...allowedImageMimeTypes,
   'image/gif',
 ]);
 
@@ -114,7 +120,7 @@ export async function createArticleMediaVariants(
   file: MemoryImageUploadFile,
   mediaId: string,
 ): Promise<StoredArticleMedia> {
-  if (!allowedImageMimeTypes.has(file.mimetype)) {
+  if (!allowedArticleMediaMimeTypes.has(file.mimetype)) {
     throw new BadRequestException(
       'Only JPG, PNG, WEBP, and GIF images are supported',
     );

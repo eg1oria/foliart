@@ -134,6 +134,8 @@ export const noStoreApiFetchOptions: ApiFetchOptions = {
 
 export const calendarsCacheTag = 'calendars';
 export const articlesCacheTag = 'articles';
+export const categoriesCacheTag = 'categories';
+export const productsCacheTag = 'products';
 
 function resolveFetchOptions(fetchOptions?: ApiFetchOptions): ApiFetchOptions {
   const resolved = fetchOptions ?? publicApiFetchOptions;
@@ -197,7 +199,7 @@ export async function getCategories(
 ): Promise<Category[]> {
   return fetchJson<Category[]>(
     buildLocalizedPath('/api/categories', locale, contentLocale),
-    fetchOptions,
+    withCacheTag(fetchOptions, categoriesCacheTag),
   );
 }
 
@@ -209,7 +211,7 @@ export async function getCategory(
 ): Promise<Category> {
   return fetchJson<Category>(
     buildLocalizedPath(`/api/categories/${categoryId}`, locale, contentLocale),
-    fetchOptions,
+    withCacheTag(fetchOptions, categoriesCacheTag),
   );
 }
 
@@ -220,7 +222,10 @@ export async function getProducts(
   contentLocale?: string,
 ): Promise<Product[]> {
   const path = categoryId ? `/api/products?categoryId=${categoryId}` : '/api/products';
-  return fetchJson<Product[]>(buildLocalizedPath(path, locale, contentLocale), fetchOptions);
+  return fetchJson<Product[]>(
+    buildLocalizedPath(path, locale, contentLocale),
+    withCacheTag(fetchOptions, productsCacheTag),
+  );
 }
 
 export async function getProduct(
@@ -231,7 +236,7 @@ export async function getProduct(
 ): Promise<Product> {
   return fetchJson<Product>(
     buildLocalizedPath(`/api/products/${productId}`, locale, contentLocale),
-    fetchOptions,
+    withCacheTag(fetchOptions, productsCacheTag),
   );
 }
 

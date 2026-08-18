@@ -72,6 +72,30 @@ services:
       - no-new-privileges:true
     restart: 'no'
 
+  # Applies migrations from the dedicated `migrator` image and exits, so the
+  # Prisma CLI never has to be a runtime dependency of `backend`.
+  backend-migrate:
+    build:
+      context: ./backend
+      target: migrator
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-file:/app/data/prod.db}
+    depends_on:
+      backend-storage-init:
+        condition: service_completed_successfully
+    volumes:
+      - backend_data:/app/data
+    networks:
+      - dev
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: 'no'
+
   backend:
     build:
       context: ./backend
@@ -93,6 +117,8 @@ services:
       - SMTP_PASS=${SMTP_PASS:-}
     depends_on:
       backend-storage-init:
+        condition: service_completed_successfully
+      backend-migrate:
         condition: service_completed_successfully
     volumes:
       - backend_data:/app/data
@@ -151,7 +177,7 @@ services:
         - CMD
         - node
         - -e
-        - "fetch('http://127.0.0.1:3000/ru/catalog').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
+        - "fetch('http://127.0.0.1:3000/healthz').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
       interval: 10s
       timeout: 5s
       retries: 12

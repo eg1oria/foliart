@@ -104,21 +104,24 @@ openssl rand -hex 32
 
 ```bash
 docker compose up -d --build backend
-docker compose exec backend ./node_modules/.bin/prisma db seed
+docker compose exec backend node dist/seed.js
 docker compose up -d --build frontend
 docker compose ps
+curl -I http://127.0.0.1:3000/healthz
 curl -I http://127.0.0.1:3000/ru/catalog
 curl -I http://127.0.0.1:5000/api
 ```
 
-При старте backend автоматически применяет только миграции. Seed запускается явно один раз при первичном заполнении чистой базы и переносит из bundled `backend/dev.db` весь исходный контент, включая записи медиа статей. Не добавляй seed в команду запуска и не запускай его при обычном обновлении: он предназначен для восстановления отсутствующих snapshot-записей.
+Миграции применяет отдельный контейнер `backend-migrate`: он поднимается перед `backend`, выполняет `prisma migrate deploy` и завершается. Благодаря этому Prisma CLI остаётся devDependency и не попадает в рантайм-образ. `docker compose up -d --build backend` запускает его автоматически.
+
+Seed запускается через `node dist/seed.js` в самом контейнере `backend` — там лежат bundled `dev.db` и изображения; Prisma CLI для этого не нужен. Seed запускается явно один раз при первичном заполнении чистой базы и переносит из bundled `backend/dev.db` весь исходный контент, включая записи медиа статей. Не добавляй seed в команду запуска и не запускай его при обычном обновлении: он предназначен для восстановления отсутствующих snapshot-записей.
 
 База и рабочие изображения хранятся в отдельных Docker volumes `backend_data` и `backend_images`. Репозиторный каталог `backend/images` используется только при сборке образа и не подключается к работающему контейнеру. В контейнере эти seed-изображения лежат в отдельном bundled-каталоге и при старте копируются в `backend_images`, если соответствующего файла там ещё нет. Поэтому административные загрузки и удаления больше не меняют Git working tree. Не используй `docker compose down -v`: флаг `-v` удаляет оба volume с данными.
 
 Если база была создана старой версией seed и в ней отсутствуют записи `ArticleMedia`, после обновления кода однократно запусти:
 
 ```bash
-docker compose exec -e SEED_ARTICLE_MEDIA_ONLY=1 backend ./node_modules/.bin/prisma db seed
+docker compose exec -e SEED_ARTICLE_MEDIA_ONLY=1 backend node dist/seed.js
 docker compose exec -u root frontend sh -lc 'rm -rf /app/.next/cache/* && chown -R nextjs:nodejs /app/.next/cache'
 docker compose restart frontend
 ```
@@ -281,8 +284,8 @@ curl -fsS http://127.0.0.1:5000/api/ui-messages/ru
 curl -I http://127.0.0.1:3000/ru
 ```
 
-Backend entrypoint автоматически применит миграцию `UiMessage` к SQLite в
-постоянном volume `backend_data`. Для этой миграции не нужен `prisma db seed`:
+Контейнер `backend-migrate` автоматически применит миграцию `UiMessage` к SQLite
+в постоянном volume `backend_data`. Для этой миграции не нужен `prisma db seed`:
 встроенные `frontend/messages/*.json` используются как значения по умолчанию,
 пока администратор не сохранит язык впервые.
 

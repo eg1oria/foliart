@@ -20,7 +20,7 @@
     "@tiptap/pm": "3.27.3",
     "@tiptap/react": "3.27.3",
     "@tiptap/starter-kit": "3.27.3",
-    "next": "16.2.9",
+    "next": "16.3.1",
     "next-intl": "^4.9.1",
     "react": "19.2.7",
     "react-dom": "19.2.7",
@@ -37,13 +37,14 @@
     "@types/sanitize-html": "^2.16.0",
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
-    "eslint-config-next": "16.2.9",
+    "eslint-config-next": "16.3.1",
     "jsdom": "^26.1.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^3.2.4"
   },
   "overrides": {
-    "postcss": "8.5.10"
+    "postcss": "8.5.26",
+    "nanoid": "3.3.18"
   }
 }

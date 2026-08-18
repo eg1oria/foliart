@@ -7,6 +7,27 @@ const isStandaloneBuild = process.env.NEXT_OUTPUT === 'standalone';
 const isHttpsDeployment = (process.env.SITE_URL ?? '').startsWith('https://');
 const isReactCompilerEnabled = process.env.NEXT_REACT_COMPILER !== 'false';
 const maxAdminRequestBodySize = '44mb';
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+// Nonce-based CSP would force every page into dynamic rendering and disable
+// ISR, so the policy below is the static-friendly variant: `'unsafe-inline'`
+// stays for the framework's inline bootstrap scripts and JSON-LD blocks, while
+// every other fetch, form, frame and plugin origin is locked to this origin.
+// That is what limits the blast radius if the rich-text sanitiser is ever
+// bypassed — injected markup cannot pull in or exfiltrate to a foreign origin.
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ''}`,
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' blob: data: https://placehold.co",
+  "font-src 'self' data:",
+  "connect-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  ...(isHttpsDeployment ? ['upgrade-insecure-requests'] : []),
+].join('; ');
 
 const createConfig = (): NextConfig => {
   const nextConfig: NextConfig = {
@@ -33,6 +54,7 @@ const createConfig = (): NextConfig => {
         {
           source: '/(.*)',
           headers: [
+            { key: 'Content-Security-Policy', value: contentSecurityPolicy },
             { key: 'X-Content-Type-Options', value: 'nosniff' },
             { key: 'X-Frame-Options', value: 'DENY' },
             {

@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, updateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 import { getAdminApiHeaders } from '@/lib/adminApi';
@@ -8,10 +8,12 @@ import { adminApiFetch, getAdminApiErrorMessage } from '@/lib/adminBackend';
 import { isSupportedAdminLocale } from '@/lib/adminAuth';
 import { requireAdminSession } from '@/lib/adminAuthServer';
 import {
+  categoriesCacheTag,
   getCategories,
   getProduct,
   getProducts,
   noStoreApiFetchOptions,
+  productsCacheTag,
 } from '@/lib/api';
 import { normalizeContentLocale } from '@/lib/contentLocales';
 import { sanitizeRichDescription } from '@/lib/renderRichDescription';
@@ -128,6 +130,18 @@ async function getActionError(response: Response, locale: string, fallback: stri
   return message || fallback;
 }
 
+/**
+ * Paths only cover the routes we can name here, and every catalog page is
+ * rendered per locale, so the tags are what actually drop the cached API
+ * responses shared by `/catalog`, the sitemap and the search index. Both tags
+ * go together: moving a product changes category product counts, and renaming
+ * a category changes the product pages that quote it.
+ */
+function updateCatalogTags() {
+  updateTag(categoriesCacheTag);
+  updateTag(productsCacheTag);
+}
+
 async function revalidateCatalogPages(args: {
   categoryId: string;
   previousCategoryId?: string;
@@ -137,6 +151,8 @@ async function revalidateCatalogPages(args: {
 }) {
   const { categoryId, productName, previousCategoryId, previousName, productId } = args;
   const categories = await getCategories(undefined, noStoreApiFetchOptions).catch(() => []);
+
+  updateCatalogTags();
 
   for (const locale of catalogLocales) {
     revalidatePath(`/${locale}/catalog`);
@@ -169,6 +185,8 @@ async function revalidateCatalogPages(args: {
 async function revalidateCategoryPages(categoryId: string) {
   const categories = await getCategories(undefined, noStoreApiFetchOptions).catch(() => []);
   const category = categories.find((item) => item.id === Number.parseInt(categoryId, 10));
+
+  updateCatalogTags();
 
   if (!category) {
     return;
