@@ -1,16 +1,18 @@
-import { FiArrowLeft, FiEdit3, FiExternalLink } from 'react-icons/fi';
+import { FiArrowLeft, FiEdit3, FiExternalLink, FiImage } from 'react-icons/fi';
 
 import { AdminEmptyState, AdminNotice, AdminPanel, AdminShell } from '@/components/admin/AdminShell';
 import {
   adminCx,
   adminSecondaryButtonClassName,
 } from '@/components/admin/adminStyles';
+import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
 import { requireAdminSection } from '@/lib/adminAuthServer';
 import { canManageSection } from '@/lib/adminPermissions';
 import { getCategories, noStoreApiFetchOptions } from '@/lib/api';
 import { normalizeContentLocale, withContentLocale } from '@/lib/contentLocales';
 import { getCategoryHref } from '@/lib/catalog';
+import { resolveMediaUrl } from '@/lib/media';
 import { richDescriptionToPlainText } from '@/lib/richDescription';
 
 export default async function ProductCategoriesPage({
@@ -49,7 +51,7 @@ export default async function ProductCategoriesPage({
       backLabel="К списку товаров"
       contentLocale={contentLocale}
       contentLocaleHref="/admin/products/categories"
-      description="Контролируйте названия и описания категорий для каждого языка без изменения их структуры."
+      description="Контролируйте названия, описания и изображения категорий без изменения их структуры."
       locale={locale}
       title="Переводы категорий"
     >
@@ -70,7 +72,7 @@ export default async function ProductCategoriesPage({
         <AdminPanel
           badge="Категории"
           title="Локализованный контент"
-          description="Создание и удаление категорий здесь недоступно; изменяются только название и описание."
+          description="Создание и удаление категорий здесь недоступно; изменяются название, описание и изображение."
         >
           {categoriesResult.error ? (
             <div className="space-y-5">
@@ -103,12 +105,28 @@ export default async function ProductCategoriesPage({
                       key={category.id}
                       className="grid gap-3 px-4 py-4 md:grid-cols-[minmax(0,1fr)_140px_170px_220px] md:items-center md:gap-4"
                     >
-                      <div className="min-w-0">
-                        <h2 className="font-semibold text-[#0b3e31]">{category.name}</h2>
-                        <p className="mt-1 line-clamp-1 text-xs text-[#6a7f76]">
-                          {richDescriptionToPlainText(category.description) ||
-                            'Описание не заполнено'}
-                        </p>
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-[#0b5a45]/10 bg-white">
+                          <MediaImage
+                            src={resolveMediaUrl(category.imageUrl)}
+                            alt=""
+                            fill
+                            sizes="48px"
+                            className="object-contain p-1"
+                            emptyState={
+                              <div className="flex h-full items-center justify-center text-[#8a9a93]">
+                                <FiImage aria-hidden="true" />
+                              </div>
+                            }
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <h2 className="font-semibold text-[#0b3e31]">{category.name}</h2>
+                          <p className="mt-1 line-clamp-1 text-xs text-[#6a7f76]">
+                            {richDescriptionToPlainText(category.description) ||
+                              'Описание не заполнено'}
+                          </p>
+                        </div>
                       </div>
                       <p className="text-sm text-[#567068]">{category.productCount}</p>
                       <div>

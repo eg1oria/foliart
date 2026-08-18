@@ -26,6 +26,8 @@ describe('admin permissions', () => {
       products: 'manage',
       articles: 'none',
       calendars: 'none',
+      partners: 'none',
+      contacts: 'none',
       messages: 'none',
     });
   });
@@ -54,6 +56,8 @@ describe('admin permissions', () => {
       'products',
       'articles',
       'calendars',
+      'partners',
+      'contacts',
       'messages',
     ]);
     expect(canManageSection(superAdmin, 'messages')).toBe(true);

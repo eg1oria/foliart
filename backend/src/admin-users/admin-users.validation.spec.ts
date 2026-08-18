@@ -39,6 +39,8 @@ describe('admin users validation', () => {
       products: 'manage',
       articles: 'view',
       calendars: 'none',
+      partners: 'none',
+      contacts: 'none',
       messages: 'none',
     });
   });
@@ -63,6 +65,8 @@ describe('admin users validation', () => {
         products: 'manage',
         articles: 'none',
         calendars: 'none',
+        partners: 'none',
+        contacts: 'none',
         messages: 'none',
       },
     });

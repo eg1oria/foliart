@@ -2,6 +2,8 @@ export const ADMIN_SECTIONS = [
   'products',
   'articles',
   'calendars',
+  'partners',
+  'contacts',
   'messages',
 ] as const;
 

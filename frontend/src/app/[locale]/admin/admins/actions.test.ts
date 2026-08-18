@@ -104,6 +104,8 @@ describe('admin users Server Actions', () => {
         products: 'manage',
         articles: 'view',
         calendars: 'none',
+        partners: 'none',
+        contacts: 'none',
         messages: 'none',
       },
     });
@@ -160,6 +162,8 @@ describe('admin users Server Actions', () => {
       products: 'none',
       articles: 'none',
       calendars: 'view',
+      partners: 'none',
+      contacts: 'none',
       messages: 'none',
     });
     expect(state.status).toBe('success');

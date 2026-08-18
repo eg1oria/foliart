@@ -154,9 +154,27 @@ export class CategoriesService {
     return this.resolveLocale(category, locale, contentLocale);
   }
 
+  async getImageUrl(id: number) {
+    const category = await this.prisma.category.findUnique({
+      where: { id },
+      select: { imageUrl: true },
+    });
+
+    if (!category) {
+      throw new NotFoundException(`Category #${id} not found`);
+    }
+
+    return category.imageUrl;
+  }
+
   async updateTranslation(
     id: number,
-    input: { locale: string; name: string; description: string },
+    input: {
+      locale: string;
+      name: string;
+      description: string;
+      imageUrl?: string;
+    },
   ) {
     const exists = await this.prisma.category.findUnique({
       where: { id },
@@ -172,6 +190,7 @@ export class CategoriesService {
     return this.prisma.category.update({
       where: { id },
       data: {
+        ...(input.imageUrl ? { imageUrl: input.imageUrl } : {}),
         ...(isDefaultContentLocale(contentLocale)
           ? { name: input.name, description: input.description }
           : {}),

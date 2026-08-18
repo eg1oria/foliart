@@ -8,9 +8,12 @@ import {
   updateCategoryTranslationAction,
 } from '../../../app/[locale]/admin/products/actions';
 import { Link } from '@/i18n/routing';
+import AdminImageInput from '@/components/admin/AdminImageInput';
+import MediaImage from '@/components/catalog/MediaImage';
 import RichDescriptionEditor from '@/components/admin/RichDescriptionEditor';
 import type { Category } from '@/lib/api';
 import { getContentLocaleLabel, withContentLocale } from '@/lib/contentLocales';
+import { resolveMediaUrl } from '@/lib/media';
 
 import {
   adminCx,
@@ -148,6 +151,43 @@ export default function CategoryTranslationForm({
             ) : null}
           </div>
         </div>
+      </section>
+
+      <section className="rounded-lg border border-[#0b5a45]/10 bg-white p-4 sm:p-5">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#0b5a45]">
+          Изображение
+        </p>
+        {isBaseLocale ? (
+          <div className="mt-5 max-w-2xl">
+            <AdminImageInput
+              name="image"
+              label="Изображение категории для всех языков"
+              initialSrc={resolveMediaUrl(category.imageUrl)}
+              error={state.fieldErrors?.image}
+            />
+          </div>
+        ) : (
+          <div className="mt-5 grid gap-4 sm:grid-cols-[160px_minmax(0,1fr)] sm:items-center">
+            <div className="relative aspect-square w-full overflow-hidden rounded-md border border-[#0b5a45]/10 bg-white sm:w-40">
+              <MediaImage
+                src={resolveMediaUrl(category.imageUrl)}
+                alt=""
+                fill
+                sizes="160px"
+                className="object-contain p-2"
+                emptyState={
+                  <div className="flex h-full items-center justify-center text-sm text-[#8a9a93]">
+                    Не загружено
+                  </div>
+                }
+              />
+            </div>
+            <p className="text-sm leading-6 text-[#567068]">
+              Во всех языках используется одно изображение категории. Заменить его можно только
+              в RU-редакторе.
+            </p>
+          </div>
+        )}
       </section>
 
       <div className="sticky bottom-4 z-30 rounded-xl border border-[#0b5a45]/15 bg-white/95 p-3 shadow-[0_18px_45px_-20px_rgba(11,62,49,0.35)] backdrop-blur sm:p-4">

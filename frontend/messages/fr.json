@@ -25,6 +25,7 @@
     "officeHours": "Ouvert du lun. au ven. de 8h00 à 17h00",
     "nav": {
       "office": "Bureau à Krasnodar",
+      "regional": "Régions",
       "feedback": "Retour d'information",
       "back": "Retour"
     },
@@ -34,7 +35,8 @@
     "officePhone": "+7(918)434-18-91",
     "officeEmail": "mail@foliart.me",
     "officeAddress": "350072, Région Krasnodar, Krasnodar, rue Solnetchnaïa, 10/3, local n° 31, 2e étage",
-    "showMap": "Afficher la carte"
+    "showMap": "Afficher la carte",
+    "regionalTitle": "Contacts régionaux"
   },
   "Specialist": {
     "eyebrow": "SPÉCIALISTE EN NUTRITION DES PLANTES",

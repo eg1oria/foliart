@@ -1,29 +1,25 @@
 'use client';
 
-import { useActionState, useEffect, useMemo, useRef, useState } from 'react';
-import { FiExternalLink, FiImage, FiSave } from 'react-icons/fi';
+import { useActionState, useEffect, useRef, useState } from 'react';
+import { FiExternalLink, FiSave } from 'react-icons/fi';
 
 import {
   createProductAction,
   type ProductActionState,
   updateProductAction,
 } from '../../../app/[locale]/admin/products/actions';
+import AdminImageInput from '@/components/admin/AdminImageInput';
 import MediaImage from '@/components/catalog/MediaImage';
 import RichDescriptionEditor from '@/components/admin/RichDescriptionEditor';
 import { Link } from '@/i18n/routing';
 import type { Category, Product } from '@/lib/api';
 import { getContentLocaleLabel, withContentLocale } from '@/lib/contentLocales';
 import { resolveMediaUrl } from '@/lib/media';
-import {
-  PRODUCT_IMAGE_MAX_BYTES,
-  PRODUCT_IMAGE_MIME_TYPES,
-  type ProductFormFieldErrors,
-} from '@/lib/productAdmin';
+import { type ProductFormFieldErrors } from '@/lib/productAdmin';
 
 import {
   adminCx,
   adminFieldClassName,
-  adminFileInputClassName,
   adminHintClassName,
   adminInputClassName,
   adminLabelClassName,
@@ -51,86 +47,6 @@ function FieldError({ error, id }: { error?: string; id: string }) {
     <span id={id} data-field-error className="text-xs font-medium leading-5 text-red-700">
       {error}
     </span>
-  );
-}
-
-function ProductImageInput({
-  error,
-  initialSrc,
-  label,
-  name,
-  required,
-}: {
-  error?: string;
-  initialSrc?: string | null;
-  label: string;
-  name: 'image' | 'imageEn';
-  required?: boolean;
-}) {
-  const [file, setFile] = useState<File | null>(null);
-  const [clientError, setClientError] = useState<string | null>(null);
-  const previewUrl = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
-  const errorId = `${name}-error`;
-
-  useEffect(
-    () => () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-    },
-    [previewUrl],
-  );
-
-  return (
-    <label className={adminFieldClassName}>
-      <span className={adminLabelClassName}>{label}</span>
-      <div className="grid gap-3 rounded-lg border border-[#0b5a45]/10 bg-[#f7f9f6] p-3 sm:grid-cols-[112px_minmax(0,1fr)] sm:items-center">
-        <div className="relative aspect-square w-full overflow-hidden rounded-md border border-[#0b5a45]/10 bg-white sm:w-28">
-          <MediaImage
-            src={previewUrl ?? initialSrc}
-            alt=""
-            fill
-            unoptimized={Boolean(previewUrl)}
-            sizes="112px"
-            className="object-contain p-2"
-            emptyState={
-              <div className="flex h-full items-center justify-center text-[#8a9a93]">
-                <FiImage aria-hidden="true" className="text-2xl" />
-              </div>
-            }
-          />
-        </div>
-        <div className="min-w-0">
-          <input
-            type="file"
-            name={name}
-            required={required}
-            accept={PRODUCT_IMAGE_MIME_TYPES.join(',')}
-            aria-invalid={Boolean(error || clientError)}
-            aria-describedby={error || clientError ? errorId : undefined}
-            className={adminFileInputClassName}
-            onChange={(event) => {
-              const nextFile = event.target.files?.[0] ?? null;
-              let nextError: string | null = null;
-
-              if (nextFile && !PRODUCT_IMAGE_MIME_TYPES.includes(
-                nextFile.type as (typeof PRODUCT_IMAGE_MIME_TYPES)[number],
-              )) {
-                nextError = 'Поддерживаются только изображения JPG, PNG и WEBP.';
-              } else if (nextFile && nextFile.size > PRODUCT_IMAGE_MAX_BYTES) {
-                nextError = 'Размер изображения не должен превышать 5 МБ.';
-              }
-
-              event.target.setCustomValidity(nextError ?? '');
-              setClientError(nextError);
-              setFile(nextFile);
-            }}
-          />
-          <p className={adminCx('mt-2', adminHintClassName)}>
-            JPG, PNG или WEBP, не более 5 МБ. Новое изображение заменит текущее после сохранения.
-          </p>
-          <FieldError error={clientError ?? error} id={errorId} />
-        </div>
-      </div>
-    </label>
   );
 }
 
@@ -385,7 +301,7 @@ export default function ProductAdminForm({
         </p>
         {isBaseLocale ? (
           <div className="mt-5 max-w-2xl">
-            <ProductImageInput
+            <AdminImageInput
               name="image"
               label="Изображение товара для всех языков"
               required={mode === 'create'}

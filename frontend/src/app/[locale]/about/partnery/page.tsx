@@ -1,9 +1,14 @@
 import type { Metadata } from 'next';
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import Image from 'next/image';
 import { FaPhoneAlt } from 'react-icons/fa';
 import { IoIosMail } from 'react-icons/io';
 import { TbArrowBackUp } from 'react-icons/tb';
+
+import MediaImage from '@/components/catalog/MediaImage';
+import { getPartners, type Partner } from '@/lib/api';
+import { resolveMediaUrl } from '@/lib/media';
+import { toPartnerCard } from '@/lib/partners';
 import { buildPageMetadata } from '@/lib/seo';
 
 export async function generateMetadata({
@@ -27,8 +32,17 @@ export async function generateMetadata({
   });
 }
 
-export default function Partners() {
-  const t = useTranslations('Partners');
+export default async function Partners({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'Partners' });
+  // A partner list that cannot be loaded should not take the whole page down;
+  // the header still renders and the cards come back on the next request.
+  const partners = await getPartners().catch(() => [] as Partner[]);
+  const cards = partners.map(toPartnerCard).filter((card) => card.name);
 
   return (
     <main>
@@ -45,37 +59,56 @@ export default function Partners() {
         <h1 className="mb-4 text-3xl font-bold text-white md:text-5xl">{t('title')}</h1>
       </div>
 
-      <div className="catalog-header flex flex-col gap-12 py-26 md:flex-row ">
-        <div className="flex flex-col items-center gap-4 border-5 border-gray-400 p-10 text-center ">
-          <Image src="/partners2.webp" alt="EcoGreen partner logo" width={220} height={150} />
-          <p className="text-blue-600 font-medium">ООО &quot;ЭкоГрин&quot;</p>
-          <span className="font-bold text-black/65">г.Краснодар</span>
-          <a
-            href="tel:+78612247537"
-            className="flex items-center gap-2 text-blue-500 hover:underline">
-            <FaPhoneAlt className="inline-block text-black" />
-            +7 (861) 224-75-37
-          </a>
-          <a
-            href="tel:+79898024378"
-            className="flex items-center gap-2 text-blue-500 hover:underline">
-            <FaPhoneAlt className="inline-block text-black" />
-            +7 (989) 802 43 78
-          </a>
-          <a
-            href="mailto:info@ecogreen.ru"
-            className="flex items-center gap-2 text-blue-500 hover:underline">
-            <IoIosMail className="inline-block text-black" />
-            info@ecogreen.ru
-          </a>
-          <a
-            href="https://ecogreen.ru"
-            className="flex items-center gap-2 text-blue-500 hover:underline">
-            <TbArrowBackUp className="inline-block scale-x-[-1] text-black" />
-            https://ecogreen.ru
-          </a>
+      {cards.length ? (
+        <div className="catalog-header flex flex-col gap-12 py-26 md:flex-row md:flex-wrap">
+          {cards.map((partner) => (
+            <div
+              key={partner.id}
+              className="flex flex-col items-center gap-4 border-5 border-gray-400 p-10 text-center ">
+              {partner.logoUrl ? (
+                <MediaImage
+                  src={resolveMediaUrl(partner.logoUrl)}
+                  alt={partner.name}
+                  width={220}
+                  height={150}
+                  className="h-[150px] w-[220px] object-contain"
+                />
+              ) : null}
+              <p className="text-blue-600 font-medium">{partner.name}</p>
+              {partner.address ? (
+                <span className="font-bold text-black/65">{partner.address}</span>
+              ) : null}
+              {partner.phones.map((phone) => (
+                <a
+                  key={phone.href}
+                  href={phone.href}
+                  className="flex items-center gap-2 text-blue-500 hover:underline">
+                  <FaPhoneAlt className="inline-block text-black" />
+                  {phone.label}
+                </a>
+              ))}
+              {partner.email ? (
+                <a
+                  href={`mailto:${partner.email}`}
+                  className="flex items-center gap-2 text-blue-500 hover:underline">
+                  <IoIosMail className="inline-block text-black" />
+                  {partner.email}
+                </a>
+              ) : null}
+              {partner.website ? (
+                <a
+                  href={partner.website.href}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="flex items-center gap-2 text-blue-500 hover:underline">
+                  <TbArrowBackUp className="inline-block scale-x-[-1] text-black" />
+                  {partner.website.label}
+                </a>
+              ) : null}
+            </div>
+          ))}
         </div>
-      </div>
+      ) : null}
     </main>
   );
 }

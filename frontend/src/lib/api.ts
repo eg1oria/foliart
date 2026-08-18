@@ -103,6 +103,26 @@ export type CalendarEntry = {
   adminTranslation?: CalendarAdminTranslation;
 };
 
+export type Partner = {
+  id: number;
+  name: string;
+  logoUrl: string;
+  address: string;
+  phones: string;
+  email: string;
+  website: string;
+  sortOrder: number;
+};
+
+export type RegionalContact = {
+  id: number;
+  region: string;
+  fullName: string;
+  phone: string;
+  address: string;
+  sortOrder: number;
+};
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -136,6 +156,8 @@ export const calendarsCacheTag = 'calendars';
 export const articlesCacheTag = 'articles';
 export const categoriesCacheTag = 'categories';
 export const productsCacheTag = 'products';
+export const partnersCacheTag = 'partners';
+export const regionalContactsCacheTag = 'regional-contacts';
 
 function resolveFetchOptions(fetchOptions?: ApiFetchOptions): ApiFetchOptions {
   const resolved = fetchOptions ?? publicApiFetchOptions;
@@ -294,5 +316,38 @@ export async function getCalendar(
   return fetchJson<CalendarEntry>(
     buildLocalizedPath(`/api/calendars/${calendarId}`, locale, contentLocale),
     withCacheTag(fetchOptions, calendarsCacheTag),
+  );
+}
+
+export async function getPartners(fetchOptions?: ApiFetchOptions): Promise<Partner[]> {
+  return fetchJson<Partner[]>('/api/partners', withCacheTag(fetchOptions, partnersCacheTag));
+}
+
+export async function getPartner(
+  partnerId: number,
+  fetchOptions?: ApiFetchOptions,
+): Promise<Partner> {
+  return fetchJson<Partner>(
+    `/api/partners/${partnerId}`,
+    withCacheTag(fetchOptions, partnersCacheTag),
+  );
+}
+
+export async function getRegionalContacts(
+  fetchOptions?: ApiFetchOptions,
+): Promise<RegionalContact[]> {
+  return fetchJson<RegionalContact[]>(
+    '/api/regional-contacts',
+    withCacheTag(fetchOptions, regionalContactsCacheTag),
+  );
+}
+
+export async function getRegionalContact(
+  contactId: number,
+  fetchOptions?: ApiFetchOptions,
+): Promise<RegionalContact> {
+  return fetchJson<RegionalContact>(
+    `/api/regional-contacts/${contactId}`,
+    withCacheTag(fetchOptions, regionalContactsCacheTag),
   );
 }

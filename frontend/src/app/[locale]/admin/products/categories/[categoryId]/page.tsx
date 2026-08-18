@@ -50,7 +50,7 @@ export default async function EditProductCategoryPage({
       backLabel="К категориям"
       contentLocale={contentLocale}
       contentLocaleHref={`/admin/products/categories/${categoryId}`}
-      description="Изменения применяются только к выбранному языку и не затрагивают товары категории."
+      description="Тексты меняются только для выбранного языка; изображение категории общее для всех языков."
       locale={locale}
       title={categoryResult.category?.name ?? `Категория #${categoryId}`}
     >
@@ -68,7 +68,7 @@ export default async function EditProductCategoryPage({
         <AdminPanel
           badge={`Категория #${categoryId}`}
           title={`Контент ${contentLocale.toUpperCase()}`}
-          description="Название и описание используются в каталоге выбранного языка."
+          description="Название и описание используются в каталоге выбранного языка, изображение — во всех."
         >
           {!categoryResult.category ? (
             <div className="space-y-5">

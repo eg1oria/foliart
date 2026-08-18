@@ -95,6 +95,8 @@ describe('AdminUsersService', () => {
         products: 'manage',
         articles: 'manage',
         calendars: 'manage',
+        partners: 'manage',
+        contacts: 'manage',
         messages: 'manage',
       });
     });
@@ -194,6 +196,8 @@ describe('AdminUsersService', () => {
         products: 'view',
         articles: 'none',
         calendars: 'none',
+        partners: 'none',
+        contacts: 'none',
         messages: 'none',
       });
 
@@ -228,6 +232,8 @@ describe('AdminUsersService', () => {
           products: 'none',
           articles: 'none',
           calendars: 'none',
+          partners: 'none',
+          contacts: 'none',
           messages: 'none',
         }),
       ).rejects.toBeInstanceOf(ConflictException);
@@ -248,6 +254,8 @@ describe('AdminUsersService', () => {
             products: 'manage',
             articles: 'none',
             calendars: 'none',
+            partners: 'none',
+            contacts: 'none',
             messages: 'none',
           },
         }),

@@ -30,6 +30,34 @@ model Category {
   translations  CategoryTranslation[]
 }
 
+model RegionalContact {
+  id        Int      @id @default(autoincrement())
+  region    String
+  fullName  String   @default("")
+  phone     String   @default("")
+  address   String   @default("")
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}
+
+model Partner {
+  id        Int      @id @default(autoincrement())
+  name      String
+  logoUrl   String   @default("")
+  address   String   @default("")
+  phones    String   @default("") // one phone per line, blank when unknown
+  email     String   @default("")
+  website   String   @default("")
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}
+
 model Product {
   id            Int                  @id @default(autoincrement())
   slug          String               @unique

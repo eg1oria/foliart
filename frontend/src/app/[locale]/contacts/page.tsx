@@ -1,12 +1,13 @@
 import type { Metadata } from 'next';
 import ContactEmailForm from '@/components/ContactEmailForm';
 import { Link } from '@/i18n/routing';
-import { useTranslations } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import Image from 'next/image';
-import { FaMapMarkerAlt } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaPhoneAlt } from 'react-icons/fa';
 import { IoIosMail } from 'react-icons/io';
 import { TbArrowBackUp } from 'react-icons/tb';
+import { getRegionalContacts, type RegionalContact } from '@/lib/api';
+import { toRegionalContactCard } from '@/lib/regionalContacts';
 import { buildPageMetadata } from '@/lib/seo';
 
 export async function generateMetadata({
@@ -26,8 +27,19 @@ export async function generateMetadata({
   });
 }
 
-export default function Contacts() {
-  const t = useTranslations('Contacts');
+export default async function Contacts({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'Contacts' });
+  // A regional list that cannot be loaded must not take the page down: the
+  // office block and the feedback form stay usable either way.
+  const regionalContacts = await getRegionalContacts().catch(() => [] as RegionalContact[]);
+  const regionalCards = regionalContacts
+    .map(toRegionalContactCard)
+    .filter((contact) => contact.region);
   const mapWidgetSrc =
     'https://yandex.ru/map-widget/v1/?text=%D0%9A%D1%80%D0%B0%D1%81%D0%BD%D0%BE%D0%B4%D0%B0%D1%80%2C+%D1%83%D0%BB.+%D0%A1%D0%BE%D0%BB%D0%BD%D0%B5%D1%87%D0%BD%D0%B0%D1%8F%2C+10%2F3&z=16&ll=39.015,45.040';
   const mapTitle = `${t('officeTitle')} - ${t('showMap')}`;
@@ -108,6 +120,45 @@ export default function Contacts() {
               )}
             </div>
           </div>
+          {regionalCards.length ? (
+            <section id="regional" className="scroll-mt-28 mt-12">
+              <h2 className="text-2xl font-bold text-gray-900 md:text-3xl">
+                {t('regionalTitle')}
+              </h2>
+              <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {regionalCards.map((contact) => (
+                  <article
+                    key={contact.id}
+                    className="flex flex-col gap-3 bg-white p-6 shadow-lg">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">
+                      {contact.region}
+                    </p>
+                    {contact.fullName ? (
+                      <p className="text-lg font-semibold text-gray-900">{contact.fullName}</p>
+                    ) : null}
+                    {contact.phone ? (
+                      <a
+                        href={contact.phone.href}
+                        className="flex items-center gap-2 font-semibold text-blue-600 hover:underline">
+                        <FaPhoneAlt className="text-xs text-gray-500" aria-hidden="true" />
+                        {contact.phone.label}
+                      </a>
+                    ) : null}
+                    {contact.address ? (
+                      <p className="flex items-start gap-2 text-sm leading-snug text-gray-700">
+                        <FaMapMarkerAlt
+                          className="mt-1 shrink-0 text-xs text-gray-500"
+                          aria-hidden="true"
+                        />
+                        {contact.address}
+                      </p>
+                    ) : null}
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
           <div
             id="feedback"
             className="scroll-mt-28 md:items-start items-center gap-10 md:gap=0 mt-10 flex flex-col-reverse md:grid md:grid-cols-2 justify-between relative mb-20 p-4  md:p-8">
@@ -142,6 +193,16 @@ export default function Contacts() {
                   {t('nav.office')}
                 </a>
               </li>
+              {regionalCards.length ? (
+                <li className="border-b border-l border-l-3 border-gray-200 transition-colors hover:border-l-gray-400 hover:bg-gray-100">
+                  <a
+                    href="#regional"
+                    className="flex items-center gap-2 py-3 pl-2 text-sm text-blue-500 transition-colors hover:text-blue-700">
+                    <FaMapMarkerAlt className="text-xs text-blue-400" />
+                    {t('nav.regional')}
+                  </a>
+                </li>
+              ) : null}
               <li className="border-b border-l border-l-3 border-gray-200 transition-colors hover:border-l-gray-400 hover:bg-gray-100">
                 <a
                   href="#feedback"

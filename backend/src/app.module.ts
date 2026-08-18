@@ -9,8 +9,10 @@ import { ArticlesModule } from './articles/articles.module';
 import { CalendarsModule } from './calendars/calendars.module';
 import { CategoriesModule } from './categories/categories.module';
 import { ContactModule } from './contact/contact.module';
+import { PartnersModule } from './partners/partners.module';
 import { ProductsModule } from './products/products.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { RegionalContactsModule } from './regional-contacts/regional-contacts.module';
 import { UiMessagesModule } from './ui-messages/ui-messages.module';
 
 @Module({
@@ -26,6 +28,8 @@ import { UiMessagesModule } from './ui-messages/ui-messages.module';
     AdminUsersModule,
     CategoriesModule,
     ProductsModule,
+    PartnersModule,
+    RegionalContactsModule,
     ArticlesModule,
     CalendarsModule,
     ContactModule,

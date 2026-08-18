@@ -3,7 +3,14 @@ import type { AdminSection, AdminSessionUser } from '@/lib/adminPermissions';
 import { canViewSection } from '@/lib/adminPermissions';
 import { withContentLocale } from '@/lib/contentLocales';
 import type { IconType } from 'react-icons';
-import { FiBookOpen, FiBox, FiCalendar, FiUsers } from 'react-icons/fi';
+import {
+  FiBookOpen,
+  FiBox,
+  FiBriefcase,
+  FiCalendar,
+  FiMapPin,
+  FiUsers,
+} from 'react-icons/fi';
 
 import { adminCx } from './adminStyles';
 
@@ -27,6 +34,14 @@ const tabsI18n: Record<
     calendars: {
       label: 'Calendar',
       description: 'Crop pages and image slots',
+    },
+    partners: {
+      label: 'Partners',
+      description: 'Partner cards on the about page',
+    },
+    contacts: {
+      label: 'Contacts',
+      description: 'Regional representatives on the contacts page',
     },
     messages: {
       label: 'Translations',
@@ -54,6 +69,14 @@ const tabsI18n: Record<
       label: 'Календарь',
       description: 'Страницы культур и фотослоты',
     },
+    partners: {
+      label: 'Партнёры',
+      description: 'Карточки партнёров на странице «О компании»',
+    },
+    contacts: {
+      label: 'Контакты',
+      description: 'Представители в регионах на странице контактов',
+    },
     messages: {
       label: 'Переводы',
       description: 'Интерфейсные тексты публичного сайта',
@@ -70,7 +93,13 @@ const tabsI18n: Record<
 };
 
 const TAB_ITEMS: Array<{
-  href: '/admin/products' | '/admin/articles' | '/admin/calendars' | '/admin/admins';
+  href:
+    | '/admin/products'
+    | '/admin/articles'
+    | '/admin/calendars'
+    | '/admin/partners'
+    | '/admin/contacts'
+    | '/admin/admins';
   // | '/admin/messages';
   icon: IconType;
   key: AdminTabKey;
@@ -78,6 +107,8 @@ const TAB_ITEMS: Array<{
   { key: 'products', href: '/admin/products', icon: FiBox },
   { key: 'articles', href: '/admin/articles', icon: FiBookOpen },
   { key: 'calendars', href: '/admin/calendars', icon: FiCalendar },
+  { key: 'partners', href: '/admin/partners', icon: FiBriefcase },
+  { key: 'contacts', href: '/admin/contacts', icon: FiMapPin },
   // { key: 'messages', href: '/admin/messages', icon: FiGlobe },
   { key: 'admins', href: '/admin/admins', icon: FiUsers },
 ];

@@ -1,9 +1,12 @@
 import type { Category, Product } from './api';
+import {
+  IMAGE_UPLOAD_MAX_BYTES,
+  IMAGE_UPLOAD_MIME_TYPES,
+  validateImageFile,
+} from './imageUpload';
 
-export const PRODUCT_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
-export const PRODUCT_IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
-
-const productImageMimeTypeSet = new Set<string>(PRODUCT_IMAGE_MIME_TYPES);
+export const PRODUCT_IMAGE_MAX_BYTES = IMAGE_UPLOAD_MAX_BYTES;
+export const PRODUCT_IMAGE_MIME_TYPES = IMAGE_UPLOAD_MIME_TYPES;
 
 export type ProductTranslationFilter = 'all' | 'complete' | 'missing';
 
@@ -86,25 +89,9 @@ export function filterAdminProducts(
 }
 
 function validateImage(file: File | null | undefined, field: ProductFormField) {
-  if (!file || file.size === 0) {
-    return null;
-  }
+  const message = validateImageFile(file);
 
-  if (!productImageMimeTypeSet.has(file.type)) {
-    return {
-      field,
-      message: 'Поддерживаются только изображения JPG, PNG и WEBP.',
-    } as const;
-  }
-
-  if (file.size > PRODUCT_IMAGE_MAX_BYTES) {
-    return {
-      field,
-      message: 'Размер изображения не должен превышать 5 МБ.',
-    } as const;
-  }
-
-  return null;
+  return message ? ({ field, message } as const) : null;
 }
 
 export function validateProductForm(input: ProductFormValidationInput) {

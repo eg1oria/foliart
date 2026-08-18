@@ -1,4 +1,11 @@
-export const adminSections = ['products', 'articles', 'calendars', 'messages'] as const;
+export const adminSections = [
+  'products',
+  'articles',
+  'calendars',
+  'partners',
+  'contacts',
+  'messages',
+] as const;
 export const adminAccessLevels = ['none', 'view', 'manage'] as const;
 
 export type AdminSection = (typeof adminSections)[number];
@@ -16,6 +23,8 @@ export const adminSectionLabels: Record<AdminSection, string> = {
   products: 'Товары',
   articles: 'Статьи',
   calendars: 'Календарь',
+  partners: 'Партнёры',
+  contacts: 'Контакты',
   messages: 'Переводы',
 };
 
@@ -29,6 +38,8 @@ export const adminSectionPaths: Record<AdminSection, string> = {
   products: '/admin/products',
   articles: '/admin/articles',
   calendars: '/admin/calendars',
+  partners: '/admin/partners',
+  contacts: '/admin/contacts',
   messages: '/admin/messages',
 };
 

@@ -16,6 +16,7 @@ import {
   productsCacheTag,
 } from '@/lib/api';
 import { normalizeContentLocale } from '@/lib/contentLocales';
+import { validateImageFile } from '@/lib/imageUpload';
 import { sanitizeRichDescription } from '@/lib/renderRichDescription';
 import { getCategoryHref, getProductHref } from '@/lib/catalog';
 import {
@@ -44,6 +45,7 @@ export type ProductActionState = {
 
 export type CategoryActionState = {
   fieldErrors?: {
+    image?: string;
     name?: string;
   };
   message?: string;
@@ -412,26 +414,41 @@ export async function updateCategoryTranslationAction(
   const categoryId = normalizeText(formData.get('categoryId'));
   const name = normalizeText(formData.get('name'));
   const description = sanitizeRichDescription(normalizeText(formData.get('description')));
+  // The image is shared by every language, so only the RU editor may replace
+  // it; the other editors render it read-only and send no file at all.
+  const image = contentLocale === 'ru' ? getFile(formData.get('image')) : null;
 
   if (!/^\d+$/.test(categoryId)) {
     return { status: 'error', message: 'Некорректный идентификатор категории.' };
   }
 
-  if (contentLocale === 'ru' && !name) {
+  const imageError = validateImageFile(image);
+
+  if ((contentLocale === 'ru' && !name) || imageError) {
     return {
       status: 'error',
       message: 'Проверьте обязательные поля.',
-      fieldErrors: { name: 'Введите название категории.' },
+      fieldErrors: {
+        ...(contentLocale === 'ru' && !name
+          ? { name: 'Введите название категории.' }
+          : {}),
+        ...(imageError ? { image: imageError } : {}),
+      },
     };
   }
 
+  // Multipart, and with the text fields first: the backend names the stored
+  // file after the category name it has already parsed off the stream.
+  const payload = new FormData();
+  payload.append('contentLocale', contentLocale);
+  payload.append('name', name);
+  payload.append('description', description);
+  if (image) payload.append('image', image);
+
   const response = await adminApiFetch(`/api/categories/${categoryId}`, {
     method: 'PATCH',
-    headers: {
-      ...getAdminApiHeaders(),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ contentLocale, name, description }),
+    headers: getAdminApiHeaders(),
+    body: payload,
   });
 
   if (!response.ok) {
