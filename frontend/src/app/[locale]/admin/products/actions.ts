@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation';
 import { getAdminApiHeaders } from '@/lib/adminApi';
 import { adminApiFetch, getAdminApiErrorMessage } from '@/lib/adminBackend';
 import { isSupportedAdminLocale } from '@/lib/adminAuth';
-import { requireAdminSession } from '@/lib/adminAuthServer';
+import { requireAdminSection } from '@/lib/adminAuthServer';
 import {
   categoriesCacheTag,
   getCategories,
@@ -215,7 +215,7 @@ export async function createProductAction(
 ): Promise<ProductActionState> {
   const locale = normalizeLocale(formData.get('locale'));
   const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
-  await requireAdminSession(locale);
+  await requireAdminSection(locale, 'products', 'manage');
 
   if (contentLocale !== 'ru') {
     return {
@@ -282,7 +282,7 @@ export async function updateProductAction(
 ): Promise<ProductActionState> {
   const locale = normalizeLocale(formData.get('locale'));
   const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
-  await requireAdminSession(locale);
+  await requireAdminSection(locale, 'products', 'manage');
 
   const productId = normalizeText(formData.get('productId'));
   if (!/^\d+$/.test(productId)) {
@@ -361,7 +361,7 @@ export async function updateProductAction(
 export async function deleteProductAction(formData: FormData) {
   const locale = normalizeLocale(formData.get('locale'));
   const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
-  await requireAdminSession(locale);
+  await requireAdminSection(locale, 'products', 'manage');
 
   const productId = normalizeText(formData.get('productId'));
   const fallbackCategoryId = normalizeText(formData.get('categoryId'));
@@ -407,7 +407,7 @@ export async function updateCategoryTranslationAction(
 ): Promise<CategoryActionState> {
   const locale = normalizeLocale(formData.get('locale'));
   const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
-  await requireAdminSession(locale);
+  await requireAdminSection(locale, 'products', 'manage');
 
   const categoryId = normalizeText(formData.get('categoryId'));
   const name = normalizeText(formData.get('name'));

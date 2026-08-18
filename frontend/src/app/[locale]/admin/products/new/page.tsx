@@ -4,7 +4,7 @@ import { AdminEmptyState, AdminNotice, AdminPanel, AdminShell } from '@/componen
 import ProductAdminForm from '@/components/admin/products/ProductAdminForm';
 import { adminCx, adminSecondaryButtonClassName } from '@/components/admin/adminStyles';
 import { Link } from '@/i18n/routing';
-import { requireAdminSession } from '@/lib/adminAuthServer';
+import { requireAdminSection } from '@/lib/adminAuthServer';
 import { getCategories, noStoreApiFetchOptions } from '@/lib/api';
 import { withContentLocale } from '@/lib/contentLocales';
 
@@ -14,13 +14,14 @@ export default async function NewProductPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  await requireAdminSession(locale, `/${locale}/admin/products/new`);
+  const session = await requireAdminSection(locale, 'products', 'manage', `/${locale}/admin/products/new`);
   const categoriesResult = await getCategories('ru', noStoreApiFetchOptions, 'ru')
     .then((categories) => ({ categories, error: false as const }))
     .catch(() => ({ categories: [], error: true as const }));
 
   return (
     <AdminShell
+      session={session}
       activeTab="products"
       backHref={withContentLocale('/admin/products', 'ru')}
       backLabel="К списку товаров"

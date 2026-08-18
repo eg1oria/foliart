@@ -14,7 +14,8 @@ import {
   adminSecondaryButtonClassName,
 } from '@/components/admin/adminStyles';
 import { Link } from '@/i18n/routing';
-import { requireAdminSession } from '@/lib/adminAuthServer';
+import { requireAdminSection } from '@/lib/adminAuthServer';
+import { canManageSection } from '@/lib/adminPermissions';
 import { getCategories, getProducts, noStoreApiFetchOptions } from '@/lib/api';
 import { normalizeContentLocale, withContentLocale } from '@/lib/contentLocales';
 import { parseEntityId } from '@/lib/catalog';
@@ -48,7 +49,7 @@ export default async function AdminProductsPage({
   searchParams: Promise<AdminProductsSearchParams>;
 }) {
   const { locale } = await params;
-  await requireAdminSession(locale, `/${locale}/admin/products`);
+  const session = await requireAdminSection(locale, 'products', 'view', `/${locale}/admin/products`);
 
   const query = await searchParams;
   const contentLocale = normalizeContentLocale(query.contentLocale);
@@ -74,9 +75,11 @@ export default async function AdminProductsPage({
   const dataAvailable =
     categoriesResult.status === 'fulfilled' && productsResult.status === 'fulfilled';
   const statusMessage = getStatusMessage(query.status);
+  const canManage = canManageSection(session, 'products');
 
   return (
     <AdminShell
+      session={session}
       activeTab="products"
       backHref="/catalog"
       backLabel="Открыть каталог"
@@ -97,12 +100,14 @@ export default async function AdminProductsPage({
               <FiFolder aria-hidden="true" />
               Переводы категорий
             </Link>
-            <Link
-              href={withContentLocale('/admin/products/new', 'ru')}
-              className={adminCx(adminPrimaryButtonClassName, 'gap-2')}>
-              <FiPlus aria-hidden="true" />
-              Добавить товар
-            </Link>
+            {canManage ? (
+              <Link
+                href={withContentLocale('/admin/products/new', 'ru')}
+                className={adminCx(adminPrimaryButtonClassName, 'gap-2')}>
+                <FiPlus aria-hidden="true" />
+                Добавить товар
+              </Link>
+            ) : null}
           </div>
         }>
         <div className="space-y-4">
@@ -134,6 +139,7 @@ export default async function AdminProductsPage({
         ) : (
           <div className="mt-5">
             <ProductAdminList
+              canManage={canManage}
               categories={categories}
               contentLocale={contentLocale}
               initialCategoryId={normalizeProductCategoryFilter(query.categoryFilter)}

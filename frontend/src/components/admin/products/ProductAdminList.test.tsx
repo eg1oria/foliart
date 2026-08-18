@@ -102,10 +102,11 @@ describe('ProductAdminList', () => {
     container.remove();
   });
 
-  function render() {
+  function render(canManage = true) {
     act(() => {
       root.render(
         <ProductAdminList
+          canManage={canManage}
           categories={categories}
           contentLocale="en"
           initialCategoryId={null}
@@ -167,5 +168,13 @@ describe('ProductAdminList', () => {
     )!;
     act(() => cancelButton.dispatchEvent(new MouseEvent('click', { bubbles: true })));
     expect(container.querySelector('[role="dialog"]')).toBeNull();
+  });
+
+  it('hides the edit and delete controls without manage access', () => {
+    render(false);
+
+    expect(container.querySelector('button[aria-label="Удалить Copper 88"]')).toBeNull();
+    expect(container.textContent).not.toContain('Изменить');
+    expect(container.textContent).toContain('Copper 88');
   });
 });

@@ -14,7 +14,8 @@ import {
 import ArticleDraftResumeList from '@/components/admin/ArticleDraftResumeList';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
-import { requireAdminSession } from '@/lib/adminAuthServer';
+import { requireAdminSection } from '@/lib/adminAuthServer';
+import { canManageSection } from '@/lib/adminPermissions';
 import { formatArticleDate, getArticleHref, getArticlesCopy } from '@/lib/articles';
 import { getArticles, noStoreApiFetchOptions, type Article } from '@/lib/api';
 import {
@@ -45,7 +46,7 @@ export default async function AdminArticlesPage({
   searchParams: Promise<AdminPageSearchParams>;
 }) {
   const { locale } = await params;
-  await requireAdminSession(locale, `/${locale}/admin/articles`);
+  const session = await requireAdminSection(locale, 'articles', 'view', `/${locale}/admin/articles`);
 
   const {
     contentLocale: contentLocaleParam,
@@ -78,6 +79,7 @@ export default async function AdminArticlesPage({
     (articleItem) => !articleItem.adminTranslation?.isComplete,
   ).length;
   const manageBadge = locale === 'en' ? 'Manage' : 'Управление';
+  const canManage = canManageSection(session, 'articles');
   const openEditorLabel = locale === 'en' ? 'Open editor' : 'Добавить статью';
   const editLabel = locale === 'en' ? 'Edit' : 'Изменить';
   const deleteLabel = locale === 'en' ? 'Delete' : 'Удалить';
@@ -145,38 +147,43 @@ export default async function AdminArticlesPage({
         className={adminCx(adminSecondaryButtonClassName, 'h-9 min-h-9 w-9 px-0')}>
         <FiExternalLink aria-hidden="true" />
       </Link>
-      <Link
-        href={withContentLocale(`/admin/articles/${articleItem.id}`, contentLocale)}
-        className={adminCx(adminSecondaryButtonClassName, 'h-9 min-h-9 gap-1.5 px-3 text-xs')}>
-        <FiEdit3 aria-hidden="true" />
-        {editLabel}
-      </Link>
-      <form action={deleteArticleAction}>
-        <input type="hidden" name="locale" value={locale} />
-        <input type="hidden" name="contentLocale" value={contentLocale} />
-        <input type="hidden" name="articleId" value={articleItem.id} />
-        <input
-          type="hidden"
-          name="articleTitle"
-          value={articleItem.slugSourceTitle ?? articleItem.title}
-        />
-        <AdminDeleteButton
-          className={adminCx(adminDangerButtonClassName, 'h-9 min-h-9 w-9 px-0')}
-          confirmMessage={
-            locale === 'en'
-              ? `Delete article "${articleItem.title}"? This cannot be undone.`
-              : `Удалить статью «${articleItem.title}»? Это действие нельзя отменить.`
-          }
-          iconOnly
-          pendingLabel={deletingLabel}>
-          {deleteLabel}
-        </AdminDeleteButton>
-      </form>
+      {canManage ? (
+        <>
+          <Link
+            href={withContentLocale(`/admin/articles/${articleItem.id}`, contentLocale)}
+            className={adminCx(adminSecondaryButtonClassName, 'h-9 min-h-9 gap-1.5 px-3 text-xs')}>
+            <FiEdit3 aria-hidden="true" />
+            {editLabel}
+          </Link>
+          <form action={deleteArticleAction}>
+            <input type="hidden" name="locale" value={locale} />
+            <input type="hidden" name="contentLocale" value={contentLocale} />
+            <input type="hidden" name="articleId" value={articleItem.id} />
+            <input
+              type="hidden"
+              name="articleTitle"
+              value={articleItem.slugSourceTitle ?? articleItem.title}
+            />
+            <AdminDeleteButton
+              className={adminCx(adminDangerButtonClassName, 'h-9 min-h-9 w-9 px-0')}
+              confirmMessage={
+                locale === 'en'
+                  ? `Delete article "${articleItem.title}"? This cannot be undone.`
+                  : `Удалить статью «${articleItem.title}»? Это действие нельзя отменить.`
+              }
+              iconOnly
+              pendingLabel={deletingLabel}>
+              {deleteLabel}
+            </AdminDeleteButton>
+          </form>
+        </>
+      ) : null}
     </div>
   );
 
   return (
     <AdminShell
+      session={session}
       activeTab="articles"
       backHref="/articles"
       backLabel={copy.backToSite}
@@ -194,14 +201,16 @@ export default async function AdminArticlesPage({
           description={copy.adminPathHint}
           tone="muted"
           headerContent={
-            <Link
-              href={withContentLocale('/admin/articles/new', 'ru')}
-              className={adminCx(adminPrimaryButtonClassName, 'gap-2')}>
-              <FiPlus aria-hidden="true" />
-              {openEditorLabel}
-            </Link>
+            canManage ? (
+              <Link
+                href={withContentLocale('/admin/articles/new', 'ru')}
+                className={adminCx(adminPrimaryButtonClassName, 'gap-2')}>
+                <FiPlus aria-hidden="true" />
+                {openEditorLabel}
+              </Link>
+            ) : null
           }>
-          {contentLocale === 'ru' ? (
+          {canManage && contentLocale === 'ru' ? (
             <ArticleDraftResumeList contentLocale={contentLocale} locale={locale} />
           ) : null}
           {topLevelStatus ? (

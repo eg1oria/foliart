@@ -1,6 +1,7 @@
 'use client';
 
 import { Link } from '@/i18n/routing';
+import type { AdminSessionUser } from '@/lib/adminPermissions';
 import { logoutAdminAction } from '@/lib/adminSessionActions';
 import {
   contentLocales,
@@ -10,11 +11,11 @@ import {
 } from '@/lib/contentLocales';
 import type { ReactNode } from 'react';
 import { useRef } from 'react';
-import { FiArrowUpRight, FiLogOut } from 'react-icons/fi';
+import { FiArrowUpRight, FiLogOut, FiUser } from 'react-icons/fi';
 import { LuPanelTop } from 'react-icons/lu';
 
 import { AdminLocaleSwitcherFloating } from './AdminLocaleSwitcherFloating';
-import AdminTabs from './AdminTabs';
+import AdminTabs, { type AdminTabKey } from './AdminTabs';
 import {
   adminBadgeClassName,
   adminCx,
@@ -37,12 +38,16 @@ const i18n: Record<string, Record<string, string>> = {
   en: {
     quickActions: 'Quick actions',
     signOut: 'Sign out',
+    profile: 'My profile',
+    superAdmin: 'Super admin',
     inputLanguage: 'Input language',
     inputLanguageHint: 'Forms save text for the selected language.',
   },
   ru: {
     quickActions: 'Быстрые действия',
     signOut: 'Выйти',
+    profile: 'Мой профиль',
+    superAdmin: 'Супер-админ',
     inputLanguage: 'Язык полей',
     inputLanguageHint: 'Формы сохраняют текст для выбранного языка.',
   },
@@ -63,9 +68,10 @@ export function AdminShell({
   contentLocaleTitle,
   description,
   locale,
+  session,
   title,
 }: {
-  activeTab: 'products' | 'articles' | 'calendars' | 'messages';
+  activeTab: AdminTabKey;
   backHref: string;
   backLabel: string;
   children: ReactNode;
@@ -75,6 +81,7 @@ export function AdminShell({
   contentLocaleTitle?: string;
   description: string;
   locale: string;
+  session: AdminSessionUser;
   shortcuts?: AdminShortcut[];
   stats?: AdminStat[];
   title: string;
@@ -102,6 +109,11 @@ export function AdminShell({
                   <LuPanelTop className="text-sm" />
                   Foliart Admin
                 </span>
+                <span className="inline-flex items-center gap-2 rounded-md border border-[#0b5a45]/12 bg-white px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#567068]">
+                  <FiUser className="text-sm" />
+                  {session.username}
+                  {session.isSuperAdmin ? ` · ${t(locale, 'superAdmin')}` : ''}
+                </span>
               </div>
 
               <h1 className="mt-3 text-2xl font-semibold leading-tight text-[#0b3e31] sm:text-3xl lg:text-4xl">
@@ -111,7 +123,12 @@ export function AdminShell({
                 {description}
               </p>
 
-              <AdminTabs active={activeTab} contentLocale={safeContentLocale} locale={locale} />
+              <AdminTabs
+                active={activeTab}
+                contentLocale={safeContentLocale}
+                locale={locale}
+                session={session}
+              />
             </div>
 
             <div className="flex w-full min-w-0 flex-col gap-3 xl:w-[360px] xl:shrink-0">
@@ -119,6 +136,13 @@ export function AdminShell({
                 <Link href={backHref} className={adminCx(adminGhostLinkClassName, 'w-full gap-2')}>
                   <span>{backLabel}</span>
                   <FiArrowUpRight className="shrink-0" />
+                </Link>
+
+                <Link
+                  href="/admin/account"
+                  className={adminCx(adminGhostLinkClassName, 'w-full gap-2')}>
+                  <span>{t(locale, 'profile')}</span>
+                  <FiUser className="shrink-0" />
                 </Link>
 
                 <form action={logoutAdminAction} className="contents">

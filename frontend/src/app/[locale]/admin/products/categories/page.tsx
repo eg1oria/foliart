@@ -6,7 +6,8 @@ import {
   adminSecondaryButtonClassName,
 } from '@/components/admin/adminStyles';
 import { Link } from '@/i18n/routing';
-import { requireAdminSession } from '@/lib/adminAuthServer';
+import { requireAdminSection } from '@/lib/adminAuthServer';
+import { canManageSection } from '@/lib/adminPermissions';
 import { getCategories, noStoreApiFetchOptions } from '@/lib/api';
 import { normalizeContentLocale, withContentLocale } from '@/lib/contentLocales';
 import { getCategoryHref } from '@/lib/catalog';
@@ -20,7 +21,13 @@ export default async function ProductCategoriesPage({
   searchParams: Promise<{ contentLocale?: string }>;
 }) {
   const { locale } = await params;
-  await requireAdminSession(locale, `/${locale}/admin/products/categories`);
+  const session = await requireAdminSection(
+    locale,
+    'products',
+    'view',
+    `/${locale}/admin/products/categories`,
+  );
+  const canManage = canManageSection(session, 'products');
   const query = await searchParams;
   const contentLocale = normalizeContentLocale(query.contentLocale);
   const categoriesResult = await getCategories(
@@ -36,6 +43,7 @@ export default async function ProductCategoriesPage({
 
   return (
     <AdminShell
+      session={session}
       activeTab="products"
       backHref={withContentLocale('/admin/products', contentLocale)}
       backLabel="К списку товаров"
@@ -127,19 +135,21 @@ export default async function ProductCategoriesPage({
                         >
                           <FiExternalLink aria-hidden="true" />
                         </Link>
-                        <Link
-                          href={withContentLocale(
-                            `/admin/products/categories/${category.id}`,
-                            contentLocale,
-                          )}
-                          className={adminCx(
-                            adminSecondaryButtonClassName,
-                            'h-9 min-h-9 gap-1.5 px-3 text-xs',
-                          )}
-                        >
-                          <FiEdit3 aria-hidden="true" />
-                          Изменить
-                        </Link>
+                        {canManage ? (
+                          <Link
+                            href={withContentLocale(
+                              `/admin/products/categories/${category.id}`,
+                              contentLocale,
+                            )}
+                            className={adminCx(
+                              adminSecondaryButtonClassName,
+                              'h-9 min-h-9 gap-1.5 px-3 text-xs',
+                            )}
+                          >
+                            <FiEdit3 aria-hidden="true" />
+                            Изменить
+                          </Link>
+                        ) : null}
                       </div>
                     </article>
                   );

@@ -10,7 +10,7 @@ import {
 import CalendarAdminForm from '@/components/admin/calendars/CalendarAdminForm';
 import { adminCx, adminSecondaryButtonClassName } from '@/components/admin/adminStyles';
 import { Link } from '@/i18n/routing';
-import { requireAdminSession } from '@/lib/adminAuthServer';
+import { requireAdminSection } from '@/lib/adminAuthServer';
 import { ApiError, getCalendar, noStoreApiFetchOptions } from '@/lib/api';
 import { getCalendarHref, getCalendarsAdminCopy } from '@/lib/calendars';
 import { parseEntityId } from '@/lib/catalog';
@@ -24,7 +24,7 @@ export default async function EditCalendarPage({
   searchParams: Promise<{ contentLocale?: string; error?: string; status?: string }>;
 }) {
   const { locale, calendarId: rawCalendarId } = await params;
-  await requireAdminSession(locale, `/${locale}/admin/calendars/${rawCalendarId}`);
+  const session = await requireAdminSection(locale, 'calendars', 'manage', `/${locale}/admin/calendars/${rawCalendarId}`);
   const calendarId = parseEntityId(rawCalendarId);
   if (!calendarId) notFound();
 
@@ -55,6 +55,7 @@ export default async function EditCalendarPage({
 
   return (
     <AdminShell
+      session={session}
       activeTab="calendars"
       backHref={withContentLocale('/admin/calendars', contentLocale)}
       backLabel={locale === 'en' ? 'Back to calendar items' : 'К списку записей'}

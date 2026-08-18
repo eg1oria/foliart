@@ -55,6 +55,7 @@ describe('UiMessagesEditor', () => {
     await act(async () => {
       root.render(
         <UiMessagesEditor
+          canManage
           adminLocale="ru"
           bundledMessages={messages}
           hasOverride={false}
@@ -181,6 +182,7 @@ describe('UiMessagesEditor', () => {
     await act(async () => {
       root.render(
         <UiMessagesEditor
+          canManage
           key="stored-override"
           adminLocale="ru"
           bundledMessages={messages}

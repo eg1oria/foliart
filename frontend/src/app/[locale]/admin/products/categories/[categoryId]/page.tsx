@@ -5,7 +5,7 @@ import { AdminEmptyState, AdminNotice, AdminPanel, AdminShell } from '@/componen
 import CategoryTranslationForm from '@/components/admin/products/CategoryTranslationForm';
 import { adminCx, adminSecondaryButtonClassName } from '@/components/admin/adminStyles';
 import { Link } from '@/i18n/routing';
-import { requireAdminSession } from '@/lib/adminAuthServer';
+import { requireAdminSection } from '@/lib/adminAuthServer';
 import { ApiError, getCategory, noStoreApiFetchOptions } from '@/lib/api';
 import { normalizeContentLocale, withContentLocale } from '@/lib/contentLocales';
 import { getCategoryHref, parseEntityId } from '@/lib/catalog';
@@ -18,8 +18,10 @@ export default async function EditProductCategoryPage({
   searchParams: Promise<{ contentLocale?: string; status?: string }>;
 }) {
   const { categoryId: rawCategoryId, locale } = await params;
-  await requireAdminSession(
+  const session = await requireAdminSection(
     locale,
+    'products',
+    'manage',
     `/${locale}/admin/products/categories/${rawCategoryId}`,
   );
   const categoryId = parseEntityId(rawCategoryId);
@@ -42,6 +44,7 @@ export default async function EditProductCategoryPage({
 
   return (
     <AdminShell
+      session={session}
       activeTab="products"
       backHref={withContentLocale('/admin/products/categories', contentLocale)}
       backLabel="К категориям"

@@ -48,6 +48,7 @@ function formatUpdatedAt(value: string | null) {
 export default function UiMessagesEditor({
   adminLocale,
   bundledMessages,
+  canManage,
   hasOverride: initialHasOverride,
   initialMessages,
   revision: initialRevision,
@@ -57,6 +58,7 @@ export default function UiMessagesEditor({
 }: {
   adminLocale: string;
   bundledMessages: UiMessageDocument;
+  canManage: boolean;
   hasOverride: boolean;
   initialMessages: UiMessageDocument;
   revision: number;
@@ -428,6 +430,7 @@ export default function UiMessagesEditor({
                 [entry.id]: event.target.value,
               })),
             className: inputClassName,
+            readOnly: !canManage,
           };
 
           return (
@@ -492,27 +495,31 @@ export default function UiMessagesEditor({
               : 'Используется встроенная версия.'}
         </p>
         <div className="flex flex-col gap-2 sm:flex-row">
-          <button
-            type="button"
-            disabled={pending || !hasOverride}
-            onClick={submitReset}
-            className={adminDangerButtonClassName}
-          >
-            Сбросить язык
-          </button>
-          <button
-            type="submit"
-            disabled={!dirty || pending}
-            className={adminCx(
-              adminPrimaryButtonClassName,
-              'gap-2 disabled:cursor-not-allowed disabled:opacity-60',
-            )}
-          >
-            <FiSave aria-hidden="true" />
-            {pending && lastOperation === 'save'
-              ? 'Сохранение…'
-              : 'Сохранить изменения'}
-          </button>
+          {canManage ? (
+            <button
+              type="button"
+              disabled={pending || !hasOverride}
+              onClick={submitReset}
+              className={adminDangerButtonClassName}
+            >
+              Сбросить язык
+            </button>
+          ) : null}
+          {canManage ? (
+            <button
+              type="submit"
+              disabled={!dirty || pending}
+              className={adminCx(
+                adminPrimaryButtonClassName,
+                'gap-2 disabled:cursor-not-allowed disabled:opacity-60',
+              )}
+            >
+              <FiSave aria-hidden="true" />
+              {pending && lastOperation === 'save'
+                ? 'Сохранение…'
+                : 'Сохранить изменения'}
+            </button>
+          ) : null}
         </div>
       </div>
     </form>

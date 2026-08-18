@@ -4,7 +4,7 @@ import { revalidatePath, updateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getAdminApiHeaders } from '@/lib/adminApi';
 import { adminApiFetch, getAdminApiErrorMessage } from '@/lib/adminBackend';
-import { requireAdminSession } from '@/lib/adminAuthServer';
+import { requireAdminSection } from '@/lib/adminAuthServer';
 import { articlesCacheTag } from '@/lib/api';
 import { getArticleHref } from '@/lib/articles';
 import { normalizeContentLocale } from '@/lib/contentLocales';
@@ -88,7 +88,7 @@ async function revalidateArticlePages(args: { articleTitle: string; previousTitl
 export async function createArticleAction(formData: FormData) {
   const locale = normalizeLocale(formData.get('locale'));
   const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
-  await requireAdminSession(locale);
+  await requireAdminSection(locale, 'articles', 'manage');
 
   if (contentLocale !== 'ru') {
     redirect(
@@ -177,7 +177,7 @@ export async function createArticleAction(formData: FormData) {
 export async function updateArticleAction(formData: FormData) {
   const locale = normalizeLocale(formData.get('locale'));
   const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
-  await requireAdminSession(locale);
+  await requireAdminSection(locale, 'articles', 'manage');
 
   const articleId = normalizeText(formData.get('articleId'));
   const previousTitle = normalizeText(formData.get('previousTitle'));
@@ -263,7 +263,7 @@ export async function updateArticleAction(formData: FormData) {
 export async function deleteArticleAction(formData: FormData) {
   const locale = normalizeLocale(formData.get('locale'));
   const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
-  await requireAdminSession(locale);
+  await requireAdminSection(locale, 'articles', 'manage');
 
   const articleId = normalizeText(formData.get('articleId'));
   const articleTitle = normalizeText(formData.get('articleTitle'));

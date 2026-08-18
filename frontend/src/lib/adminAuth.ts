@@ -1,33 +1,25 @@
 export const ADMIN_SESSION_COOKIE = 'foliart_admin_session';
 export const ADMIN_SESSION_MAX_AGE_SECONDS = 60 * 60 * 12;
 
-const DEFAULT_ADMIN_USERNAME = 'admin';
 const SUPPORTED_ADMIN_LOCALES = ['ru'] as const;
 const DEFAULT_ADMIN_LOCALE = 'ru';
 
 type AdminLocale = (typeof SUPPORTED_ADMIN_LOCALES)[number];
 
-type AdminSessionPayload = {
+// `v` is the payload format. Bumping it invalidates every cookie issued by the
+// previous shape, which is what retires the single env-based admin identity.
+const ADMIN_SESSION_VERSION = 2;
+
+export type AdminSessionPayload = {
   exp: number;
-  login: string;
+  sub: number;
+  usr: string;
+  v: number;
+  ver: number;
 };
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
-
-function getAdminUsername() {
-  return process.env.ADMIN_USERNAME ?? process.env.ADMIN_LOGIN ?? DEFAULT_ADMIN_USERNAME;
-}
-
-function getAdminPassword() {
-  const password = process.env.ADMIN_PASSWORD;
-
-  if (!password) {
-    throw new Error('ADMIN_PASSWORD must be set');
-  }
-
-  return password;
-}
 
 function getAdminSessionSecret() {
   const secret = process.env.ADMIN_SESSION_SECRET;
@@ -188,18 +180,18 @@ export function getSafeAdminNextPath(locale: string, value?: string | null) {
   }
 }
 
-export function validateAdminCredentials(username: string, password: string) {
-  return (
-    constantTimeEqual(username, getAdminUsername()) &&
-    constantTimeEqual(password, getAdminPassword())
-  );
-}
-
-export async function createAdminSessionValue() {
+export async function createAdminSessionValue(user: {
+  id: number;
+  tokenVersion: number;
+  username: string;
+}) {
   const payload = stringToBase64Url(
     JSON.stringify({
       exp: getCurrentUnixTime() + ADMIN_SESSION_MAX_AGE_SECONDS,
-      login: getAdminUsername(),
+      sub: user.id,
+      usr: user.username,
+      v: ADMIN_SESSION_VERSION,
+      ver: user.tokenVersion,
     } satisfies AdminSessionPayload),
   );
   const signature = await signAdminValue(payload);
@@ -207,32 +199,57 @@ export async function createAdminSessionValue() {
   return `${payload}.${signature}`;
 }
 
-export async function verifyAdminSessionValue(value?: string) {
+// Signature and expiry only: this runs in middleware, where there is no way to
+// reach the database. Whether the admin still exists, still has that token
+// version and may open the requested section is decided server-side.
+export async function readAdminSessionValue(
+  value?: string,
+): Promise<AdminSessionPayload | null> {
   if (!value) {
-    return false;
+    return null;
   }
 
   const [payload, signature, extra] = value.split('.');
 
   if (!payload || !signature || extra) {
-    return false;
+    return null;
   }
 
   const expectedSignature = await signAdminValue(payload);
 
   if (!constantTimeEqual(signature, expectedSignature)) {
-    return false;
+    return null;
   }
 
   try {
     const parsed = JSON.parse(base64UrlToString(payload)) as Partial<AdminSessionPayload>;
 
-    return (
-      typeof parsed.exp === 'number' &&
-      parsed.exp > getCurrentUnixTime() &&
-      parsed.login === getAdminUsername()
-    );
+    if (
+      parsed.v !== ADMIN_SESSION_VERSION ||
+      typeof parsed.exp !== 'number' ||
+      parsed.exp <= getCurrentUnixTime() ||
+      typeof parsed.sub !== 'number' ||
+      !Number.isSafeInteger(parsed.sub) ||
+      parsed.sub <= 0 ||
+      typeof parsed.usr !== 'string' ||
+      typeof parsed.ver !== 'number' ||
+      !Number.isSafeInteger(parsed.ver)
+    ) {
+      return null;
+    }
+
+    return {
+      exp: parsed.exp,
+      sub: parsed.sub,
+      usr: parsed.usr,
+      v: parsed.v,
+      ver: parsed.ver,
+    };
   } catch {
-    return false;
+    return null;
   }
+}
+
+export async function verifyAdminSessionValue(value?: string) {
+  return (await readAdminSessionValue(value)) !== null;
 }

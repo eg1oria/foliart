@@ -16,7 +16,8 @@ import {
 } from '@/components/admin/adminStyles';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
-import { requireAdminSession } from '@/lib/adminAuthServer';
+import { requireAdminSection } from '@/lib/adminAuthServer';
+import { canManageSection } from '@/lib/adminPermissions';
 import { getCalendars, noStoreApiFetchOptions, type CalendarEntry } from '@/lib/api';
 import { getCalendarHref, getCalendarsAdminCopy } from '@/lib/calendars';
 import { normalizeContentLocale, withContentLocale } from '@/lib/contentLocales';
@@ -52,7 +53,7 @@ export default async function AdminCalendarsPage({
   searchParams: Promise<AdminPageSearchParams>;
 }) {
   const { locale } = await params;
-  await requireAdminSession(locale, `/${locale}/admin/calendars`);
+  const session = await requireAdminSection(locale, 'calendars', 'view', `/${locale}/admin/calendars`);
 
   const query = await searchParams;
   const contentLocale = normalizeContentLocale(query.contentLocale);
@@ -78,6 +79,7 @@ export default async function AdminCalendarsPage({
           : 'Запись календаря удалена.'
         : null;
   const manageBadge = locale === 'en' ? 'Manage' : 'Управление';
+  const canManage = canManageSection(session, 'calendars');
   const addLabel = locale === 'en' ? 'Add calendar item' : 'Добавить запись';
   const editLabel = locale === 'en' ? 'Edit' : 'Изменить';
   const deleteLabel = locale === 'en' ? 'Delete' : 'Удалить';
@@ -136,38 +138,43 @@ export default async function AdminCalendarsPage({
         className={adminCx(adminSecondaryButtonClassName, 'h-9 min-h-9 w-9 px-0')}>
         <FiExternalLink aria-hidden="true" />
       </Link>
-      <Link
-        href={withContentLocale(`/admin/calendars/${calendar.id}`, contentLocale)}
-        className={adminCx(adminSecondaryButtonClassName, 'h-9 min-h-9 gap-1.5 px-3 text-xs')}>
-        <FiEdit3 aria-hidden="true" />
-        {editLabel}
-      </Link>
-      <form action={deleteCalendarAction}>
-        <input type="hidden" name="locale" value={locale} />
-        <input type="hidden" name="contentLocale" value={contentLocale} />
-        <input type="hidden" name="calendarId" value={calendar.id} />
-        <input
-          type="hidden"
-          name="calendarTitle"
-          value={calendar.slugSourceTitle ?? calendar.title}
-        />
-        <AdminDeleteButton
-          className={adminCx(adminDangerButtonClassName, 'h-9 min-h-9 w-9 px-0')}
-          confirmMessage={
-            locale === 'en'
-              ? `Delete calendar item "${calendar.title}"? This cannot be undone.`
-              : `Удалить запись календаря «${calendar.title}»? Это действие нельзя отменить.`
-          }
-          iconOnly
-          pendingLabel={deletingLabel}>
-          {deleteLabel}
-        </AdminDeleteButton>
-      </form>
+      {canManage ? (
+        <>
+          <Link
+            href={withContentLocale(`/admin/calendars/${calendar.id}`, contentLocale)}
+            className={adminCx(adminSecondaryButtonClassName, 'h-9 min-h-9 gap-1.5 px-3 text-xs')}>
+            <FiEdit3 aria-hidden="true" />
+            {editLabel}
+          </Link>
+          <form action={deleteCalendarAction}>
+            <input type="hidden" name="locale" value={locale} />
+            <input type="hidden" name="contentLocale" value={contentLocale} />
+            <input type="hidden" name="calendarId" value={calendar.id} />
+            <input
+              type="hidden"
+              name="calendarTitle"
+              value={calendar.slugSourceTitle ?? calendar.title}
+            />
+            <AdminDeleteButton
+              className={adminCx(adminDangerButtonClassName, 'h-9 min-h-9 w-9 px-0')}
+              confirmMessage={
+                locale === 'en'
+                  ? `Delete calendar item "${calendar.title}"? This cannot be undone.`
+                  : `Удалить запись календаря «${calendar.title}»? Это действие нельзя отменить.`
+              }
+              iconOnly
+              pendingLabel={deletingLabel}>
+              {deleteLabel}
+            </AdminDeleteButton>
+          </form>
+        </>
+      ) : null}
     </div>
   );
 
   return (
     <AdminShell
+      session={session}
       activeTab="calendars"
       backHref="/calendar"
       backLabel={copy.backToSite}
@@ -190,12 +197,14 @@ export default async function AdminCalendarsPage({
         }
         tone="muted"
         headerContent={
-          <Link
-            href={withContentLocale('/admin/calendars/new', 'ru')}
-            className={adminCx(adminPrimaryButtonClassName, 'gap-2')}>
-            <FiPlus aria-hidden="true" />
-            {addLabel}
-          </Link>
+          canManage ? (
+            <Link
+              href={withContentLocale('/admin/calendars/new', 'ru')}
+              className={adminCx(adminPrimaryButtonClassName, 'gap-2')}>
+              <FiPlus aria-hidden="true" />
+              {addLabel}
+            </Link>
+          ) : null
         }>
         {successMessage ? (
           <div className="mb-5">

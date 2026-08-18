@@ -7,7 +7,7 @@ import {
   getAdminApiErrorMessage,
 } from '@/lib/adminBackend';
 import { isSupportedAdminLocale } from '@/lib/adminAuth';
-import { requireAdminSession } from '@/lib/adminAuthServer';
+import { requireAdminSection } from '@/lib/adminAuthServer';
 import {
   getBundledUiMessages,
   getUiMessagesTag,
@@ -103,7 +103,7 @@ export async function saveUiMessagesAction(
   input: UiMessagesActionInput,
 ): Promise<UiMessagesActionState> {
   const parsedInput = parseMutationInput(input);
-  await requireAdminSession(parsedInput.adminLocale);
+  await requireAdminSection(parsedInput.adminLocale, 'messages', 'manage');
 
   if ('error' in parsedInput) {
     return { status: 'error', message: parsedInput.error };
@@ -189,7 +189,7 @@ export async function resetUiMessagesAction(
   input: UiMessagesResetInput,
 ): Promise<UiMessagesActionState> {
   const parsedInput = parseMutationInput(input);
-  await requireAdminSession(parsedInput.adminLocale);
+  await requireAdminSection(parsedInput.adminLocale, 'messages', 'manage');
 
   if ('error' in parsedInput) {
     return { status: 'error', message: parsedInput.error };

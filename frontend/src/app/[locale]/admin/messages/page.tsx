@@ -10,7 +10,8 @@ import {
   type UiMessageDocument,
 } from '@/i18n/uiMessages';
 import { getUiMessagesForAdmin } from '@/i18n/uiMessagesServer';
-import { requireAdminSession } from '@/lib/adminAuthServer';
+import { requireAdminSection } from '@/lib/adminAuthServer';
+import { canManageSection } from '@/lib/adminPermissions';
 import { normalizeContentLocale } from '@/lib/contentLocales';
 
 export default async function AdminMessagesPage({
@@ -21,7 +22,12 @@ export default async function AdminMessagesPage({
   searchParams: Promise<{ contentLocale?: string }>;
 }) {
   const { locale } = await params;
-  await requireAdminSession(locale, `/${locale}/admin/messages`);
+  const session = await requireAdminSection(
+    locale,
+    'messages',
+    'view',
+    `/${locale}/admin/messages`,
+  );
   const query = await searchParams;
   const targetLocale = normalizeContentLocale(query.contentLocale);
 
@@ -47,6 +53,7 @@ export default async function AdminMessagesPage({
 
   return (
     <AdminShell
+      session={session}
       activeTab="messages"
       backHref="/"
       backLabel="Открыть сайт"
@@ -71,6 +78,7 @@ export default async function AdminMessagesPage({
           <UiMessagesEditor
             key={`${targetLocale}:${stored.revision}`}
             adminLocale={locale}
+            canManage={canManageSection(session, 'messages')}
             bundledMessages={getBundledUiMessages(targetLocale)}
             hasOverride={stored.messages !== null}
             initialMessages={

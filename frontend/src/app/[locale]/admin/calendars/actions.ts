@@ -4,7 +4,7 @@ import { revalidatePath, updateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getAdminApiHeaders } from '@/lib/adminApi';
 import { adminApiFetch, getAdminApiErrorMessage } from '@/lib/adminBackend';
-import { requireAdminSession } from '@/lib/adminAuthServer';
+import { requireAdminSection } from '@/lib/adminAuthServer';
 import { calendarsCacheTag } from '@/lib/api';
 import { getCalendarHref } from '@/lib/calendars';
 import { normalizeContentLocale } from '@/lib/contentLocales';
@@ -78,7 +78,7 @@ function revalidateCalendarPages() {
 export async function createCalendarAction(formData: FormData) {
   const locale = normalizeLocale(formData.get('locale'));
   const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
-  await requireAdminSession(locale);
+  await requireAdminSection(locale, 'calendars', 'manage');
 
   if (contentLocale !== 'ru') {
     redirect(
@@ -179,7 +179,7 @@ export async function createCalendarAction(formData: FormData) {
 export async function deleteCalendarAction(formData: FormData) {
   const locale = normalizeLocale(formData.get('locale'));
   const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
-  await requireAdminSession(locale);
+  await requireAdminSection(locale, 'calendars', 'manage');
 
   const calendarId = normalizeText(formData.get('calendarId'));
   const calendarTitle = normalizeText(formData.get('calendarTitle'));
@@ -245,7 +245,7 @@ export async function deleteCalendarAction(formData: FormData) {
 export async function updateCalendarAction(formData: FormData) {
   const locale = normalizeLocale(formData.get('locale'));
   const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
-  await requireAdminSession(locale);
+  await requireAdminSection(locale, 'calendars', 'manage');
 
   const calendarId = normalizeText(formData.get('calendarId'));
   const values = getCalendarFormPayload(formData);

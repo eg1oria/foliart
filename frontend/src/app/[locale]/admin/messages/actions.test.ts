@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({
   adminApiFetch: vi.fn(),
   getAdminApiErrorMessage: vi.fn(),
   prime: vi.fn(),
-  requireAdminSession: vi.fn(),
+  requireAdminSection: vi.fn(),
   revalidatePath: vi.fn(),
   updateTag: vi.fn(),
 }));
@@ -22,7 +22,7 @@ vi.mock('@/lib/adminBackend', () => ({
   getAdminApiErrorMessage: mocks.getAdminApiErrorMessage,
 }));
 vi.mock('@/lib/adminAuthServer', () => ({
-  requireAdminSession: mocks.requireAdminSession,
+  requireAdminSection: mocks.requireAdminSection,
 }));
 vi.mock('@/i18n/uiMessagesServer', () => ({
   primeUiMessagesLastKnownGood: mocks.prime,
@@ -51,7 +51,17 @@ function successResponse(
 describe('UI messages Server Actions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.requireAdminSession.mockResolvedValue(undefined);
+    mocks.requireAdminSection.mockResolvedValue({
+      id: 1,
+      isSuperAdmin: true,
+      permissions: {
+        products: 'manage',
+        articles: 'manage',
+        calendars: 'manage',
+        messages: 'manage',
+      },
+      username: 'root',
+    });
     mocks.getAdminApiErrorMessage.mockResolvedValue('Backend error');
   });
 
@@ -67,7 +77,7 @@ describe('UI messages Server Actions', () => {
       }),
     ).resolves.toMatchObject({ status: 'success', revision: 1 });
 
-    expect(mocks.requireAdminSession).toHaveBeenCalledWith('ru');
+    expect(mocks.requireAdminSection).toHaveBeenCalledWith('ru', 'messages', 'manage');
     expect(mocks.updateTag).toHaveBeenCalledWith('ui-messages:en');
     expect(mocks.revalidatePath).toHaveBeenCalledWith('/en', 'layout');
     expect(mocks.prime).toHaveBeenCalledTimes(1);

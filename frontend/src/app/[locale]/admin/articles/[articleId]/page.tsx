@@ -5,7 +5,7 @@ import { AdminPanel, AdminShell } from '@/components/admin/AdminShell';
 import ArticleDraftForm from '@/components/admin/ArticleDraftForm';
 import { adminCx, adminSecondaryButtonClassName } from '@/components/admin/adminStyles';
 import { Link } from '@/i18n/routing';
-import { requireAdminSession } from '@/lib/adminAuthServer';
+import { requireAdminSection } from '@/lib/adminAuthServer';
 import { getArticlesCopy } from '@/lib/articles';
 import { normalizeContentLocale, withContentLocale } from '@/lib/contentLocales';
 
@@ -17,7 +17,7 @@ export default async function EditArticlePage({
   searchParams: Promise<{ contentLocale?: string }>;
 }) {
   const { locale, articleId: rawArticleId } = await params;
-  await requireAdminSession(locale, `/${locale}/admin/articles/${rawArticleId}`);
+  const session = await requireAdminSection(locale, 'articles', 'manage', `/${locale}/admin/articles/${rawArticleId}`);
   const articleId = Number(rawArticleId);
   if (!Number.isInteger(articleId) || articleId < 1) notFound();
   const { contentLocale: requestedLocale } = await searchParams;
@@ -26,6 +26,7 @@ export default async function EditArticlePage({
 
   return (
     <AdminShell
+      session={session}
       activeTab="articles"
       backHref={withContentLocale('/admin/articles', contentLocale)}
       backLabel={locale === 'ru' ? 'К списку статей' : 'Back to articles'}

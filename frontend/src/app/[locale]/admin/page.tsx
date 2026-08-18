@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 
-import { requireAdminSession } from '@/lib/adminAuthServer';
+import { getAdminNoAccessPath, requireAdminSession } from '@/lib/adminAuthServer';
+import { adminSectionPaths, getFirstAllowedSection } from '@/lib/adminPermissions';
 
 export default async function AdminIndexPage({
   params,
@@ -8,7 +9,12 @@ export default async function AdminIndexPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  await requireAdminSession(locale, `/${locale}/admin`);
+  const session = await requireAdminSession(locale, `/${locale}/admin`);
+  const section = getFirstAllowedSection(session);
 
-  redirect(`/${locale}/admin/products`);
+  if (!section) {
+    redirect(session.isSuperAdmin ? `/${locale}/admin/admins` : getAdminNoAccessPath(locale));
+  }
+
+  redirect(`/${locale}${adminSectionPaths[section]}`);
 }

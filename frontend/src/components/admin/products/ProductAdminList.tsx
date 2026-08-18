@@ -25,6 +25,7 @@ import {
 } from '../adminStyles';
 
 type ProductAdminListProps = {
+  canManage: boolean;
   categories: Category[];
   contentLocale: string;
   initialCategoryId: number | null;
@@ -165,6 +166,7 @@ function ProductDeleteDialog({
 }
 
 export default function ProductAdminList({
+  canManage,
   categories,
   contentLocale,
   initialCategoryId,
@@ -216,21 +218,25 @@ export default function ProductAdminList({
           <FiExternalLink aria-hidden="true" />
         </Link>
       ) : null}
-      <Link
-        href={withContentLocale(`/admin/products/${product.id}`, contentLocale)}
-        className={adminCx(adminSecondaryButtonClassName, 'h-9 min-h-9 gap-1.5 px-3 text-xs')}
-      >
-        <FiEdit3 aria-hidden="true" />
-        Изменить
-      </Link>
-      <button
-        type="button"
-        onClick={() => setProductToDelete(product)}
-        aria-label={`Удалить ${product.name}`}
-        className={adminCx(adminDangerButtonClassName, 'h-9 min-h-9 w-9 px-0')}
-      >
-        <FiTrash2 aria-hidden="true" />
-      </button>
+      {canManage ? (
+        <>
+          <Link
+            href={withContentLocale(`/admin/products/${product.id}`, contentLocale)}
+            className={adminCx(adminSecondaryButtonClassName, 'h-9 min-h-9 gap-1.5 px-3 text-xs')}
+          >
+            <FiEdit3 aria-hidden="true" />
+            Изменить
+          </Link>
+          <button
+            type="button"
+            onClick={() => setProductToDelete(product)}
+            aria-label={`Удалить ${product.name}`}
+            className={adminCx(adminDangerButtonClassName, 'h-9 min-h-9 w-9 px-0')}
+          >
+            <FiTrash2 aria-hidden="true" />
+          </button>
+        </>
+      ) : null}
     </div>
   );
 

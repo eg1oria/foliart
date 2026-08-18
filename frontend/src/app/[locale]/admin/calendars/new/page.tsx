@@ -5,7 +5,7 @@ import { AdminPanel, AdminShell } from '@/components/admin/AdminShell';
 import CalendarAdminForm from '@/components/admin/calendars/CalendarAdminForm';
 import { adminCx, adminSecondaryButtonClassName } from '@/components/admin/adminStyles';
 import { Link } from '@/i18n/routing';
-import { requireAdminSession } from '@/lib/adminAuthServer';
+import { requireAdminSection } from '@/lib/adminAuthServer';
 import { getCalendarsAdminCopy } from '@/lib/calendars';
 import { normalizeContentLocale, withContentLocale } from '@/lib/contentLocales';
 
@@ -17,7 +17,7 @@ export default async function NewCalendarPage({
   searchParams: Promise<{ contentLocale?: string; error?: string }>;
 }) {
   const { locale } = await params;
-  await requireAdminSession(locale, `/${locale}/admin/calendars/new`);
+  const session = await requireAdminSection(locale, 'calendars', 'manage', `/${locale}/admin/calendars/new`);
 
   const query = await searchParams;
   const contentLocale = normalizeContentLocale(query.contentLocale);
@@ -29,6 +29,7 @@ export default async function NewCalendarPage({
 
   return (
     <AdminShell
+      session={session}
       activeTab="calendars"
       backHref={withContentLocale('/admin/calendars', 'ru')}
       backLabel={locale === 'en' ? 'Back to calendar items' : 'К списку записей'}

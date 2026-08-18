@@ -44,6 +44,12 @@ export default async function AdminLoginPage({
     password: isEnglish ? 'Password' : 'Пароль',
     submit: isEnglish ? 'Sign in' : 'Войти',
     error: isEnglish ? 'Incorrect login or password.' : 'Неверный логин или пароль.',
+    errorLocked: isEnglish
+      ? 'Too many failed attempts. Try again in 15 minutes.'
+      : 'Слишком много неудачных попыток. Повторите через 15 минут.',
+    errorOffline: isEnglish
+      ? 'The server is unavailable. Please try again.'
+      : 'Сервер недоступен. Повторите попытку.',
     hint: isEnglish
       ? 'Access is saved in this browser for 12 hours.'
       : 'Доступ сохранится в этом браузере на 12 часов.',
@@ -72,8 +78,14 @@ export default async function AdminLoginPage({
 
           <div className="space-y-5">
             {error ? (
-              <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm leading-6 text-rose-800">
-                {copy.error}
+              <div
+                role="alert"
+                className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm leading-6 text-rose-800">
+                {error === 'offline'
+                  ? copy.errorOffline
+                  : error === 'locked'
+                    ? copy.errorLocked
+                    : copy.error}
               </div>
             ) : null}
 

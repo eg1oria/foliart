@@ -1,15 +1,19 @@
 import { Link } from '@/i18n/routing';
+import type { AdminSection, AdminSessionUser } from '@/lib/adminPermissions';
+import { canViewSection } from '@/lib/adminPermissions';
 import { withContentLocale } from '@/lib/contentLocales';
 import type { IconType } from 'react-icons';
-import { FiBookOpen, FiBox, FiCalendar } from 'react-icons/fi';
+import { FiBookOpen, FiBox, FiCalendar, FiUsers } from 'react-icons/fi';
 
 import { adminCx } from './adminStyles';
+
+export type AdminTabKey = AdminSection | 'admins' | 'account';
 
 // FIX 1: i18n вынесен из массива — нет дублирования locale === 'en' ? ... : ...
 // FIX 2: Unicode escape-последовательности заменены на читаемый текст
 const tabsI18n: Record<
   string,
-  Record<'products' | 'articles' | 'calendars' | 'messages', { label: string; description: string }>
+  Record<AdminTabKey, { label: string; description: string }>
 > = {
   en: {
     products: {
@@ -27,6 +31,14 @@ const tabsI18n: Record<
     messages: {
       label: 'Translations',
       description: 'Public interface messages',
+    },
+    admins: {
+      label: 'Admins',
+      description: 'Accounts and section access',
+    },
+    account: {
+      label: 'My profile',
+      description: 'Your own password',
     },
   },
   ru: {
@@ -46,38 +58,68 @@ const tabsI18n: Record<
       label: 'Переводы',
       description: 'Интерфейсные тексты публичного сайта',
     },
+    admins: {
+      label: 'Администраторы',
+      description: 'Учётные записи и доступ к разделам',
+    },
+    account: {
+      label: 'Мой профиль',
+      description: 'Смена собственного пароля',
+    },
   },
 };
 
 const TAB_ITEMS: Array<{
-  href: '/admin/products' | '/admin/articles' | '/admin/calendars';
+  href: '/admin/products' | '/admin/articles' | '/admin/calendars' | '/admin/admins';
   // | '/admin/messages';
   icon: IconType;
-  key: 'products' | 'articles' | 'calendars' | 'messages';
+  key: AdminTabKey;
 }> = [
   { key: 'products', href: '/admin/products', icon: FiBox },
   { key: 'articles', href: '/admin/articles', icon: FiBookOpen },
   { key: 'calendars', href: '/admin/calendars', icon: FiCalendar },
   // { key: 'messages', href: '/admin/messages', icon: FiGlobe },
+  { key: 'admins', href: '/admin/admins', icon: FiUsers },
 ];
+
+// The admins tab belongs to the super admin only; every content tab follows the
+// per-section permissions of whoever is signed in.
+function isTabVisible(key: AdminTabKey, session: AdminSessionUser) {
+  if (key === 'admins') {
+    return session.isSuperAdmin;
+  }
+
+  if (key === 'account') {
+    return true;
+  }
+
+  return canViewSection(session, key);
+}
 
 export default function AdminTabs({
   active,
   contentLocale,
   locale,
+  session,
 }: {
-  active: 'products' | 'articles' | 'calendars' | 'messages';
+  active: AdminTabKey;
   contentLocale: string;
   locale: string;
+  session: AdminSessionUser;
 }) {
   const strings = tabsI18n[locale] ?? tabsI18n['en'];
+  const items = TAB_ITEMS.filter((item) => isTabVisible(item.key, session));
+
+  if (!items.length) {
+    return null;
+  }
 
   return (
     // FIX 3: aria-label на <nav> — несколько nav на странице должны различаться для скринридеров
     <nav
       aria-label={locale === 'en' ? 'Admin sections' : 'Разделы администратора'}
       className="-mx-1 mt-5 flex gap-2 overflow-x-auto px-1 pb-1 [&::-webkit-scrollbar]:hidden">
-      {TAB_ITEMS.map((item) => {
+      {items.map((item) => {
         const Icon = item.icon;
         const isActive = item.key === active;
         const { label, description } = strings[item.key];

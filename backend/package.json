@@ -18,6 +18,7 @@
     "start:prod": "node dist/main.js",
     "seed": "ts-node src/seed.ts",
     "articles:migrate": "ts-node src/scripts/migrate-article-content.ts",
+    "admin:reset-password": "ts-node src/scripts/reset-admin-password.ts",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "lint:fix": "npm run lint -- --fix",
     "test": "jest",

@@ -5,9 +5,7 @@ import { routing } from './i18n/routing';
 import {
   ADMIN_SESSION_COOKIE,
   getCanonicalAdminPath,
-  getDefaultAdminPath,
   getLocaleFromAdminPath,
-  getSafeAdminNextPath,
   isAdminLoginPath,
   isAdminPath,
   verifyAdminSessionValue,
@@ -39,20 +37,18 @@ export async function proxy(request: NextRequest) {
   }
 
   const locale = getLocaleFromAdminPath(pathname) ?? routing.defaultLocale;
+  // Middleware can only tell that a cookie is well-formed and unexpired; which
+  // sections the admin behind it may open is decided in the server components
+  // and server actions, where the account can actually be read.
   const sessionValue = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
   const isAuthenticated = await verifyAdminSessionValue(sessionValue);
 
+  // The login page decides for itself whether to bounce an already signed-in
+  // admin into the panel, because only it can check the account behind the
+  // cookie. Redirecting here on the weaker cookie-shape check would ping-pong
+  // with the page whenever a session is revoked but its cookie is still valid.
   if (isAdminLoginPath(pathname)) {
-    if (!isAuthenticated) {
-      return intlMiddleware(request);
-    }
-
-    const nextPath = getSafeAdminNextPath(
-      locale,
-      request.nextUrl.searchParams.get('next') ?? getDefaultAdminPath(locale),
-    );
-
-    return NextResponse.redirect(new URL(nextPath, request.url));
+    return intlMiddleware(request);
   }
 
   if (!isAuthenticated) {

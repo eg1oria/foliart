@@ -1,5 +1,6 @@
 import { revalidatePath, revalidateTag } from 'next/cache';
-import { isAdminAuthenticated } from '@/lib/adminAuthServer';
+import { getAdminSession } from '@/lib/adminAuthServer';
+import { canManageSection } from '@/lib/adminPermissions';
 import { getAdminApiHeaders } from '@/lib/adminApi';
 import { adminApiFetch } from '@/lib/adminBackend';
 
@@ -27,9 +28,17 @@ function getPublishedArticleIdentity(responseBody: ArrayBuffer) {
 }
 
 async function proxy(request: Request, context: Context) {
-  if (!(await isAdminAuthenticated())) {
+  const session = await getAdminSession();
+
+  if (!session) {
     return Response.json({ message: 'Unauthorized' }, { status: 401 });
   }
+
+  // The draft pipeline writes articles, so read-only access is not enough.
+  if (!canManageSection(session, 'articles')) {
+    return Response.json({ message: 'Forbidden' }, { status: 403 });
+  }
+
   const { path = [] } = await context.params;
   if (path.some((segment) => !/^[a-z0-9-]+$/i.test(segment))) {
     return Response.json({ message: 'Invalid draft path' }, { status: 400 });
