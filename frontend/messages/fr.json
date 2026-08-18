@@ -222,5 +222,49 @@
     "seoText": "Engrais organo-minéraux, systèmes de nutrition des plantes, fertilisation foliaire, micro-engrais et accompagnement agronomique pour l'agriculture.",
     "privacy": "Traitement des données personnelles",
     "copyright": "© SARL \"ASTORIA\", 2026"
+  },
+  "Search": {
+    "triggerLabel": "Rechercher sur le site",
+    "closeLabel": "Fermer la recherche",
+    "placeholder": "Que cherchez-vous ? Produit, article, rubrique…",
+    "submitLabel": "Rechercher",
+    "clearLabel": "Effacer la requête",
+    "minLength": "Saisissez au moins 2 caractères",
+    "suggestionsLabel": "Suggestions de recherche",
+    "allResults": "Tous les résultats pour « {query} »",
+    "loading": "Recherche…",
+    "empty": "Aucun résultat",
+    "emptyHint": "Vérifiez l’orthographe ou choisissez une rubrique ci-dessous.",
+    "pageTitle": "Recherche sur le site",
+    "pageSubtitle": "Produits, articles, calendriers de traitement et pages Foliart en une seule recherche.",
+    "breadcrumb": "Recherche",
+    "resultsFor": "Résultats pour « {query} »",
+    "resultsCount": "{count, plural, one {# résultat} other {# résultats}}",
+    "filterAll": "Tout",
+    "groups": {
+      "product": "Produits",
+      "category": "Rubriques du catalogue",
+      "article": "Articles",
+      "calendar": "Calendriers",
+      "page": "Pages du site"
+    },
+    "badges": {
+      "product": "Produit",
+      "category": "Rubrique du catalogue",
+      "article": "Article",
+      "calendar": "Calendrier",
+      "page": "Page"
+    },
+    "popularTitle": "Recherches populaires",
+    "categoriesTitle": "Rubriques du catalogue",
+    "articlesTitle": "Derniers articles",
+    "calendarsTitle": "Calendriers de traitement",
+    "pagesTitle": "Pages du site",
+    "helpTitle": "Vous n’avez pas trouvé ?",
+    "helpText": "Écrivez-nous : notre spécialiste en nutrition des plantes trouvera une solution.",
+    "helpAction": "Poser une question",
+    "recentTitle": "Recherches récentes",
+    "recentClear": "Effacer l’historique",
+    "openPage": "Ouvrir la page"
   }
 }

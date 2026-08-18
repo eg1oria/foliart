@@ -222,5 +222,49 @@
     "seoText": "Organo-mineral fertilizers, plant nutrition systems, foliar nutrition, micronutrient fertilizers and agronomy support for farms.",
     "privacy": "Personal data processing",
     "copyright": "© LLC \"ASTORIA\", 2026"
+  },
+  "Search": {
+    "triggerLabel": "Search the site",
+    "closeLabel": "Close search",
+    "placeholder": "What are you looking for? Product, article, section…",
+    "submitLabel": "Search",
+    "clearLabel": "Clear query",
+    "minLength": "Enter at least 2 characters",
+    "suggestionsLabel": "Search suggestions",
+    "allResults": "All results for “{query}”",
+    "loading": "Searching…",
+    "empty": "Nothing found",
+    "emptyHint": "Check the spelling or pick one of the sections below.",
+    "pageTitle": "Site search",
+    "pageSubtitle": "Products, articles, treatment calendars and Foliart pages in a single search.",
+    "breadcrumb": "Search",
+    "resultsFor": "Results for “{query}”",
+    "resultsCount": "{count, plural, one {# result} other {# results}}",
+    "filterAll": "All",
+    "groups": {
+      "product": "Products",
+      "category": "Catalog sections",
+      "article": "Articles",
+      "calendar": "Calendars",
+      "page": "Site pages"
+    },
+    "badges": {
+      "product": "Product",
+      "category": "Catalog section",
+      "article": "Article",
+      "calendar": "Calendar",
+      "page": "Page"
+    },
+    "popularTitle": "Popular searches",
+    "categoriesTitle": "Catalog sections",
+    "articlesTitle": "Latest articles",
+    "calendarsTitle": "Treatment calendars",
+    "pagesTitle": "Site pages",
+    "helpTitle": "Didn't find what you need?",
+    "helpText": "Write to us — our plant nutrition specialist will find a solution for your task.",
+    "helpAction": "Ask a question",
+    "recentTitle": "Recent searches",
+    "recentClear": "Clear history",
+    "openPage": "Open page"
   }
 }

@@ -93,6 +93,13 @@ header,
   padding-right: var(--site-gutter);
 }
 
+/* The search field renders its own clear button — hide the WebKit one. */
+.search-field input[type='search']::-webkit-search-cancel-button,
+.search-field input[type='search']::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 .article-card {
   display: flex;
   height: 100%;

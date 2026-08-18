@@ -17,6 +17,7 @@ const staticPublicPaths = [
   '/catalog',
   '/contacts',
   '/privacy',
+  '/search',
 ];
 
 function buildAlternates(path: string, siteOrigin: string) {

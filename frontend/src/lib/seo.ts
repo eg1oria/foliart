@@ -290,6 +290,14 @@ export function buildWebsiteSchema(locale: string) {
     publisher: {
       '@id': resolveAbsoluteUrl('/#organization'),
     },
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${resolveAbsoluteUrl(getLocalizedPath(locale, '/search'))}?q={search_term_string}`,
+      },
+      'query-input': 'required name=search_term_string',
+    },
   };
 }
 

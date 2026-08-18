@@ -222,5 +222,49 @@
     "seoText": "Fertilizantes organo-minerales, sistemas de nutrición vegetal, abonos foliares, microfertilizantes y acompañamiento agronómico para el sector agrícola.",
     "privacy": "Tratamiento de datos personales",
     "copyright": "© LLC \"ASTORIA\", 2026"
+  },
+  "Search": {
+    "triggerLabel": "Buscar en el sitio",
+    "closeLabel": "Cerrar la búsqueda",
+    "placeholder": "¿Qué buscas? Producto, artículo, sección…",
+    "submitLabel": "Buscar",
+    "clearLabel": "Borrar la consulta",
+    "minLength": "Escribe al menos 2 caracteres",
+    "suggestionsLabel": "Sugerencias de búsqueda",
+    "allResults": "Todos los resultados para «{query}»",
+    "loading": "Buscando…",
+    "empty": "No se encontró nada",
+    "emptyHint": "Revisa la ortografía o elige una de las secciones de abajo.",
+    "pageTitle": "Búsqueda en el sitio",
+    "pageSubtitle": "Productos, artículos, calendarios de tratamiento y páginas de Foliart en una sola búsqueda.",
+    "breadcrumb": "Búsqueda",
+    "resultsFor": "Resultados para «{query}»",
+    "resultsCount": "{count, plural, one {# resultado} other {# resultados}}",
+    "filterAll": "Todo",
+    "groups": {
+      "product": "Productos",
+      "category": "Secciones del catálogo",
+      "article": "Artículos",
+      "calendar": "Calendarios",
+      "page": "Páginas del sitio"
+    },
+    "badges": {
+      "product": "Producto",
+      "category": "Sección del catálogo",
+      "article": "Artículo",
+      "calendar": "Calendario",
+      "page": "Página"
+    },
+    "popularTitle": "Búsquedas populares",
+    "categoriesTitle": "Secciones del catálogo",
+    "articlesTitle": "Últimos artículos",
+    "calendarsTitle": "Calendarios de tratamiento",
+    "pagesTitle": "Páginas del sitio",
+    "helpTitle": "¿No encontraste lo que buscabas?",
+    "helpText": "Escríbenos: nuestro especialista en nutrición vegetal encontrará una solución.",
+    "helpAction": "Hacer una pregunta",
+    "recentTitle": "Búsquedas recientes",
+    "recentClear": "Borrar el historial",
+    "openPage": "Abrir la página"
   }
 }

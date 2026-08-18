@@ -73,9 +73,6 @@ export default async function AdminProductsPage({
   const products = productsResult.status === 'fulfilled' ? productsResult.value : [];
   const dataAvailable =
     categoriesResult.status === 'fulfilled' && productsResult.status === 'fulfilled';
-  const missingTranslations = products.filter(
-    (product) => !product.adminTranslation?.isComplete,
-  ).length;
   const statusMessage = getStatusMessage(query.status);
 
   return (

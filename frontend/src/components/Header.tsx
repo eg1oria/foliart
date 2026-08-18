@@ -11,6 +11,7 @@ import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { formatProductCount } from '@/lib/catalog';
 import { useLocale, useTranslations } from 'next-intl';
 import ContactModalTrigger from './ContactModalTrigger';
+import SearchTrigger from './search/SearchTrigger';
 import SocialLinks from './SocialLinks';
 
 const FullscreenMenu = dynamic(() => import('./FullScreenMenu'), {
@@ -281,13 +282,17 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
 
           {renderCompactLogo('h-auto w-11 justify-self-center sm:w-12')}
 
-          <div className="flex items-center justify-end">{renderDesktopLocaleSwitcher()}</div>
+          <div className="flex items-center justify-end gap-1">
+            <SearchTrigger className="h-10 w-10" iconSize={20} />
+            {renderDesktopLocaleSwitcher()}
+          </div>
         </div>
 
         <div className="hidden items-center justify-between md:flex">
           {renderCompactLogo('h-auto w-14 lg:hidden')}
           {renderFullLogo(135, 'hidden lg:block')}
           <div className="flex items-center gap-6 lg:gap-9">
+            <SearchTrigger className="h-10 w-10" iconSize={21} />
             {renderDesktopLocaleSwitcher()}
 
             <div className="flex items-center gap-3">
@@ -437,7 +442,10 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
             <RxHamburgerMenu size={20} />
           </button>
           {renderCompactLogo('h-auto w-11 justify-self-center sm:w-12')}
-          <div className="flex items-center justify-end">{renderDesktopLocaleSwitcher()}</div>
+          <div className="flex items-center justify-end gap-1">
+            <SearchTrigger className="h-10 w-10" iconSize={20} />
+            {renderDesktopLocaleSwitcher()}
+          </div>
         </div>
 
         <div className="hidden items-center justify-between md:flex">
@@ -456,6 +464,7 @@ export default function Header({ catalogChildren = [], calendarChildren = [] }: 
           </div>
 
           <div className="flex items-center gap-6 lg:gap-9">
+            <SearchTrigger className="h-10 w-10" iconSize={21} />
             {renderDesktopLocaleSwitcher()}
             <div className="flex items-center gap-3">
               <SocialLinks locale={locale} />

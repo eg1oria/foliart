@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useEffect, useState, useTransition } from 'react';
-import { FiChevronDown } from 'react-icons/fi';
+import { FiChevronDown, FiSearch } from 'react-icons/fi';
 import { RxCross1 } from 'react-icons/rx';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { formatProductCount } from '@/lib/catalog';
@@ -34,6 +34,7 @@ export default function FullscreenMenu({
 }: FullscreenMenuProps) {
   const t = useTranslations('Header');
   const footerT = useTranslations('Footer');
+  const searchT = useTranslations('Search');
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
@@ -136,6 +137,14 @@ export default function FullscreenMenu({
 
           <div className="lg:hidden">{renderDesktopLocaleSwitcher()}</div>
           <div className="hidden lg:block">{renderDesktopLocaleSwitcher()}</div>
+
+          <Link
+            href="/search"
+            onClick={onClose}
+            className="flex items-center gap-2 p-2 text-[15px] text-white/85 transition-colors hover:text-white">
+            <FiSearch size={18} aria-hidden="true" />
+            <span className="hidden sm:inline">{searchT('triggerLabel')}</span>
+          </Link>
         </div>
         <button
           type="button"

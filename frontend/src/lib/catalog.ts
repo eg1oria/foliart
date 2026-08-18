@@ -62,13 +62,15 @@ export function parseEntityId(value: string): number | null {
   return parsed;
 }
 
-export function slugify(value: string): string {
-  const normalized = decodeRouteParam(value)
-    .trim()
-    .toLowerCase()
+export function transliterateCyrillic(value: string): string {
+  return value
     .split('')
     .map((char) => cyrillicToLatinMap[char] ?? char)
-    .join('')
+    .join('');
+}
+
+export function slugify(value: string): string {
+  const normalized = transliterateCyrillic(decodeRouteParam(value).trim().toLowerCase())
     .normalize('NFKD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9\s-]+/g, '')
