@@ -8,6 +8,11 @@ export const SITE_URL = new URL(
 export const DEFAULT_OG_IMAGE = '/hero.webp';
 export const GOOGLE_SITE_VERIFICATION = process.env.GOOGLE_SITE_VERIFICATION?.trim() || undefined;
 export const GOOGLE_ANALYTICS_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim() || undefined;
+// Google AdSense auto ads: the publisher id is a public, per-site identifier
+// issued once by the ad cabinet — it ships in the page source of every AdSense
+// site — so it belongs with the other site constants rather than with the
+// per-deployment environment variables.
+export const GOOGLE_ADSENSE_CLIENT = 'ca-pub-5468974984912854';
 export const PUBLIC_REVALIDATE_SECONDS = 900;
 
 type SupportedLocale = (typeof routing.locales)[number];

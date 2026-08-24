@@ -20,6 +20,7 @@ import {
   getDefaultSiteDescription,
   getDefaultSiteKeywords,
   getSiteUrl,
+  GOOGLE_ADSENSE_CLIENT,
   GOOGLE_ANALYTICS_ID,
   GOOGLE_SITE_VERIFICATION,
   SITE_NAME,
@@ -209,6 +210,12 @@ gtag('config', '${GOOGLE_ANALYTICS_ID}', { send_page_view: true });`}
               </Script>
             </>
           ) : null}
+          <Script
+            id="google-adsense"
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${GOOGLE_ADSENSE_CLIENT}`}
+            crossOrigin="anonymous"
+            strategy="afterInteractive"
+          />
           <Header
             key={locale}
             catalogChildren={catalogChildren}

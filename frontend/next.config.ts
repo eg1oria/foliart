@@ -15,13 +15,37 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 // every other fetch, form, frame and plugin origin is locked to this origin.
 // That is what limits the blast radius if the rich-text sanitiser is ever
 // bypassed — injected markup cannot pull in or exfiltrate to a foreign origin.
+//
+// Google AdSense auto ads are the one exception to the self-only rule above:
+// the loader comes from googlesyndication.com, creatives are framed from
+// doubleclick/googlesyndication and impressions are beaconed back to google.com.
+const googleAdsOrigins = [
+  'https://pagead2.googlesyndication.com',
+  'https://*.googlesyndication.com',
+  'https://*.googleadservices.com',
+  'https://*.googletagservices.com',
+  'https://adservice.google.com',
+  'https://*.g.doubleclick.net',
+  'https://*.doubleclick.net',
+  'https://www.google.com',
+  // Ad traffic quality (sodar) beacons and the Funding Choices consent
+  // messages that AdSense injects for EU visitors.
+  'https://*.adtrafficquality.google',
+  'https://fundingchoicesmessages.google.com',
+].join(' ');
+
+// The contacts page embeds the Yandex map widget; it only ever needs to be
+// framed, so the origin stays out of every other directive.
+const yandexMapsOrigins = ['https://yandex.ru', 'https://*.yandex.ru'].join(' ');
+
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ''}`,
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' blob: data: https://placehold.co",
-  "font-src 'self' data:",
-  "connect-src 'self'",
+  `script-src 'self' 'unsafe-inline' ${googleAdsOrigins}${isDevelopment ? " 'unsafe-eval'" : ''}`,
+  `style-src 'self' 'unsafe-inline' ${googleAdsOrigins}`,
+  `img-src 'self' blob: data: https://placehold.co ${googleAdsOrigins}`,
+  `font-src 'self' data: ${googleAdsOrigins}`,
+  `connect-src 'self' ${googleAdsOrigins}`,
+  `frame-src 'self' ${googleAdsOrigins} ${yandexMapsOrigins}`,
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
