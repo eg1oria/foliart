@@ -6,7 +6,18 @@ import { getCalendarHref } from '@/lib/calendars';
 import { getCategoryHref, getProductHref } from '@/lib/catalog';
 import { getSiteOrigin, getLocalizedPath } from '@/lib/seo';
 
-export const revalidate = 900;
+// Rendered per request rather than prerendered. Under ISR this route was baked
+// into the image at `docker build` time, where the backend is not on the network
+// yet — so every deploy shipped a sitemap holding only the static paths below
+// and served it until the first revalidation, telling crawlers that every
+// product, article and calendar page had disappeared. Generating on demand means
+// the file can only ever be built from a live answer.
+//
+// `force-dynamic` implies `fetchCache = 'force-no-store'`, so the 900s cache that
+// `publicApiFetchOptions` puts on these four calls does not apply here and each
+// request reaches the backend. That is deliberate and cheap: only crawlers fetch
+// this route, a handful of times a day.
+export const dynamic = 'force-dynamic';
 
 const staticPublicPaths = [
   '/',
@@ -40,12 +51,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     alternates: buildAlternates(path, siteOrigin),
   }));
 
-  // Загружаем данные только один раз для defaultLocale — hrefs одинаковые для всех локалей
+  // Загружаем данные только один раз для defaultLocale — hrefs одинаковые для всех локалей.
+  // Ошибку намеренно не глушим: пустой ответ здесь неотличим от «раздела больше нет»,
+  // и краулер получил бы 200 с sitemap, где не хватает большей части сайта. Пусть
+  // лучше маршрут отдаст 5xx — поисковики просто повторят запрос позже.
   const [categories, products, articles, calendars] = await Promise.all([
-    getCategories(routing.defaultLocale).catch(() => []),
-    getProducts(undefined, routing.defaultLocale).catch(() => []),
-    getArticles(routing.defaultLocale).catch(() => []),
-    getCalendars(routing.defaultLocale).catch(() => []),
+    getCategories(routing.defaultLocale),
+    getProducts(undefined, routing.defaultLocale),
+    getArticles(routing.defaultLocale),
+    getCalendars(routing.defaultLocale),
   ]);
 
   const categoriesById = new Map(categories.map((c) => [c.id, c]));
