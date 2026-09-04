@@ -167,6 +167,10 @@ sudo certbot certonly --webroot -w /var/www/certbot -d foliart.me -d www.foliart
 
 ## 9. Полный Nginx
 
+Конфигу нужен nginx >= 1.15.3: `keepalive_timeout` и `keepalive_requests`
+внутри `upstream` появились только там, и на более старой версии `nginx -t`
+упадёт. Проверить: `nginx -v`.
+
 ```bash
 sudo cp /opt/foliart/nginx.system.conf /etc/nginx/sites-available/foliart
 sudo nginx -t

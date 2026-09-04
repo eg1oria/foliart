@@ -64,6 +64,17 @@ async function bootstrap() {
     maxAge: '7d',
   });
   app.setGlobalPrefix('api');
+
+  // nginx holds pooled upstream sockets for 60s (`keepalive_timeout` in
+  // nginx.system.conf). Node's 5s default would close them first, leaving the
+  // proxy to reuse a socket that is already gone — a sporadic 502 on any path,
+  // retried successfully, with nothing recorded here. `headersTimeout` has to
+  // stay above `keepAliveTimeout` so a request arriving on a socket that was
+  // about to expire is not aborted mid-headers.
+  const server = app.getHttpServer();
+  server.keepAliveTimeout = 70_000;
+  server.headersTimeout = 71_000;
+
   await app.listen(process.env.PORT ?? 3001);
 }
 

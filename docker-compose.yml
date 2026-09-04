@@ -170,6 +170,13 @@ services:
       - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://foliart.me}
       - ADMIN_SESSION_SECRET=${ADMIN_SESSION_SECRET:?Set ADMIN_SESSION_SECRET in .env}
       - ADMIN_API_SECRET=${ADMIN_API_SECRET:?Set ADMIN_API_SECRET in .env}
+      # Node closes an idle connection after 5s by default, while nginx keeps
+      # pooled upstream sockets for 60s (`keepalive_timeout` in
+      # nginx.system.conf) — the gap is a race that answers 502 on a socket
+      # Node has just closed. 70s keeps the app's timeout above nginx's so
+      # nginx is always the side that hangs up. Read by the standalone
+      # `server.js` Next emits.
+      - KEEP_ALIVE_TIMEOUT=${KEEP_ALIVE_TIMEOUT:-70000}
     volumes:
       - frontend_next_cache:/app/.next/cache
     networks:
