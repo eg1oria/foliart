@@ -3,32 +3,20 @@ import AdminPasswordForm from '@/components/admin/admins/AdminPasswordForm';
 import { requireAdminSession } from '@/lib/adminAuthServer';
 import { adminAccessLevelLabels, adminSectionLabels, adminSections } from '@/lib/adminPermissions';
 import { adminBadgeClassName } from '@/components/admin/adminStyles';
-import { normalizeContentLocale } from '@/lib/contentLocales';
 
 export default async function AdminAccountPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ contentLocale?: string }>;
 }) {
   const { locale } = await params;
   const session = await requireAdminSession(locale, `/${locale}/admin/account`);
-  const contentLocale = normalizeContentLocale((await searchParams).contentLocale);
 
   return (
     <AdminShell
-      session={session}
-      activeTab="account"
-      backHref="/"
-      backLabel="Открыть сайт"
-      contentLocale={contentLocale}
-      contentLocaleHref="/admin/account"
       description="Здесь можно сменить собственный пароль и увидеть, какие разделы админки вам доступны."
-      locale={locale}
       title={`Профиль · ${session.username}`}>
       <AdminPanel
-        className="mt-5"
         badge="Безопасность"
         title="Смена пароля"
         description="После смены пароля все остальные сессии этой учётной записи закроются, а текущая вкладка продолжит работать.">

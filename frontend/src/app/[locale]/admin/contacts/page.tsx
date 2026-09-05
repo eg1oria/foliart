@@ -49,15 +49,7 @@ export default async function AdminContactsPage({
 
   return (
     <AdminShell
-      session={session}
-      activeTab="contacts"
-      backHref="/admin/partners"
-      backLabel="К партнёрам"
-      contentLocale="ru"
-      contentLocaleHref="/admin/contacts"
-      contentLocaleHint="Список контактов одинаков для всех языков сайта."
       description="Контакты в регионах — список под картой на странице «Контакты». Пустые поля не выводятся."
-      locale={locale}
       title="Контакты в регионах">
       <div className="mx-auto max-w-6xl">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">

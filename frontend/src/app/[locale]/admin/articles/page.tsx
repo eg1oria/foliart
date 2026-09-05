@@ -110,16 +110,6 @@ export default async function AdminArticlesPage({
           : 'Статьи, в которых еще не хватает английского заголовка или текста.',
     },
   ];
-  const shortcuts = [
-    {
-      href: withContentLocale('/admin/articles/new', 'ru'),
-      label: locale === 'en' ? 'Add article' : 'Добавить статью',
-    },
-    {
-      href: '#manage-articles',
-      label: locale === 'en' ? 'Browse articles' : 'Список статей',
-    },
-  ];
   const renderTranslationBadge = (articleItem: Article) => {
     const complete = Boolean(articleItem.adminTranslation?.isComplete);
 
@@ -183,33 +173,33 @@ export default async function AdminArticlesPage({
 
   return (
     <AdminShell
-      session={session}
-      activeTab="articles"
-      backHref="/articles"
-      backLabel={copy.backToSite}
       description={copy.adminSubtitle}
-      contentLocale={contentLocale}
-      locale={locale}
-      shortcuts={shortcuts}
       stats={stats}
       title={copy.adminTitle}>
       <div>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <Link
+            href="/articles"
+            target="_blank"
+            className={adminCx(adminSecondaryButtonClassName, 'gap-2')}>
+            <FiExternalLink aria-hidden="true" />
+            {copy.backToSite}
+          </Link>
+          {canManage ? (
+            <Link
+              href={withContentLocale('/admin/articles/new', 'ru')}
+              className={adminCx(adminPrimaryButtonClassName, 'gap-2')}>
+              <FiPlus aria-hidden="true" />
+              {openEditorLabel}
+            </Link>
+          ) : null}
+        </div>
+
         <AdminPanel
           id="manage-articles"
           badge={manageBadge}
           title={copy.adminExistingTitle}
-          description={copy.adminPathHint}
-          tone="muted"
-          headerContent={
-            canManage ? (
-              <Link
-                href={withContentLocale('/admin/articles/new', 'ru')}
-                className={adminCx(adminPrimaryButtonClassName, 'gap-2')}>
-                <FiPlus aria-hidden="true" />
-                {openEditorLabel}
-              </Link>
-            ) : null
-          }>
+          description={copy.adminPathHint}>
           {canManage && contentLocale === 'ru' ? (
             <ArticleDraftResumeList contentLocale={contentLocale} locale={locale} />
           ) : null}

@@ -12,7 +12,7 @@ export default async function NewPartnerPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const session = await requireAdminSection(
+  await requireAdminSection(
     locale,
     'partners',
     'manage',
@@ -21,15 +21,7 @@ export default async function NewPartnerPage({
 
   return (
     <AdminShell
-      session={session}
-      activeTab="partners"
-      backHref="/admin/partners"
-      backLabel="К списку партнёров"
-      contentLocale="ru"
-      contentLocaleHref="/admin/partners"
-      contentLocaleHint="Карточки партнёров одинаковы для всех языков сайта."
       description="Заполните только то, что нужно показать: пустые поля в карточку не попадут."
-      locale={locale}
       title="Новый партнёр">
       <div className="mx-auto max-w-5xl">
         <div className="mb-4">

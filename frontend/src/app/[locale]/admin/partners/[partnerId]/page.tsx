@@ -22,7 +22,7 @@ export default async function EditPartnerPage({
   searchParams: Promise<{ status?: string }>;
 }) {
   const { locale, partnerId: rawPartnerId } = await params;
-  const session = await requireAdminSection(
+  await requireAdminSection(
     locale,
     'partners',
     'manage',
@@ -49,15 +49,7 @@ export default async function EditPartnerPage({
 
   return (
     <AdminShell
-      session={session}
-      activeTab="partners"
-      backHref="/admin/partners"
-      backLabel="К списку партнёров"
-      contentLocale="ru"
-      contentLocaleHref="/admin/partners"
-      contentLocaleHint="Карточки партнёров одинаковы для всех языков сайта."
       description="Изменения появляются на странице партнёров сразу после сохранения."
-      locale={locale}
       title={partnerResult.partner?.name ?? `Партнёр #${partnerId}`}>
       <div className="mx-auto max-w-5xl">
         <div className="mb-4">

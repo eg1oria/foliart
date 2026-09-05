@@ -1,27 +1,8 @@
 'use client';
 
-import { Link } from '@/i18n/routing';
-import type { AdminSessionUser } from '@/lib/adminPermissions';
-import { logoutAdminAction } from '@/lib/adminSessionActions';
-import {
-  contentLocales,
-  getContentLocaleLabel,
-  normalizeContentLocale,
-  withContentLocale,
-} from '@/lib/contentLocales';
 import type { ReactNode } from 'react';
-import { useRef } from 'react';
-import { FiArrowUpRight, FiLogOut, FiUser } from 'react-icons/fi';
-import { LuPanelTop } from 'react-icons/lu';
 
-import { AdminLocaleSwitcherFloating } from './AdminLocaleSwitcherFloating';
-import AdminTabs, { type AdminTabKey } from './AdminTabs';
-import {
-  adminBadgeClassName,
-  adminCx,
-  adminGhostLinkClassName,
-  adminMutedTextClassName,
-} from './adminStyles';
+import { adminBadgeClassName, adminCx, adminMutedTextClassName } from './adminStyles';
 
 type AdminStat = {
   hint?: string;
@@ -29,199 +10,43 @@ type AdminStat = {
   value: string;
 };
 
-type AdminShortcut = {
-  href: string;
-  label: string;
-};
-
-const i18n: Record<string, Record<string, string>> = {
-  en: {
-    quickActions: 'Quick actions',
-    signOut: 'Sign out',
-    profile: 'My profile',
-    superAdmin: 'Super admin',
-    inputLanguage: 'Input language',
-    inputLanguageHint: 'Forms save text for the selected language.',
-  },
-  ru: {
-    quickActions: 'Быстрые действия',
-    signOut: 'Выйти',
-    profile: 'Мой профиль',
-    superAdmin: 'Супер-админ',
-    inputLanguage: 'Язык полей',
-    inputLanguageHint: 'Формы сохраняют текст для выбранного языка.',
-  },
-};
-
-function t(locale: string, key: string): string {
-  return i18n[locale]?.[key] ?? i18n['en'][key] ?? key;
-}
-
 export function AdminShell({
-  activeTab,
-  backHref,
-  backLabel,
   children,
-  contentLocale,
-  contentLocaleHref,
-  contentLocaleHint,
-  contentLocaleTitle,
   description,
-  locale,
-  session,
+  stats,
   title,
 }: {
-  activeTab: AdminTabKey;
-  backHref: string;
-  backLabel: string;
   children: ReactNode;
-  contentLocale: string;
-  contentLocaleHref?: string;
-  contentLocaleHint?: string;
-  contentLocaleTitle?: string;
   description: string;
-  locale: string;
-  session: AdminSessionUser;
-  shortcuts?: AdminShortcut[];
   stats?: AdminStat[];
   title: string;
 }) {
-  const safeContentLocale = normalizeContentLocale(contentLocale);
-  const currentAdminHref = contentLocaleHref ?? `/admin/${activeTab}`;
-  const localeSwitcherTitle =
-    contentLocaleTitle ?? t(locale, 'inputLanguage');
-  const localeSwitcherHint =
-    contentLocaleHint ?? t(locale, 'inputLanguageHint');
-  const headerRef = useRef<HTMLElement>(null);
+  const visibleStats = stats?.filter((stat) => stat.value) ?? [];
 
   return (
-    <main
-      aria-label={title}
-      className="relative min-h-screen bg-[#f3f5f1] text-[#0b3e31]">
-      <section
-        ref={headerRef}
-        className="relative border-y border-[#0b5a45]/10 bg-white shadow-[0_14px_45px_-36px_rgba(11,62,49,0.75)]">
-        <div className="mx-auto w-full max-w-[1500px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-7">
-          <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-            <div className="min-w-0 max-w-4xl flex-1">
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center gap-2 rounded-md border border-[#0b5a45]/12 bg-[#eef4ef] px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#0b5a45]">
-                  <LuPanelTop className="text-sm" />
-                  Foliart Admin
-                </span>
-                <span className="inline-flex items-center gap-2 rounded-md border border-[#0b5a45]/12 bg-white px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#567068]">
-                  <FiUser className="text-sm" />
-                  {session.username}
-                  {session.isSuperAdmin ? ` · ${t(locale, 'superAdmin')}` : ''}
-                </span>
-              </div>
-
-              <h1 className="mt-3 text-2xl font-semibold leading-tight text-[#0b3e31] sm:text-3xl lg:text-4xl">
-                {title}
-              </h1>
-              <p className="mt-3 max-w-3xl text-sm leading-6 text-[#567068] sm:text-base sm:leading-7">
-                {description}
-              </p>
-
-              <AdminTabs
-                active={activeTab}
-                contentLocale={safeContentLocale}
-                locale={locale}
-                session={session}
-              />
+    <>
+      {visibleStats.length ? (
+        <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {visibleStats.map((stat) => (
+            <div
+              key={stat.label}
+              className="rounded-lg border border-[#0b5a45]/10 bg-white px-4 py-3.5">
+              <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#93a69d]">
+                {stat.label}
+              </dt>
+              <dd className="mt-1.5 text-xl font-semibold leading-tight text-[#0b3e31]">
+                {stat.value}
+              </dd>
+              {stat.hint ? (
+                <dd className="mt-1.5 text-xs leading-5 text-[#7b9189]">{stat.hint}</dd>
+              ) : null}
             </div>
+          ))}
+        </dl>
+      ) : null}
 
-            <div className="flex w-full min-w-0 flex-col gap-3 xl:w-[360px] xl:shrink-0">
-              <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-1">
-                <Link href={backHref} className={adminCx(adminGhostLinkClassName, 'w-full gap-2')}>
-                  <span>{backLabel}</span>
-                  <FiArrowUpRight className="shrink-0" />
-                </Link>
-
-                <Link
-                  href="/admin/account"
-                  className={adminCx(adminGhostLinkClassName, 'w-full gap-2')}>
-                  <span>{t(locale, 'profile')}</span>
-                  <FiUser className="shrink-0" />
-                </Link>
-
-                <form action={logoutAdminAction} className="contents">
-                  <input type="hidden" name="locale" value={locale} />
-                  <button
-                    type="submit"
-                    className={adminCx(adminGhostLinkClassName, 'w-full gap-2')}>
-                    <span>{t(locale, 'signOut')}</span>
-                    <FiLogOut className="shrink-0" />
-                  </button>
-                </form>
-              </div>
-
-              <div className="w-full rounded-lg border border-[#0b5a45]/10 bg-[#f7f9f6] p-3">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6a7f76]">
-                  {localeSwitcherTitle}
-                </p>
-                <div className="mt-2 grid grid-cols-2 gap-2">
-                  {contentLocales.map((item) => {
-                    const isActive = item === safeContentLocale;
-                    return (
-                      <Link
-                        key={item}
-                        href={withContentLocale(currentAdminHref, item)}
-                        data-admin-locale-link
-                        scroll={false}
-                        aria-current={isActive ? 'true' : undefined}
-                        className={adminCx(
-                          'inline-flex min-h-10 items-center justify-center rounded-lg border px-3 py-2 text-sm font-semibold transition',
-                          isActive
-                            ? 'border-[#0b5a45] bg-[#0b5a45] text-white'
-                            : 'border-[#0b5a45]/10 bg-white text-[#0b3e31] hover:border-[#0b5a45]/25 hover:bg-[#eef4ef]',
-                        )}>
-                        {getContentLocaleLabel(item)}
-                      </Link>
-                    );
-                  })}
-                </div>
-                <p className="mt-2 text-xs leading-5 text-[#6a7f76]">
-                  {localeSwitcherHint}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="mx-auto w-full max-w-[1500px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-        {children}
-      </div>
-
-      <AdminLocaleSwitcherFloating
-        contentLocaleHref={currentAdminHref}
-        contentLocale={safeContentLocale}
-        contentLocales={contentLocales}
-        getContentLocaleLabel={getContentLocaleLabel}
-        headerRef={headerRef}
-        hint={localeSwitcherHint}
-        title={localeSwitcherTitle}
-      />
-    </main>
-  );
-}
-
-export function AdminWorkspace({
-  children,
-  reverseOnDesktop = false,
-}: {
-  children: ReactNode;
-  reverseOnDesktop?: boolean;
-}) {
-  return (
-    <section
-      className={adminCx(
-        'grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,0.94fr)_minmax(0,1.06fr)]',
-        reverseOnDesktop && 'xl:[&>*:first-child]:order-2 xl:[&>*:last-child]:order-1',
-      )}>
-      {children}
-    </section>
+      <div className="mt-6 min-w-0">{children}</div>
+    </>
   );
 }
 
@@ -254,7 +79,6 @@ export function AdminPanel({
       )}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 max-w-3xl">
-          {badge ? <p className={adminBadgeClassName}>{badge}</p> : null}
           <h2 className="mt-3 text-xl font-semibold leading-tight text-[#0b3e31] sm:text-2xl">
             {title}
           </h2>

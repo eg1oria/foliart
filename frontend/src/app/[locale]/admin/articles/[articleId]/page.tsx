@@ -17,7 +17,7 @@ export default async function EditArticlePage({
   searchParams: Promise<{ contentLocale?: string }>;
 }) {
   const { locale, articleId: rawArticleId } = await params;
-  const session = await requireAdminSection(locale, 'articles', 'manage', `/${locale}/admin/articles/${rawArticleId}`);
+  await requireAdminSection(locale, 'articles', 'manage', `/${locale}/admin/articles/${rawArticleId}`);
   const articleId = Number(rawArticleId);
   if (!Number.isInteger(articleId) || articleId < 1) notFound();
   const { contentLocale: requestedLocale } = await searchParams;
@@ -26,14 +26,7 @@ export default async function EditArticlePage({
 
   return (
     <AdminShell
-      session={session}
-      activeTab="articles"
-      backHref={withContentLocale('/admin/articles', contentLocale)}
-      backLabel={locale === 'ru' ? 'К списку статей' : 'Back to articles'}
       description={copy.adminSubtitle}
-      contentLocale={contentLocale}
-      locale={locale}
-      shortcuts={[]}
       stats={[]}
       title={copy.editLabel}
     >

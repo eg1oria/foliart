@@ -1,4 +1,4 @@
-import { FiArrowLeft, FiEdit3, FiExternalLink, FiImage } from 'react-icons/fi';
+import { FiEdit3, FiExternalLink, FiImage } from 'react-icons/fi';
 
 import { AdminEmptyState, AdminNotice, AdminPanel, AdminShell } from '@/components/admin/AdminShell';
 import {
@@ -39,35 +39,14 @@ export default async function ProductCategoriesPage({
   )
     .then((categories) => ({ categories, error: false as const }))
     .catch(() => ({ categories: [], error: true as const }));
-  const missingTranslations = categoriesResult.categories.filter(
-    (category) => !category.adminTranslation?.isComplete,
-  ).length;
 
   return (
     <AdminShell
-      session={session}
-      activeTab="products"
-      backHref={withContentLocale('/admin/products', contentLocale)}
-      backLabel="К списку товаров"
-      contentLocale={contentLocale}
-      contentLocaleHref="/admin/products/categories"
       description="Контролируйте названия, описания и изображения категорий без изменения их структуры."
-      locale={locale}
       title="Переводы категорий"
     >
       <div className="mx-auto max-w-6xl">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <Link
-            href={withContentLocale('/admin/products', contentLocale)}
-            className={adminCx(adminSecondaryButtonClassName, 'gap-2')}
-          >
-            <FiArrowLeft aria-hidden="true" />
-            Назад к товарам
-          </Link>
-          <span className="rounded-md border border-[#0b5a45]/10 bg-white px-3 py-2 text-xs font-semibold text-[#567068]">
-            Не заполнено: {missingTranslations} · {contentLocale.toUpperCase()}
-          </span>
-        </div>
+        
 
         <AdminPanel
           badge="Категории"

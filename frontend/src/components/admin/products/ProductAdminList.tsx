@@ -243,7 +243,7 @@ export default function ProductAdminList({
   return (
     <>
       <div className="rounded-lg border border-[#0b5a45]/10 bg-[#f7f9f6] p-3 sm:p-4">
-        <div className="grid gap-3 lg:grid-cols-[minmax(260px,1fr)_220px_220px_auto]">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_minmax(0,200px)_minmax(0,200px)_auto]">
           <label className="relative block">
             <span className="sr-only">Поиск товаров</span>
             <FiSearch

@@ -24,7 +24,7 @@ export default async function EditCalendarPage({
   searchParams: Promise<{ contentLocale?: string; error?: string; status?: string }>;
 }) {
   const { locale, calendarId: rawCalendarId } = await params;
-  const session = await requireAdminSection(locale, 'calendars', 'manage', `/${locale}/admin/calendars/${rawCalendarId}`);
+  await requireAdminSection(locale, 'calendars', 'manage', `/${locale}/admin/calendars/${rawCalendarId}`);
   const calendarId = parseEntityId(rawCalendarId);
   if (!calendarId) notFound();
 
@@ -55,18 +55,11 @@ export default async function EditCalendarPage({
 
   return (
     <AdminShell
-      session={session}
-      activeTab="calendars"
-      backHref={withContentLocale('/admin/calendars', contentLocale)}
-      backLabel={locale === 'en' ? 'Back to calendar items' : 'К списку записей'}
-      contentLocale={contentLocale}
-      contentLocaleHref={`/admin/calendars/${calendarId}`}
       description={
         locale === 'en'
           ? 'Edit text and language-specific media without crowding the calendar list.'
           : 'Редактируйте текст и языковые медиа отдельно от компактного списка календарей.'
       }
-      locale={locale}
       title={title}>
       <div className="mx-auto max-w-5xl">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">

@@ -22,7 +22,7 @@ export default async function EditRegionalContactPage({
   searchParams: Promise<{ status?: string }>;
 }) {
   const { contactId: rawContactId, locale } = await params;
-  const session = await requireAdminSection(
+  await requireAdminSection(
     locale,
     'contacts',
     'manage',
@@ -49,15 +49,7 @@ export default async function EditRegionalContactPage({
 
   return (
     <AdminShell
-      session={session}
-      activeTab="contacts"
-      backHref="/admin/contacts"
-      backLabel="К списку контактов"
-      contentLocale="ru"
-      contentLocaleHref="/admin/contacts"
-      contentLocaleHint="Список контактов одинаков для всех языков сайта."
       description="Изменения появляются на странице контактов сразу после сохранения."
-      locale={locale}
       title={contactResult.contact?.region ?? `Контакт #${contactId}`}>
       <div className="mx-auto max-w-5xl">
         <div className="mb-4">

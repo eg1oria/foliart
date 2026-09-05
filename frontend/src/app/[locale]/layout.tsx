@@ -7,6 +7,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
 import { notFound } from 'next/navigation';
+import AdminRouteHidden from '@/components/AdminRouteHidden';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getCalendars, getCategories } from '@/lib/api';
@@ -222,7 +223,9 @@ gtag('config', '${GOOGLE_ANALYTICS_ID}', { send_page_view: true });`}
             calendarChildren={calendarChildren}
           />
           {children}
-          <Footer />
+          <AdminRouteHidden>
+            <Footer />
+          </AdminRouteHidden>
         </NextIntlClientProvider>
       </body>
     </html>

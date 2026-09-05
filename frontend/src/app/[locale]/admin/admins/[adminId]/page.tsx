@@ -7,37 +7,26 @@ import { requireSuperAdmin } from '@/lib/adminAuthServer';
 import { normalizeAdminPermissions } from '@/lib/adminPermissions';
 import { getAdminUser } from '@/lib/adminUsersApi';
 import { parseEntityId } from '@/lib/catalog';
-import { normalizeContentLocale } from '@/lib/contentLocales';
 
 export default async function AdminUserEditPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ adminId: string; locale: string }>;
-  searchParams: Promise<{ contentLocale?: string }>;
 }) {
   const { adminId: rawAdminId, locale } = await params;
-  const session = await requireSuperAdmin(locale, `/${locale}/admin/admins/${rawAdminId}`);
+  await requireSuperAdmin(locale, `/${locale}/admin/admins/${rawAdminId}`);
   const adminId = parseEntityId(rawAdminId);
 
   if (!adminId) notFound();
 
-  const contentLocale = normalizeContentLocale((await searchParams).contentLocale);
   const result = await getAdminUser(adminId);
 
   if (!result.ok) {
     return (
       <AdminShell
-        session={session}
-        activeTab="admins"
-        backHref="/"
-        backLabel="Открыть сайт"
-        contentLocale={contentLocale}
-        contentLocaleHref={`/admin/admins/${adminId}`}
         description="Не удалось загрузить учётную запись."
-        locale={locale}
         title="Администратор">
-        <div className="mt-5">
+        <div>
           <AdminNotice tone="error">{result.message}</AdminNotice>
         </div>
       </AdminShell>
@@ -48,21 +37,14 @@ export default async function AdminUserEditPage({
 
   return (
     <AdminShell
-      session={session}
-      activeTab="admins"
-      backHref="/"
-      backLabel="Открыть сайт"
-      contentLocale={contentLocale}
-      contentLocaleHref={`/admin/admins/${adminId}`}
       description={
         admin.isSuperAdmin
           ? 'Супер-админу доступны все разделы; здесь можно только задать новый пароль.'
           : 'Настройте доступ к разделам или задайте новый пароль.'
       }
-      locale={locale}
       title={`Администратор · ${admin.username}`}>
       {admin.isSuperAdmin ? (
-        <div className="mt-5">
+        <div>
           <AdminNotice tone="success">
             Это учётная запись супер-админа: её права нельзя ограничить, а саму запись — удалить.
           </AdminNotice>

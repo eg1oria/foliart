@@ -26,7 +26,6 @@ import {
 import { listAdminUsers } from '@/lib/adminUsersApi';
 
 import { deleteAdminUserAction } from './actions';
-import { normalizeContentLocale } from '@/lib/contentLocales';
 
 type AdminsSearchParams = {
   contentLocale?: string;
@@ -78,37 +77,29 @@ export default async function AdminAdminsPage({
   searchParams: Promise<AdminsSearchParams>;
 }) {
   const { locale } = await params;
-  const session = await requireSuperAdmin(locale, `/${locale}/admin/admins`);
+  await requireSuperAdmin(locale, `/${locale}/admin/admins`);
   const query = await searchParams;
-  const contentLocale = normalizeContentLocale(query.contentLocale);
   const result = await listAdminUsers();
   const admins = result.ok ? result.data : [];
   const statusMessage = getStatusMessage(query.status);
 
   return (
     <AdminShell
-      session={session}
-      activeTab="admins"
-      backHref="/"
-      backLabel="Открыть сайт"
-      contentLocale={contentLocale}
-      contentLocaleHref="/admin/admins"
       description="Создавайте учётные записи и решайте, какие разделы админки им доступны."
-      locale={locale}
       title="Администраторы">
+      <div className="mb-4 flex flex-wrap items-center justify-end gap-3">
+        <Link
+          href="/admin/admins/new"
+          className={adminCx(adminPrimaryButtonClassName, 'gap-2')}>
+          <FiUserPlus aria-hidden="true" />
+          Добавить администратора
+        </Link>
+      </div>
+
       <AdminPanel
-        className="mt-5"
         badge="Доступ"
         title="Учётные записи"
-        description="Права применяются сразу: при их изменении активные сессии администратора закрываются."
-        headerContent={
-          <Link
-            href="/admin/admins/new"
-            className={adminCx(adminPrimaryButtonClassName, 'gap-2')}>
-            <FiUserPlus aria-hidden="true" />
-            Добавить администратора
-          </Link>
-        }>
+        description="Права применяются сразу: при их изменении активные сессии администратора закрываются.">
         <div className="space-y-4">
           {statusMessage ? <AdminNotice tone="success">{statusMessage}</AdminNotice> : null}
           {query.error ? <AdminNotice tone="error">{query.error}</AdminNotice> : null}

@@ -12,7 +12,7 @@ export default async function NewRegionalContactPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const session = await requireAdminSection(
+  await requireAdminSection(
     locale,
     'contacts',
     'manage',
@@ -21,15 +21,7 @@ export default async function NewRegionalContactPage({
 
   return (
     <AdminShell
-      session={session}
-      activeTab="contacts"
-      backHref="/admin/contacts"
-      backLabel="К списку контактов"
-      contentLocale="ru"
-      contentLocaleHref="/admin/contacts"
-      contentLocaleHint="Список контактов одинаков для всех языков сайта."
       description="Заполните только то, что нужно показать: пустые поля в список не попадут."
-      locale={locale}
       title="Новый контакт">
       <div className="mx-auto max-w-5xl">
         <div className="mb-4">

@@ -53,15 +53,7 @@ export default async function AdminMessagesPage({
 
   return (
     <AdminShell
-      session={session}
-      activeTab="messages"
-      backHref="/"
-      backLabel="Открыть сайт"
-      contentLocale={targetLocale}
-      contentLocaleHint="Выберите язык, сообщения которого нужно изменить."
-      contentLocaleTitle="Язык перевода"
       description="Редактируйте интерфейсные тексты без пересборки и перезапуска сайта. Структура ключей и ICU-параметры защищены."
-      locale={locale}
       title="Интерфейсные переводы"
     >
       <AdminPanel

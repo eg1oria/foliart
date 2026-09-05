@@ -18,7 +18,7 @@ export default async function EditProductCategoryPage({
   searchParams: Promise<{ contentLocale?: string; status?: string }>;
 }) {
   const { categoryId: rawCategoryId, locale } = await params;
-  const session = await requireAdminSection(
+  await requireAdminSection(
     locale,
     'products',
     'manage',
@@ -44,14 +44,7 @@ export default async function EditProductCategoryPage({
 
   return (
     <AdminShell
-      session={session}
-      activeTab="products"
-      backHref={withContentLocale('/admin/products/categories', contentLocale)}
-      backLabel="К категориям"
-      contentLocale={contentLocale}
-      contentLocaleHref={`/admin/products/categories/${categoryId}`}
       description="Тексты меняются только для выбранного языка; изображение категории общее для всех языков."
-      locale={locale}
       title={categoryResult.category?.name ?? `Категория #${categoryId}`}
     >
       <div className="mx-auto max-w-5xl">

@@ -174,18 +174,30 @@ export default async function AdminCalendarsPage({
 
   return (
     <AdminShell
-      session={session}
-      activeTab="calendars"
-      backHref="/calendar"
-      backLabel={copy.backToSite}
-      contentLocale={contentLocale}
       description={
         locale === 'en'
           ? 'Browse calendar entries in a compact list and open a separate editor for content and media.'
           : 'Просматривайте записи компактным списком и открывайте отдельный редактор для текста и медиа.'
       }
-      locale={locale}
       title={copy.adminTitle}>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <Link
+          href="/calendar"
+          target="_blank"
+          className={adminCx(adminSecondaryButtonClassName, 'gap-2')}>
+          <FiExternalLink aria-hidden="true" />
+          {locale === 'en' ? 'Calendar page' : 'Страница календаря'}
+        </Link>
+        {canManage ? (
+          <Link
+            href={withContentLocale('/admin/calendars/new', 'ru')}
+            className={adminCx(adminPrimaryButtonClassName, 'gap-2')}>
+            <FiPlus aria-hidden="true" />
+            {addLabel}
+          </Link>
+        ) : null}
+      </div>
+
       <AdminPanel
         id="manage-calendars"
         badge={manageBadge}
@@ -194,17 +206,6 @@ export default async function AdminCalendarsPage({
           locale === 'en'
             ? 'The list shows translation, gallery, and PDF readiness for the selected content language.'
             : 'В списке видны состояние перевода, галереи и PDF для выбранного языка контента.'
-        }
-        tone="muted"
-        headerContent={
-          canManage ? (
-            <Link
-              href={withContentLocale('/admin/calendars/new', 'ru')}
-              className={adminCx(adminPrimaryButtonClassName, 'gap-2')}>
-              <FiPlus aria-hidden="true" />
-              {addLabel}
-            </Link>
-          ) : null
         }>
         {successMessage ? (
           <div className="mb-5">

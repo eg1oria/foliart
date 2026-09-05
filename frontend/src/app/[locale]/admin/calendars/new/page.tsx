@@ -17,7 +17,7 @@ export default async function NewCalendarPage({
   searchParams: Promise<{ contentLocale?: string; error?: string }>;
 }) {
   const { locale } = await params;
-  const session = await requireAdminSection(locale, 'calendars', 'manage', `/${locale}/admin/calendars/new`);
+  await requireAdminSection(locale, 'calendars', 'manage', `/${locale}/admin/calendars/new`);
 
   const query = await searchParams;
   const contentLocale = normalizeContentLocale(query.contentLocale);
@@ -29,18 +29,11 @@ export default async function NewCalendarPage({
 
   return (
     <AdminShell
-      session={session}
-      activeTab="calendars"
-      backHref={withContentLocale('/admin/calendars', 'ru')}
-      backLabel={locale === 'en' ? 'Back to calendar items' : 'К списку записей'}
-      contentLocale="ru"
-      contentLocaleHref="/admin/calendars"
       description={
         locale === 'en'
           ? 'Create the base Russian calendar item. Translations can be added after the first save.'
           : 'Создайте основную русскую запись. Переводы можно добавить после первого сохранения.'
       }
-      locale={locale}
       title={copy.adminFormTitle}>
       <div className="mx-auto max-w-5xl">
         <div className="mb-4">

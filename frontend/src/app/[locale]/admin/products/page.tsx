@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { FiFolder, FiPlus } from 'react-icons/fi';
+import { FiExternalLink, FiPlus } from 'react-icons/fi';
 
 import {
   AdminEmptyState,
@@ -79,37 +79,30 @@ export default async function AdminProductsPage({
 
   return (
     <AdminShell
-      session={session}
-      activeTab="products"
-      backHref="/catalog"
-      backLabel="Открыть каталог"
-      contentLocale={contentLocale}
       description="Быстро находите товары, контролируйте переводы и открывайте отдельный редактор без перегруженных форм."
-      locale={locale}
       title="Управление товарами">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <Link
+          href="/catalog"
+          target="_blank"
+          className={adminCx(adminSecondaryButtonClassName, 'gap-2')}>
+          <FiExternalLink aria-hidden="true" />
+          Страница каталога
+        </Link>
+        {canManage ? (
+          <Link
+            href={withContentLocale('/admin/products/new', 'ru')}
+            className={adminCx(adminPrimaryButtonClassName, 'gap-2')}>
+            <FiPlus aria-hidden="true" />
+            Добавить товар
+          </Link>
+        ) : null}
+      </div>
+
       <AdminPanel
-        className="mt-5"
         badge="Каталог"
         title="Товары"
-        description="Поиск и фильтры работают мгновенно и не запрашивают каталог повторно."
-        headerContent={
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Link
-              href={withContentLocale('/admin/products/categories', contentLocale)}
-              className={adminCx(adminSecondaryButtonClassName, 'gap-2')}>
-              <FiFolder aria-hidden="true" />
-              Переводы категорий
-            </Link>
-            {canManage ? (
-              <Link
-                href={withContentLocale('/admin/products/new', 'ru')}
-                className={adminCx(adminPrimaryButtonClassName, 'gap-2')}>
-                <FiPlus aria-hidden="true" />
-                Добавить товар
-              </Link>
-            ) : null}
-          </div>
-        }>
+        description="Поиск и фильтры работают мгновенно и не запрашивают каталог повторно.">
         <div className="space-y-4">
           {statusMessage ? <AdminNotice tone="success">{statusMessage}</AdminNotice> : null}
           {query.error ? <AdminNotice tone="error">{query.error}</AdminNotice> : null}

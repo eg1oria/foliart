@@ -23,7 +23,7 @@ export default async function EditProductPage({
   searchParams: Promise<{ contentLocale?: string; status?: string }>;
 }) {
   const { locale, productId: rawProductId } = await params;
-  const session = await requireAdminSection(locale, 'products', 'manage', `/${locale}/admin/products/${rawProductId}`);
+  await requireAdminSection(locale, 'products', 'manage', `/${locale}/admin/products/${rawProductId}`);
   const productId = parseEntityId(rawProductId);
   if (!productId) notFound();
 
@@ -56,14 +56,7 @@ export default async function EditProductPage({
 
   return (
     <AdminShell
-      session={session}
-      activeTab="products"
-      backHref={withContentLocale('/admin/products', contentLocale)}
-      backLabel="К списку товаров"
-      contentLocale={contentLocale}
-      contentLocaleHref={`/admin/products/${productId}`}
       description="Редактируйте базовую карточку и переводы отдельно, не затрагивая данные других языков."
-      locale={locale}
       title={product ? product.name : `Товар #${productId}`}
     >
       <div className="mx-auto max-w-5xl">

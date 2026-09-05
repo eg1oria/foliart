@@ -14,21 +14,14 @@ export default async function NewProductPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const session = await requireAdminSection(locale, 'products', 'manage', `/${locale}/admin/products/new`);
+  await requireAdminSection(locale, 'products', 'manage', `/${locale}/admin/products/new`);
   const categoriesResult = await getCategories('ru', noStoreApiFetchOptions, 'ru')
     .then((categories) => ({ categories, error: false as const }))
     .catch(() => ({ categories: [], error: true as const }));
 
   return (
     <AdminShell
-      session={session}
-      activeTab="products"
-      backHref={withContentLocale('/admin/products', 'ru')}
-      backLabel="К списку товаров"
-      contentLocale="ru"
-      contentLocaleHref="/admin/products"
       description="Создайте базовую русскую карточку. Переводы добавляются после первого сохранения."
-      locale={locale}
       title="Новый товар"
     >
       <div className="mx-auto max-w-5xl">

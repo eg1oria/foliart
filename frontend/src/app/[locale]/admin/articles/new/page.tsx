@@ -17,7 +17,7 @@ export default async function NewArticlePage({
   searchParams: Promise<{ contentLocale?: string; draft?: string }>;
 }) {
   const { locale } = await params;
-  const session = await requireAdminSection(locale, 'articles', 'manage', `/${locale}/admin/articles/new`);
+  await requireAdminSection(locale, 'articles', 'manage', `/${locale}/admin/articles/new`);
   const { contentLocale: requestedLocale, draft } = await searchParams;
   const contentLocale = normalizeContentLocale(requestedLocale);
   if (contentLocale !== 'ru') {
@@ -27,14 +27,7 @@ export default async function NewArticlePage({
 
   return (
     <AdminShell
-      session={session}
-      activeTab="articles"
-      backHref={withContentLocale('/admin/articles', contentLocale)}
-      backLabel={locale === 'ru' ? 'К списку статей' : 'Back to articles'}
       description={copy.adminFormDescription}
-      contentLocale={contentLocale}
-      locale={locale}
-      shortcuts={[]}
       stats={[]}
       title={copy.adminFormTitle}
     >

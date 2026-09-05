@@ -51,15 +51,7 @@ export default async function AdminPartnersPage({
 
   return (
     <AdminShell
-      session={session}
-      activeTab="partners"
-      backHref="/admin/products"
-      backLabel="К товарам"
-      contentLocale="ru"
-      contentLocaleHref="/admin/partners"
-      contentLocaleHint="Карточки партнёров одинаковы для всех языков сайта."
       description="Карточки партнёров на странице «О компании». Пустые поля не выводятся на сайте."
-      locale={locale}
       title="Партнёры">
       <div className="mx-auto max-w-6xl">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
