@@ -6,6 +6,10 @@ import { redirect } from 'next/navigation';
 import { isSupportedAdminLocale } from '@/lib/adminAuth';
 import { requireSuperAdmin } from '@/lib/adminAuthServer';
 import {
+  normalizeAdminUsername,
+  validateAdminUsername,
+} from '@/lib/adminAccountRules';
+import {
   adminSections,
   isAdminAccessLevel,
   type AdminAccessLevel,
@@ -24,8 +28,6 @@ export type AdminUserActionState = {
   message?: string;
   status: 'idle' | 'success' | 'error';
 };
-
-const USERNAME_PATTERN = /^[a-z0-9](?:[a-z0-9._-]{1,30}[a-z0-9])$/;
 
 function normalizeLocale(value: FormDataEntryValue | null) {
   return typeof value === 'string' && isSupportedAdminLocale(value) ? value : 'ru';
@@ -65,13 +67,13 @@ export async function createAdminUserAction(
   const locale = normalizeLocale(formData.get('locale'));
   await requireSuperAdmin(locale);
 
-  const username = readText(formData, 'username').trim().toLowerCase();
+  const username = normalizeAdminUsername(readText(formData, 'username'));
   const password = readText(formData, 'password');
   const fieldErrors = validateNewPassword(password, readText(formData, 'confirmPassword'));
+  const usernameError = validateAdminUsername(username);
 
-  if (!USERNAME_PATTERN.test(username)) {
-    fieldErrors.username =
-      'Логин: 3–32 символа, латиница, цифры, точка, дефис или подчёркивание.';
+  if (usernameError) {
+    fieldErrors.username = usernameError;
   }
 
   if (Object.keys(fieldErrors).length) {
@@ -85,16 +87,21 @@ export async function createAdminUserAction(
   });
 
   if (!result.ok) {
-    return {
-      status: 'error',
-      message: result.message.includes('already exists')
-        ? 'Администратор с таким логином уже существует.'
-        : result.message,
-    };
+    // The login is the only field the backend can reject on its own, so the
+    // conflict is shown on it instead of as a detached banner.
+    return result.message.includes('already exists')
+      ? {
+          status: 'error',
+          fieldErrors: { username: 'Администратор с таким логином уже существует.' },
+          message: 'Выберите другой логин.',
+        }
+      : { status: 'error', message: result.message };
   }
 
   refreshAdmins(locale);
-  redirect(`/${locale}/admin/admins?status=created`);
+  redirect(
+    `/${locale}/admin/admins?status=created&login=${encodeURIComponent(username)}`,
+  );
 }
 
 export async function updateAdminPermissionsAction(

@@ -13,15 +13,27 @@ describe('admin users validation', () => {
     expect(parseAdminUsername('  Editor.One  ')).toBe('editor.one');
   });
 
-  it('rejects logins that are too short, too long or contain spaces', () => {
-    for (const value of ['ab', 'a'.repeat(33), 'two words', 'ходжа', '-lead']) {
+  it('accepts a cyrillic login', () => {
+    expect(parseAdminUsername('  Редактор.Один  ')).toBe('редактор.один');
+  });
+
+  it('rejects logins that are too short, too long, spaced or mixed alphabets', () => {
+    for (const value of [
+      'ab',
+      'a'.repeat(33),
+      'two words',
+      'два слова',
+      '-lead',
+      'редактор-editor',
+    ]) {
       expect(() => parseAdminUsername(value)).toThrow(BadRequestException);
     }
   });
 
-  it('enforces the password length bounds', () => {
-    expect(parseAdminPassword('0123456789')).toBe('0123456789');
-    expect(() => parseAdminPassword('123456789')).toThrow(BadRequestException);
+  it('accepts any password that is not empty', () => {
+    expect(parseAdminPassword('123')).toBe('123');
+    expect(parseAdminPassword(' ')).toBe(' ');
+    expect(() => parseAdminPassword('')).toThrow(BadRequestException);
     expect(() => parseAdminPassword('a'.repeat(201))).toThrow(
       BadRequestException,
     );

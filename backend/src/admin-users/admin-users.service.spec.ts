@@ -109,10 +109,10 @@ describe('AdminUsersService', () => {
       expect(adminUser.create).not.toHaveBeenCalled();
     });
 
-    it('refuses to create a super admin with a weak environment password', async () => {
+    it('refuses to create a super admin without an environment password', async () => {
       adminUser.count.mockResolvedValue(0);
       process.env.ADMIN_USERNAME = 'root';
-      process.env.ADMIN_PASSWORD = 'short';
+      process.env.ADMIN_PASSWORD = '';
 
       await expect(service.bootstrapSuperAdmin()).resolves.toBeNull();
       expect(adminUser.create).not.toHaveBeenCalled();
@@ -209,7 +209,7 @@ describe('AdminUsersService', () => {
       adminUser.findUnique.mockResolvedValue(row);
       adminUser.update.mockResolvedValue({ ...row, tokenVersion: 1 });
 
-      await service.setPassword(1, 'another-long-password');
+      await service.setPassword(1, '123');
 
       expectTokenVersionBump(adminUser.update);
     });

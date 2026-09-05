@@ -19,8 +19,8 @@ import {
   verifyAdminPassword,
 } from './admin-password.util';
 import {
-  ADMIN_USERNAME_PATTERN,
-  ADMIN_PASSWORD_MIN_LENGTH,
+  isAdminUsername,
+  normalizeAdminUsername,
 } from './admin-users.validation';
 
 const MAX_FAILED_ATTEMPTS = 10;
@@ -63,25 +63,21 @@ export class AdminUsersService implements OnModuleInit {
       return null;
     }
 
-    const username = (
-      process.env.ADMIN_USERNAME ??
-      process.env.ADMIN_LOGIN ??
-      'admin'
-    )
-      .trim()
-      .toLowerCase();
+    const username = normalizeAdminUsername(
+      process.env.ADMIN_USERNAME ?? process.env.ADMIN_LOGIN ?? 'admin',
+    );
     const password = process.env.ADMIN_PASSWORD ?? '';
 
-    if (!ADMIN_USERNAME_PATTERN.test(username)) {
+    if (!isAdminUsername(username)) {
       this.logger.error(
         'ADMIN_USERNAME is not a valid admin login, the super admin was not created',
       );
       return null;
     }
 
-    if (password.length < ADMIN_PASSWORD_MIN_LENGTH) {
+    if (!password) {
       this.logger.error(
-        `ADMIN_PASSWORD must be at least ${ADMIN_PASSWORD_MIN_LENGTH} characters long, the super admin was not created`,
+        'ADMIN_PASSWORD is empty, the super admin was not created',
       );
       return null;
     }

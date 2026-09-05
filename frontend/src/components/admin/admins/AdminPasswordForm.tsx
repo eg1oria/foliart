@@ -6,7 +6,7 @@ import { FiSave } from 'react-icons/fi';
 import {
   changeOwnPasswordAction,
   type AdminPasswordActionState,
-} from '../../../app/[locale]/admin/account/actions';
+} from '@/app/[locale]/admin/account/actions';
 import {
   adminCx,
   adminFieldClassName,
@@ -77,7 +77,6 @@ export default function AdminPasswordForm({ locale }: { locale: string }) {
           type="password"
           name="newPassword"
           autoComplete="new-password"
-          minLength={10}
           required
           aria-invalid={Boolean(state.fieldErrors?.newPassword)}
           className={adminInputClassName}
@@ -87,7 +86,9 @@ export default function AdminPasswordForm({ locale }: { locale: string }) {
             {state.fieldErrors.newPassword}
           </span>
         ) : null}
-        <span className={adminHintClassName}>Не короче 10 символов.</span>
+        <span className={adminHintClassName}>
+          Длина и состав пароля не ограничены.
+        </span>
       </label>
 
       <label className={adminFieldClassName}>
@@ -96,7 +97,6 @@ export default function AdminPasswordForm({ locale }: { locale: string }) {
           type="password"
           name="confirmPassword"
           autoComplete="new-password"
-          minLength={10}
           required
           aria-invalid={Boolean(state.fieldErrors?.confirmPassword)}
           className={adminInputClassName}

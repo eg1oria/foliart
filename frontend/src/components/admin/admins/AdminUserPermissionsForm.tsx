@@ -1,12 +1,12 @@
 'use client';
 
-import { useActionState, useEffect, useRef } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import { FiSave } from 'react-icons/fi';
 
 import {
   updateAdminPermissionsAction,
   type AdminUserActionState,
-} from '../../../app/[locale]/admin/admins/actions';
+} from '@/app/[locale]/admin/admins/actions';
 import type { AdminPermissions } from '@/lib/adminPermissions';
 
 import { adminCx, adminPrimaryButtonClassName } from '../adminStyles';
@@ -27,6 +27,7 @@ export default function AdminUserPermissionsForm({
     updateAdminPermissionsAction,
     initialState,
   );
+  const [levels, setLevels] = useState(permissions);
   const noticeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -55,7 +56,7 @@ export default function AdminUserPermissionsForm({
         </div>
       ) : null}
 
-      <AdminPermissionsMatrix permissions={permissions} />
+      <AdminPermissionsMatrix onChange={setLevels} permissions={levels} />
 
       <div className="flex justify-end">
         <button

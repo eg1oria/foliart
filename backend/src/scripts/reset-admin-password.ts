@@ -4,8 +4,8 @@ import { PrismaLibSql } from '@prisma/adapter-libsql';
 import { createAdminPermissions } from '../admin-sections';
 import { hashAdminPassword } from '../admin-users/admin-password.util';
 import {
-  ADMIN_PASSWORD_MIN_LENGTH,
-  ADMIN_USERNAME_PATTERN,
+  isAdminUsername,
+  normalizeAdminUsername,
 } from '../admin-users/admin-users.validation';
 
 // Recovery hatch for a lost super admin password. Run it inside the backend
@@ -14,18 +14,16 @@ import {
 // restored without touching the database by hand.
 async function main() {
   const [usernameInput, password] = process.argv.slice(2);
-  const username = (usernameInput ?? '').trim().toLowerCase();
+  const username = normalizeAdminUsername(usernameInput ?? '');
 
-  if (!ADMIN_USERNAME_PATTERN.test(username)) {
+  if (!isAdminUsername(username)) {
     throw new Error(
       'Usage: npm run admin:reset-password -- <login> <new-password>',
     );
   }
 
-  if (!password || password.length < ADMIN_PASSWORD_MIN_LENGTH) {
-    throw new Error(
-      `The new password must be at least ${ADMIN_PASSWORD_MIN_LENGTH} characters long`,
-    );
+  if (!password) {
+    throw new Error('The new password must not be empty');
   }
 
   const adapter = new PrismaLibSql({

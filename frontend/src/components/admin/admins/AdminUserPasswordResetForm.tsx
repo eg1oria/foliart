@@ -6,17 +6,10 @@ import { FiKey } from 'react-icons/fi';
 import {
   resetAdminPasswordAction,
   type AdminUserActionState,
-} from '../../../app/[locale]/admin/admins/actions';
-import { ADMIN_PASSWORD_MIN_LENGTH } from '@/lib/adminPasswordRules';
+} from '@/app/[locale]/admin/admins/actions';
 
-import {
-  adminCx,
-  adminFieldClassName,
-  adminHintClassName,
-  adminInputClassName,
-  adminLabelClassName,
-  adminPrimaryButtonClassName,
-} from '../adminStyles';
+import { adminCx, adminPrimaryButtonClassName } from '../adminStyles';
+import AdminPasswordFields from './AdminPasswordFields';
 
 const initialState: AdminUserActionState = { status: 'idle' };
 
@@ -28,21 +21,16 @@ export default function AdminUserPasswordResetForm({
   locale: string;
 }) {
   const [state, formAction, pending] = useActionState(resetAdminPasswordAction, initialState);
-  const formRef = useRef<HTMLFormElement>(null);
   const noticeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (state.status !== 'idle') {
       noticeRef.current?.focus();
     }
-
-    if (state.status === 'success') {
-      formRef.current?.reset();
-    }
   }, [state]);
 
   return (
-    <form ref={formRef} action={formAction} className="max-w-xl space-y-5">
+    <form action={formAction} className="space-y-5">
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="adminId" value={adminId} />
 
@@ -61,44 +49,12 @@ export default function AdminUserPasswordResetForm({
         </div>
       ) : null}
 
-      <label className={adminFieldClassName}>
-        <span className={adminLabelClassName}>Новый пароль</span>
-        <input
-          type="password"
-          name="newPassword"
-          autoComplete="new-password"
-          minLength={ADMIN_PASSWORD_MIN_LENGTH}
-          required
-          aria-invalid={Boolean(state.fieldErrors?.newPassword)}
-          className={adminInputClassName}
-        />
-        {state.fieldErrors?.newPassword ? (
-          <span className="text-xs font-medium text-red-700">
-            {state.fieldErrors.newPassword}
-          </span>
-        ) : null}
-        <span className={adminHintClassName}>
-          Передайте пароль администратору лично — здесь он больше не отображается.
-        </span>
-      </label>
-
-      <label className={adminFieldClassName}>
-        <span className={adminLabelClassName}>Повторите пароль</span>
-        <input
-          type="password"
-          name="confirmPassword"
-          autoComplete="new-password"
-          minLength={ADMIN_PASSWORD_MIN_LENGTH}
-          required
-          aria-invalid={Boolean(state.fieldErrors?.confirmPassword)}
-          className={adminInputClassName}
-        />
-        {state.fieldErrors?.confirmPassword ? (
-          <span className="text-xs font-medium text-red-700">
-            {state.fieldErrors.confirmPassword}
-          </span>
-        ) : null}
-      </label>
+      <AdminPasswordFields
+        fieldErrors={state.fieldErrors}
+        hint="Передайте пароль администратору лично — здесь он больше не отображается."
+        label="Новый пароль"
+        name="newPassword"
+      />
 
       <button
         type="submit"

@@ -4,9 +4,24 @@ import {
   type AdminPermissions,
 } from '../admin-sections';
 
-export const ADMIN_USERNAME_PATTERN = /^[a-z0-9](?:[a-z0-9._-]{1,30}[a-z0-9])$/;
-export const ADMIN_PASSWORD_MIN_LENGTH = 10;
+// A login is latin or cyrillic, never both: `admin` and `аdmin` with a cyrillic
+// `а` look identical and would otherwise be two different accounts.
+const LATIN_USERNAME_PATTERN = /^[a-z0-9](?:[a-z0-9._-]{1,30}[a-z0-9])$/;
+const CYRILLIC_USERNAME_PATTERN = /^[а-яё0-9](?:[а-яё0-9._-]{1,30}[а-яё0-9])$/;
+
 export const ADMIN_PASSWORD_MAX_LENGTH = 200;
+
+// Cyrillic letters have more than one encoding, so the composed form is the one
+// that reaches the unique index and the login form alike.
+export function normalizeAdminUsername(value: string) {
+  return value.normalize('NFC').trim().toLowerCase();
+}
+
+export function isAdminUsername(value: string) {
+  return (
+    LATIN_USERNAME_PATTERN.test(value) || CYRILLIC_USERNAME_PATTERN.test(value)
+  );
+}
 
 function fail(message: string): never {
   throw new BadRequestException(message);
@@ -25,28 +40,31 @@ export function parseAdminUsername(value: unknown) {
     fail('Username is required');
   }
 
-  const username = value.trim().toLowerCase();
+  const username = normalizeAdminUsername(value);
 
-  if (!ADMIN_USERNAME_PATTERN.test(username)) {
+  if (!isAdminUsername(username)) {
     fail(
-      'Username must be 3-32 characters long and may contain latin letters, digits, dot, dash and underscore',
+      'Username must be 3-32 characters long and may contain latin or cyrillic letters (not both), digits, dot, dash and underscore',
     );
   }
 
   return username;
 }
 
+// Any password the super admin picks is accepted; only an empty one and a
+// length that would make hashing pointlessly expensive are refused.
 export function parseAdminPassword(value: unknown) {
   if (typeof value !== 'string') {
     fail('Password is required');
   }
 
-  if (
-    value.length < ADMIN_PASSWORD_MIN_LENGTH ||
-    value.length > ADMIN_PASSWORD_MAX_LENGTH
-  ) {
+  if (!value) {
+    fail('Password must not be empty');
+  }
+
+  if (value.length > ADMIN_PASSWORD_MAX_LENGTH) {
     fail(
-      `Password must be between ${ADMIN_PASSWORD_MIN_LENGTH} and ${ADMIN_PASSWORD_MAX_LENGTH} characters long`,
+      `Password must be at most ${ADMIN_PASSWORD_MAX_LENGTH} characters long`,
     );
   }
 
@@ -83,7 +101,7 @@ export function parseAuthenticateBody(body: unknown) {
   }
 
   return {
-    username: body.username.trim().toLowerCase(),
+    username: normalizeAdminUsername(body.username),
     password: body.password,
   };
 }

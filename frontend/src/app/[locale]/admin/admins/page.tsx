@@ -15,6 +15,7 @@ import {
   adminSecondaryButtonClassName,
 } from '@/components/admin/adminStyles';
 import { Link } from '@/i18n/routing';
+import { getAdminUsernameFormatError } from '@/lib/adminAccountRules';
 import { requireSuperAdmin } from '@/lib/adminAuthServer';
 import {
   adminAccessLevelLabels,
@@ -30,12 +31,21 @@ import { deleteAdminUserAction } from './actions';
 type AdminsSearchParams = {
   contentLocale?: string;
   error?: string;
+  login?: string;
   status?: string;
 };
 
-function getStatusMessage(status?: string) {
-  if (status === 'created') return 'Администратор создан.';
+function getStatusMessage(status?: string, login?: string) {
+  if (status === 'created') {
+    // The login travels in the query string, so it is only echoed back when it
+    // still looks like a login.
+    const created = login && !getAdminUsernameFormatError(login) ? login : null;
+
+    return created ? `Администратор «${created}» создан.` : 'Администратор создан.';
+  }
+
   if (status === 'deleted') return 'Администратор удалён.';
+
   return null;
 }
 
@@ -81,7 +91,7 @@ export default async function AdminAdminsPage({
   const query = await searchParams;
   const result = await listAdminUsers();
   const admins = result.ok ? result.data : [];
-  const statusMessage = getStatusMessage(query.status);
+  const statusMessage = getStatusMessage(query.status, query.login);
 
   return (
     <AdminShell

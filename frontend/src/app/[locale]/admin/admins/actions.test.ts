@@ -95,7 +95,7 @@ describe('admin users Server Actions', () => {
           permission_articles: 'view',
         }),
       ),
-    ).rejects.toThrow('REDIRECT:/ru/admin/admins?status=created');
+    ).rejects.toThrow('REDIRECT:/ru/admin/admins?status=created&login=editor');
 
     expect(mocks.createAdminUser).toHaveBeenCalledWith({
       username: 'editor',
@@ -146,8 +146,29 @@ describe('admin users Server Actions', () => {
 
     expect(state).toEqual({
       status: 'error',
-      message: 'Администратор с таким логином уже существует.',
+      fieldErrors: { username: 'Администратор с таким логином уже существует.' },
+      message: 'Выберите другой логин.',
     });
+  });
+
+  it('accepts a short password and a cyrillic login', async () => {
+    mocks.createAdminUser.mockResolvedValue({ ok: true, data: { id: 3 } });
+
+    await expect(
+      createAdminUserAction(
+        idle,
+        formData({
+          locale: 'ru',
+          username: '  Редактор  ',
+          password: '12',
+          confirmPassword: '12',
+        }),
+      ),
+    ).rejects.toThrow('REDIRECT:/ru/admin/admins?status=created');
+
+    expect(mocks.createAdminUser).toHaveBeenCalledWith(
+      expect.objectContaining({ username: 'редактор', password: '12' }),
+    );
   });
 
   it('treats an unchecked section as no access', async () => {
@@ -169,10 +190,22 @@ describe('admin users Server Actions', () => {
     expect(state.status).toBe('success');
   });
 
-  it('validates a reset password before sending it', async () => {
+  it('sends a short reset password as it is', async () => {
+    mocks.setAdminUserPassword.mockResolvedValue({ ok: true, data: { id: 2 } });
+
     const state = await resetAdminPasswordAction(
       idle,
-      formData({ locale: 'ru', adminId: '2', newPassword: 'short', confirmPassword: 'short' }),
+      formData({ locale: 'ru', adminId: '2', newPassword: '12', confirmPassword: '12' }),
+    );
+
+    expect(mocks.setAdminUserPassword).toHaveBeenCalledWith(2, '12');
+    expect(state.status).toBe('success');
+  });
+
+  it('refuses an empty reset password before sending it', async () => {
+    const state = await resetAdminPasswordAction(
+      idle,
+      formData({ locale: 'ru', adminId: '2', newPassword: '', confirmPassword: '' }),
     );
 
     expect(state.status).toBe('error');
