@@ -19,7 +19,7 @@ import {
   parseApplication,
   parseComposition,
 } from '@/lib/catalog';
-import { resolveMediaUrl } from '@/lib/media';
+import { resolveMediaUrl, resolvePublicAssetUrl } from '@/lib/media';
 import { renderRichDescription } from '@/lib/renderRichDescription';
 import { richDescriptionToPlainText } from '@/lib/richDescription';
 import {
@@ -104,7 +104,7 @@ export default async function ProductDetailsPage({
 
   const categoryImage = resolveMediaUrl(category.imageUrl);
   const productImage = resolveMediaUrl(product.imageUrl);
-  const certificateImage = resolveMediaUrl('images/sertificate.webp');
+  const certificateImage = resolvePublicAssetUrl('/sertificate.webp');
   const certificateLabel =
     locale === 'ru'
       ? 'Сертификат соответствия'
