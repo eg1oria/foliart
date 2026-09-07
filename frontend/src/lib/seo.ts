@@ -13,6 +13,10 @@ export const GOOGLE_ANALYTICS_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.tr
 // site — so it belongs with the other site constants rather than with the
 // per-deployment environment variables.
 export const GOOGLE_ADSENSE_CLIENT = 'ca-pub-5468974984912854';
+// Yandex Metrika counter id: like the AdSense publisher id above it is a
+// public, per-site identifier that ships in the page source, so it lives with
+// the site constants instead of the per-deployment environment variables.
+export const YANDEX_METRIKA_ID = 112346867;
 export const PUBLIC_REVALIDATE_SECONDS = 900;
 
 type SupportedLocale = (typeof routing.locales)[number];

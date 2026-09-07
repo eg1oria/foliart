@@ -10,6 +10,7 @@ import { notFound } from 'next/navigation';
 import AdminRouteHidden from '@/components/AdminRouteHidden';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import YandexMetrika from '@/components/YandexMetrika';
 import { getCalendars, getCategories } from '@/lib/api';
 import { getCalendarHref, getCalendarImages } from '@/lib/calendars';
 import { getCategoryHref } from '@/lib/catalog';
@@ -26,6 +27,7 @@ import {
   GOOGLE_SITE_VERIFICATION,
   SITE_NAME,
   stringifyJsonLd,
+  YANDEX_METRIKA_ID,
 } from '@/lib/seo';
 
 const exo2 = localFont({
@@ -217,6 +219,7 @@ gtag('config', '${GOOGLE_ANALYTICS_ID}', { send_page_view: true });`}
             crossOrigin="anonymous"
             strategy="afterInteractive"
           />
+          <YandexMetrika counterId={YANDEX_METRIKA_ID} />
           <Header
             key={locale}
             catalogChildren={catalogChildren}

@@ -38,14 +38,26 @@ const googleAdsOrigins = [
 // framed, so the origin stays out of every other directive.
 const yandexMapsOrigins = ['https://yandex.ru', 'https://*.yandex.ru'].join(' ');
 
+// Yandex Metrika loads tag.js and its webvisor bundle from mc.yandex.ru and
+// beacons hits back to the same host, so that origin carries the counter.
+const yandexMetrikaOrigins = ['https://mc.yandex.ru', 'https://mc.yandex.com'].join(' ');
+// Webvisor streams session recordings over a websocket, and `wss:` is a scheme
+// of its own as far as connect-src is concerned — the https:// entry above
+// does not cover it.
+const yandexMetrikaConnectOrigins = [yandexMetrikaOrigins, 'wss://mc.yandex.ru'].join(' ');
+// The counter also syncs its visitor id through a pixel on the bare yandex.ru
+// host; it only ever loads as an image, so the origin stays out of the other
+// directives.
+const yandexMetrikaImageOrigins = [yandexMetrikaOrigins, 'https://yandex.ru'].join(' ');
+
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' ${googleAdsOrigins}${isDevelopment ? " 'unsafe-eval'" : ''}`,
+  `script-src 'self' 'unsafe-inline' ${googleAdsOrigins} ${yandexMetrikaOrigins}${isDevelopment ? " 'unsafe-eval'" : ''}`,
   `style-src 'self' 'unsafe-inline' ${googleAdsOrigins}`,
-  `img-src 'self' blob: data: https://placehold.co ${googleAdsOrigins}`,
+  `img-src 'self' blob: data: https://placehold.co ${googleAdsOrigins} ${yandexMetrikaImageOrigins}`,
   `font-src 'self' data: ${googleAdsOrigins}`,
-  `connect-src 'self' ${googleAdsOrigins}`,
-  `frame-src 'self' ${googleAdsOrigins} ${yandexMapsOrigins}`,
+  `connect-src 'self' ${googleAdsOrigins} ${yandexMetrikaConnectOrigins}`,
+  `frame-src 'self' ${googleAdsOrigins} ${yandexMapsOrigins} ${yandexMetrikaOrigins}`,
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
