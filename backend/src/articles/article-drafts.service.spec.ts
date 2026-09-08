@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ConflictException } from '@nestjs/common';
 import type { JSONContent } from '@tiptap/core';
 import { ArticleDraftsService } from './article-drafts.service';
 import { ArticleMediaService } from './article-media.service';
@@ -392,5 +392,163 @@ describe('ArticleDraftsService base article locale', () => {
       },
     });
     expect(articleMedia.deletePendingMedia).not.toHaveBeenCalled();
+  });
+});
+
+describe('ArticleDraftsService optimistic locking', () => {
+  const imageMediaId = '00000000-0000-4000-8000-000000000021';
+  const articleImage = {
+    type: 'image',
+    attrs: {
+      mediaId: imageMediaId,
+      src: `/media/articles/media/${imageMediaId}/original.webp`,
+      width: 1200,
+      height: 800,
+    },
+  };
+
+  function createStaleDraftPrisma() {
+    return {
+      articleDraft: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: 'draft-1',
+          articleId: 10,
+          locale: 'ru',
+          version: 7,
+          imageLayoutRevision: 1,
+          contentJson: {
+            type: 'doc',
+            content: [
+              { type: 'paragraph', content: [{ type: 'text', text: 'Text' }] },
+            ],
+          },
+          article: {
+            id: 10,
+            imageLayoutRevision: 2,
+            imageLayoutJson: {
+              version: 1,
+              placements: [{ key: imageMediaId, ratio: 1, order: 0, node: articleImage }],
+            },
+          },
+          media: [{ id: imageMediaId }],
+        }),
+        updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+      },
+    };
+  }
+
+  function createService(prisma: unknown) {
+    return new ArticleDraftsService(
+      prisma as unknown as PrismaService,
+      {} as ArticleMediaService,
+    );
+  }
+
+  it('does not spend the draft version while syncing images on a read', async () => {
+    const prisma = createStaleDraftPrisma();
+    // `serializeDraft` re-reads the row after the sync.
+    prisma.articleDraft.findUnique.mockResolvedValueOnce(
+      await prisma.articleDraft.findUnique(),
+    );
+    prisma.articleDraft.findUnique.mockResolvedValueOnce({
+      id: 'draft-1',
+      articleId: 10,
+      coverMediaId: null,
+      version: 7,
+      media: [],
+      article: null,
+    });
+
+    await createService(prisma).get('draft-1');
+
+    expect(prisma.articleDraft.updateMany).toHaveBeenCalledTimes(1);
+    const [syncInput] = prisma.articleDraft.updateMany.mock.calls[0] as unknown as [
+      { where: { id: string; version: number }; data: Record<string, unknown> },
+    ];
+    // The version is the editor's lock token: a read must not consume it, or
+    // an open editor in another tab is invalidated by someone else looking.
+    expect(syncInput.data).not.toHaveProperty('version');
+    expect(syncInput.where).toEqual({ id: 'draft-1', version: 7 });
+    // The reconciliation itself still happens.
+    expect(syncInput.data.imageLayoutRevision).toBe(2);
+    expect(JSON.stringify(syncInput.data.contentJson)).toContain(imageMediaId);
+  });
+
+  it('still merges the article images when the client posts a stale layout revision', async () => {
+    const prisma = {
+      ...createStaleDraftPrisma(),
+      articleMedia: { findUnique: jest.fn() },
+    };
+    prisma.articleDraft.findUnique.mockResolvedValueOnce(
+      await prisma.articleDraft.findUnique(),
+    );
+    prisma.articleDraft.findUnique.mockResolvedValueOnce({
+      id: 'draft-1',
+      articleId: 10,
+      coverMediaId: null,
+      media: [],
+      article: null,
+    });
+
+    await createService(prisma).save('draft-1', {
+      version: 7,
+      imageLayoutRevision: 1,
+      title: 'Title',
+      excerpt: '',
+      contentJson: {
+        type: 'doc',
+        content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Text' }] }],
+      },
+      publishedAt: '2026-07-14',
+      coverMediaId: null,
+    });
+
+    const [saveInput] = prisma.articleDraft.updateMany.mock.calls[0] as unknown as [
+      { data: { contentJson: unknown; imageLayoutRevision: number } },
+    ];
+    expect(JSON.stringify(saveInput.data.contentJson)).toContain(imageMediaId);
+    expect(saveInput.data.imageLayoutRevision).toBe(2);
+  });
+
+  it('rejects a save whose version has moved', async () => {
+    const prisma = createStaleDraftPrisma();
+    prisma.articleDraft.updateMany.mockResolvedValue({ count: 0 });
+
+    await expect(
+      createService(prisma).save('draft-1', {
+        version: 6,
+        imageLayoutRevision: 2,
+        title: 'Title',
+        excerpt: '',
+        contentJson: { type: 'doc', content: [{ type: 'paragraph' }] },
+        publishedAt: '2026-07-14',
+        coverMediaId: null,
+      }),
+    ).rejects.toMatchObject({
+      constructor: ConflictException,
+      message: 'Article draft was changed in another session',
+    });
+  });
+
+  it('rejects a publish whose version has moved', async () => {
+    const prisma = {
+      articleDraft: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: 'draft-1',
+          articleId: 10,
+          locale: 'ru',
+          version: 7,
+          media: [],
+          article: { id: 10, imageLayoutRevision: 0 },
+        }),
+      },
+      $transaction: jest.fn(),
+    };
+
+    await expect(createService(prisma).publish('draft-1', 6)).rejects.toMatchObject({
+      constructor: ConflictException,
+      message: 'Article draft was changed in another session',
+    });
+    expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 });

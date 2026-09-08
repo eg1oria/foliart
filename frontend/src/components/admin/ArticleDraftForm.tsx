@@ -63,6 +63,73 @@ class DraftRequestError extends Error {
   }
 }
 
+// The write's outcome is UNKNOWN: the request may have committed server-side
+// before the response was lost, so the draft version we hold can already be
+// stale. 503 covers the synthetic timeout adminBackend.ts returns; anything
+// that is not a DraftRequestError is a network failure or an abort.
+function isUnknownWriteOutcome(error: unknown) {
+  if (!(error instanceof DraftRequestError)) return true;
+  return error.status >= 500 || [408, 425, 429].includes(error.status);
+}
+
+// "The server rejected the CONTENT" - the only class of failure that should
+// freeze autosave and block publishing. 409 is deliberately excluded: it is a
+// version problem, and the editor recovers from it on its own.
+function isContentRejection(error: unknown) {
+  return (
+    error instanceof DraftRequestError &&
+    error.status >= 400 &&
+    error.status < 500 &&
+    ![408, 409, 425, 429].includes(error.status)
+  );
+}
+
+function isVersionConflict(error: unknown) {
+  return error instanceof DraftRequestError && error.status === 409;
+}
+
+// The one 409 a version rebase cannot fix: another language republished the
+// shared image layout, and the editor has to be reloaded.
+const IMAGE_LAYOUT_CONFLICT =
+  'Article images changed in another language. Reload the draft before publishing.';
+
+// The API answers in English and the admin panel is Russian-only, so the raw
+// backend string used to surface verbatim in the status line.
+const DRAFT_ERROR_RU: Record<string, string> = {
+  'Article draft was changed in another session':
+    'Черновик изменён в другой вкладке или сессии. Обновите страницу, чтобы продолжить.',
+  [IMAGE_LAYOUT_CONFLICT]:
+    'Изображения статьи изменились в другом языке. Обновите страницу перед публикацией.',
+  'Article draft not found': 'Черновик не найден. Обновите страницу.',
+  'Backend API is unavailable': 'Сервер недоступен. Повторите попытку.',
+  'Article title and content are required': 'Заполните заголовок и текст статьи.',
+  'Cover image is required': 'Загрузите обложку статьи.',
+  'Cover image does not belong to this draft':
+    'Обложка не принадлежит этому черновику. Загрузите её заново.',
+  'Finish or remove pending image uploads':
+    'Завершите или удалите незагруженные изображения.',
+  'Article image does not belong to this draft':
+    'Изображение не принадлежит этому черновику.',
+  'Article image is not owned by this draft or article':
+    'Изображение не принадлежит этому черновику.',
+  'One or more article images are missing':
+    'Часть изображений статьи недоступна. Загрузите их заново.',
+  'Published date is invalid': 'Некорректная дата публикации.',
+  'Draft version is invalid': 'Некорректная версия черновика. Обновите страницу.',
+  'Articles must be created in Russian first':
+    'Сначала создайте статью на русском языке.',
+  'Unsupported content locale': 'Неподдерживаемый язык статьи.',
+  Unauthorized: 'Сессия истекла. Войдите в панель заново.',
+  Forbidden: 'Недостаточно прав для работы со статьями.',
+  'Request failed': 'Не удалось сохранить черновик. Повторите попытку.',
+};
+
+// The component's own throws are already localised and fall through unchanged.
+function describeDraftError(error: unknown, locale: string) {
+  const raw = error instanceof Error && error.message ? error.message : 'Request failed';
+  return locale === 'ru' ? (DRAFT_ERROR_RU[raw] ?? raw) : raw;
+}
+
 async function readJson<T>(response: Response): Promise<T> {
   const data = (await response.json().catch(() => null)) as (T & { message?: string | string[] }) | null;
   if (!response.ok || !data) {
@@ -100,6 +167,10 @@ export default function ArticleDraftForm({
   const fieldsRef = useRef({ title: '', excerpt: '', publishedAt: '' });
   const dirtyRef = useRef(false);
   const validationErrorRef = useRef(false);
+  // Set whenever our version may have fallen behind the server's: a real 409,
+  // or a write whose outcome we never learned. saveNow re-reads the draft
+  // before writing again instead of resending a version that can only 409.
+  const needsResyncRef = useRef(false);
   const localPersistTimerRef = useRef<number | null>(null);
   const savingRef = useRef<Promise<ArticleDraft> | null>(null);
   const publishingRef = useRef(false);
@@ -164,6 +235,27 @@ export default function ArticleDraftForm({
     }
   }, [locale, storageKey]);
 
+  // A rebase adopts only the server's bookkeeping - the optimistic-lock token
+  // and the media the server knows about. The typed title/excerpt/date/body
+  // stay exactly as they are and go out with the next PATCH.
+  //
+  // imageLayoutRevisionRef is deliberately left alone: it asserts which layout
+  // the in-memory document was built against, and adopting a newer one would
+  // tell the API "I am current" and silently drop another language's images.
+  const rebaseDraft = useCallback((server: ArticleDraft) => {
+    draftRef.current = server;
+    setDraft(server);
+    setCover(server.media.find((item) => item.id === server.coverMediaId) ?? null);
+  }, []);
+
+  const fetchServerDraft = useCallback(
+    (id: string) =>
+      fetch(`/admin-api/article-drafts/${id}`, { cache: 'no-store' }).then((response) =>
+        readJson<ArticleDraft>(response),
+      ),
+    [],
+  );
+
   useEffect(() => {
     let cancelled = false;
     void (async () => {
@@ -190,14 +282,14 @@ export default function ArticleDraftForm({
       } catch (error) {
         if (!cancelled) {
           setStatus('error');
-          setMessage(error instanceof Error ? error.message : 'Could not load draft');
+          setMessage(describeDraftError(error, locale));
         }
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [applyDraft, articleId, contentLocale, draftId, storageKey]);
+  }, [applyDraft, articleId, contentLocale, draftId, locale, storageKey]);
 
   const clearLocalPersistTimer = useCallback(() => {
     if (localPersistTimerRef.current !== null) {
@@ -247,11 +339,39 @@ export default function ArticleDraftForm({
       persistLocal();
     }
     let saved = draftRef.current;
+    let rebaseAttempts = 0;
     do {
-      while (savingRef.current) await savingRef.current;
+      // Wait out any in-flight write, but do not inherit its failure: whoever
+      // owned it already reported it and left dirtyRef set, so this caller
+      // simply attempts the write itself.
+      while (savingRef.current) await savingRef.current.catch(() => undefined);
       const current = draftRef.current;
       if (!current) throw new Error('Draft is not ready');
       saved = current;
+
+      // Re-read the server copy before writing again. This holds the same
+      // mutex as a PATCH, so no queued save can slip past with the version we
+      // are about to replace.
+      if (needsResyncRef.current) {
+        setStatus('saving');
+        const resync = fetchServerDraft(current.id);
+        savingRef.current = resync;
+        try {
+          rebaseDraft(await resync);
+          needsResyncRef.current = false;
+          saved = draftRef.current!;
+        } catch (error) {
+          // Leave the flag set so the next attempt resyncs again.
+          setStatus('error');
+          setMessage(describeDraftError(error, locale));
+          persistLocal();
+          throw error;
+        } finally {
+          savingRef.current = null;
+        }
+        continue;
+      }
+
       if (!dirtyRef.current) break;
       dirtyRef.current = false;
       setStatus('saving');
@@ -269,6 +389,7 @@ export default function ArticleDraftForm({
         }),
       }).then((response) => readJson<ArticleDraft>(response));
       savingRef.current = request;
+      let retryAfterConflict = false;
       try {
         saved = await request;
         draftRef.current = saved;
@@ -287,35 +408,57 @@ export default function ArticleDraftForm({
         }
       } catch (error) {
         dirtyRef.current = true;
-        const text = error instanceof Error ? error.message : 'Autosave failed';
-        validationErrorRef.current =
-          error instanceof DraftRequestError &&
-          error.status >= 400 &&
-          error.status < 500 &&
-          ![408, 425, 429].includes(error.status);
-        setStatus(
-          error instanceof DraftRequestError && error.status === 409 ? 'conflict' : 'error',
-        );
-        setMessage(text);
-        persistLocal();
-        throw error;
+        // A 409 means the version is wrong, not that the content is bad, so it
+        // must not freeze autosave or block publishing.
+        validationErrorRef.current = isContentRejection(error);
+        if (isVersionConflict(error) || isUnknownWriteOutcome(error)) {
+          needsResyncRef.current = true;
+        }
+        // First conflict: rebase and retry silently. A second one means another
+        // editor is genuinely active, and the user has to be told.
+        if (isVersionConflict(error) && rebaseAttempts < 1) {
+          rebaseAttempts += 1;
+          retryAfterConflict = true;
+        } else {
+          setStatus(isVersionConflict(error) ? 'conflict' : 'error');
+          setMessage(describeDraftError(error, locale));
+          persistLocal();
+          throw error;
+        }
       } finally {
         savingRef.current = null;
       }
-    } while (dirtyRef.current);
+      if (retryAfterConflict) continue;
+    } while (dirtyRef.current || needsResyncRef.current);
     return saved!;
-  }, [clearLocalPersistTimer, persistLocal, storageKey]);
+  }, [
+    clearLocalPersistTimer,
+    fetchServerDraft,
+    locale,
+    persistLocal,
+    rebaseDraft,
+    storageKey,
+  ]);
 
   useEffect(() => {
+    // Background saves stay out of the way while a publish is in flight: one
+    // landing between the publish's own save and the publish request would
+    // bump the version and make the publish 409.
     const timer = window.setInterval(() => {
-      if (dirtyRef.current && !validationErrorRef.current) {
+      if (
+        (dirtyRef.current || needsResyncRef.current) &&
+        !validationErrorRef.current &&
+        !publishingRef.current
+      ) {
         void saveNow().catch(() => undefined);
       }
     }, 10_000);
     const visibility = () => {
       if (document.visibilityState === 'hidden' && dirtyRef.current) {
         persistLocal();
-        if (!validationErrorRef.current) void saveNow().catch(() => undefined);
+        if (!validationErrorRef.current && !publishingRef.current) {
+          void saveNow().catch(() => undefined);
+        }
       }
     };
     const beforeUnload = (event: BeforeUnloadEvent) => {
@@ -372,14 +515,32 @@ export default function ArticleDraftForm({
             : 'Finish or remove pending images.',
         );
       }
-      const saved = await saveNow();
-      const article = await readJson<{ id: number }>(
-        await fetch(`/admin-api/article-drafts/${saved.id}/publish`, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ version: saved.version }),
-        }),
-      );
+      let article: { id: number } | null = null;
+      for (let attempt = 0; attempt < 2 && !article; attempt += 1) {
+        const saved = await saveNow();
+        try {
+          article = await readJson<{ id: number }>(
+            await fetch(`/admin-api/article-drafts/${saved.id}/publish`, {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({ version: saved.version }),
+            }),
+          );
+        } catch (error) {
+          const recoverable =
+            attempt === 0 &&
+            isVersionConflict(error) &&
+            !(error instanceof Error && error.message === IMAGE_LAYOUT_CONFLICT);
+          if (!recoverable) throw error;
+          // Re-send what is on screen on top of the fresh version, then publish
+          // that - same last-writer-wins semantics as the rest of the editor.
+          needsResyncRef.current = true;
+          dirtyRef.current = true;
+        }
+      }
+      if (!article) {
+        throw new DraftRequestError('Article draft was changed in another session', 409);
+      }
       localStorage.removeItem(storageKey);
       localStorage.removeItem(`${storageKey}:id`);
       router.replace(
@@ -387,8 +548,8 @@ export default function ArticleDraftForm({
       );
       router.refresh();
     } catch (error) {
-      setStatus('error');
-      setMessage(error instanceof Error ? error.message : 'Publish failed');
+      setStatus(isVersionConflict(error) ? 'conflict' : 'error');
+      setMessage(describeDraftError(error, locale));
     } finally {
       publishingRef.current = false;
       setIsPublishing(false);
@@ -416,7 +577,7 @@ export default function ArticleDraftForm({
       await saveNow();
     } catch (error) {
       setStatus('error');
-      setMessage(error instanceof Error ? error.message : 'Cover upload failed');
+      setMessage(describeDraftError(error, locale));
     }
   };
 
@@ -446,7 +607,8 @@ export default function ArticleDraftForm({
       onBlur={(event) => {
         if (
           !event.currentTarget.contains(event.relatedTarget) &&
-          !validationErrorRef.current
+          !validationErrorRef.current &&
+          !publishingRef.current
         ) {
           void saveNow().catch(() => undefined);
         }
@@ -620,7 +782,11 @@ export default function ArticleDraftForm({
                 className="text-sm underline"
                 onClick={() => {
                   validationErrorRef.current = false;
+                  // Resend against a freshly read version, not the one that
+                  // just failed - otherwise a conflict retries forever.
+                  needsResyncRef.current = true;
                   dirtyRef.current = true;
+                  setMessage('');
                   void saveNow().catch(() => undefined);
                 }}>
                 {locale === 'ru' ? 'Повторить' : 'Retry'}

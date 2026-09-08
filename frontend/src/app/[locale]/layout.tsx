@@ -199,27 +199,37 @@ export default async function RootLayout({
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: stringifyJsonLd(websiteJsonLd) }}
           />
-          {GOOGLE_ANALYTICS_ID ? (
-            <>
-              <Script
-                src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ANALYTICS_ID}`}
-                strategy="afterInteractive"
-              />
-              <Script id="google-analytics" strategy="afterInteractive">
-                {`window.dataLayer = window.dataLayer || [];
+          {/* Analytics measures the public site only. Metrika's webvisor and
+              clickmap install a whole-document MutationObserver and a
+              capture-phase click handler, which made the DOM-heavy admin
+              screens (tiptap, the UI messages editor, the product tables) lag
+              by seconds per click. `afterInteractive` scripts are injected on
+              mount, so keeping them out of the tree keeps the tags unfetched.
+              AdminSidebar leaves the panel with a hard navigation so a tag
+              loaded on the public site can never survive into admin. */}
+          <AdminRouteHidden>
+            {GOOGLE_ANALYTICS_ID ? (
+              <>
+                <Script
+                  src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ANALYTICS_ID}`}
+                  strategy="afterInteractive"
+                />
+                <Script id="google-analytics" strategy="afterInteractive">
+                  {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', '${GOOGLE_ANALYTICS_ID}', { send_page_view: true });`}
-              </Script>
-            </>
-          ) : null}
-          <Script
-            id="google-adsense"
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${GOOGLE_ADSENSE_CLIENT}`}
-            crossOrigin="anonymous"
-            strategy="afterInteractive"
-          />
-          <YandexMetrika counterId={YANDEX_METRIKA_ID} />
+                </Script>
+              </>
+            ) : null}
+            <Script
+              id="google-adsense"
+              src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${GOOGLE_ADSENSE_CLIENT}`}
+              crossOrigin="anonymous"
+              strategy="afterInteractive"
+            />
+            <YandexMetrika counterId={YANDEX_METRIKA_ID} />
+          </AdminRouteHidden>
           <Header
             key={locale}
             catalogChildren={catalogChildren}

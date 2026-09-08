@@ -222,14 +222,18 @@ export function AdminSidebar({
         </Link>
 
         <div className="mt-2 flex flex-col gap-1">
-          <Link
-            href="/"
+          {/* A plain anchor, not `Link`: the public layout loads Metrika and
+              the ad tags, whose document-level listeners outlive React
+              unmounting their <Script>. A soft hop out and Back would carry
+              them into admin and undo the gate in the locale layout. */}
+          <a
+            href={`/${locale}`}
             onClick={onNavigate}
             title={collapsed ? labels.openSite : undefined}
             className={adminCx(footerLinkClassName, collapsedRow)}>
             <FiArrowUpRight aria-hidden="true" className="h-4.5 w-4.5 shrink-0 text-white/80" />
             <span className={adminCx('truncate', collapsedLabel)}>{labels.openSite}</span>
-          </Link>
+          </a>
 
           <form action={logoutAdminAction}>
             <input type="hidden" name="locale" value={locale} />

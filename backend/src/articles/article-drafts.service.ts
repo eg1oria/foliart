@@ -212,7 +212,10 @@ export class ArticleDraftsService {
           new Set(draft.media.map((media) => media.id)),
         ),
         imageLayoutRevision: draft.article.imageLayoutRevision,
-        version: { increment: 1 },
+        // `version` is the editor's optimistic-lock token. Spending it here
+        // would let a plain read invalidate an open draft in another tab, so
+        // this server-side reconciliation leaves it alone. The `where` guard
+        // still lets a concurrent save win the race.
       },
     });
   }
