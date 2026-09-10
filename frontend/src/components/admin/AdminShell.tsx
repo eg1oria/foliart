@@ -10,13 +10,30 @@ type AdminStat = {
   value: string;
 };
 
+// Written out in full so Tailwind's scanner sees every class it has to emit.
+const adminContentWidthClassNames = {
+  full: 'min-w-0',
+  '4xl': 'mx-auto min-w-0 max-w-4xl',
+  '5xl': 'mx-auto min-w-0 max-w-5xl',
+  '6xl': 'mx-auto min-w-0 max-w-6xl',
+} as const;
+
+export type AdminContentWidth = keyof typeof adminContentWidthClassNames;
+
+/**
+ * The stat cards and the page body share one container: a page that constrains
+ * its own children instead leaves the stats hanging wider and further left than
+ * everything below them.
+ */
 export function AdminShell({
   children,
+  contentWidth = 'full',
   description,
   stats,
   title,
 }: {
   children: ReactNode;
+  contentWidth?: AdminContentWidth;
   description: string;
   stats?: AdminStat[];
   title: string;
@@ -24,9 +41,15 @@ export function AdminShell({
   const visibleStats = stats?.filter((stat) => stat.value) ?? [];
 
   return (
-    <>
+    <div className={adminContentWidthClassNames[contentWidth]}>
       {visibleStats.length ? (
-        <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        // Two stats fill the row as a pair; a third column only appears once
+        // there is something to put in it.
+        <dl
+          className={adminCx(
+            'mt-5 grid gap-3 sm:grid-cols-2',
+            visibleStats.length > 2 ? 'lg:grid-cols-3' : '',
+          )}>
           {visibleStats.map((stat) => (
             <div
               key={stat.label}
@@ -46,7 +69,7 @@ export function AdminShell({
       ) : null}
 
       <div className="mt-6 min-w-0">{children}</div>
-    </>
+    </div>
   );
 }
 

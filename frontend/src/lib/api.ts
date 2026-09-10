@@ -114,6 +114,14 @@ export type Partner = {
   sortOrder: number;
 };
 
+export type Certificate = {
+  slug: string;
+  fileUrl: string;
+  mimeType: string;
+  originalName: string;
+  updatedAt: string | null;
+};
+
 export type RegionalContact = {
   id: number;
   region: string;
@@ -157,6 +165,7 @@ export const articlesCacheTag = 'articles';
 export const categoriesCacheTag = 'categories';
 export const productsCacheTag = 'products';
 export const partnersCacheTag = 'partners';
+export const certificatesCacheTag = 'certificates';
 export const regionalContactsCacheTag = 'regional-contacts';
 
 function resolveFetchOptions(fetchOptions?: ApiFetchOptions): ApiFetchOptions {
@@ -330,6 +339,18 @@ export async function getPartner(
   return fetchJson<Partner>(
     `/api/partners/${partnerId}`,
     withCacheTag(fetchOptions, partnersCacheTag),
+  );
+}
+
+export const CONFORMITY_CERTIFICATE_SLUG = 'conformity';
+
+export async function getCertificate(
+  slug: string = CONFORMITY_CERTIFICATE_SLUG,
+  fetchOptions?: ApiFetchOptions,
+): Promise<Certificate> {
+  return fetchJson<Certificate>(
+    `/api/certificates/${slug}`,
+    withCacheTag(fetchOptions, certificatesCacheTag),
   );
 }
 

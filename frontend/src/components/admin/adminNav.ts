@@ -2,6 +2,7 @@ import type { AdminSection, AdminSessionUser } from '@/lib/adminPermissions';
 import { canViewSection } from '@/lib/adminPermissions';
 import type { IconType } from 'react-icons';
 import {
+  FiAward,
   FiBookOpen,
   FiBox,
   FiBriefcase,
@@ -34,7 +35,7 @@ const navI18n: Record<string, Record<AdminTabKey, AdminNavStrings>> = {
     },
     productCategories: {
       label: 'Categories',
-      description: 'Category names, descriptions, and images',
+      description: 'Add, remove, and translate catalog categories',
     },
     articles: {
       label: 'Articles',
@@ -47,6 +48,10 @@ const navI18n: Record<string, Record<AdminTabKey, AdminNavStrings>> = {
     partners: {
       label: 'Partners',
       description: 'Partner cards on the about page',
+    },
+    certificates: {
+      label: 'Certificate',
+      description: 'Certificate of conformity linked from product pages',
     },
     contacts: {
       label: 'Contacts',
@@ -72,7 +77,7 @@ const navI18n: Record<string, Record<AdminTabKey, AdminNavStrings>> = {
     },
     productCategories: {
       label: 'Категории',
-      description: 'Названия, описания и изображения категорий',
+      description: 'Добавление, удаление и переводы категорий',
     },
     articles: {
       label: 'Статьи',
@@ -85,6 +90,10 @@ const navI18n: Record<string, Record<AdminTabKey, AdminNavStrings>> = {
     partners: {
       label: 'Партнёры',
       description: 'Карточки партнёров на странице «О компании»',
+    },
+    certificates: {
+      label: 'Сертификат',
+      description: 'Сертификат соответствия со страниц товаров',
     },
     contacts: {
       label: 'Контакты',
@@ -112,6 +121,7 @@ export const adminNavItems: AdminNavItem[] = [
   { key: 'articles', href: '/admin/articles', icon: FiBookOpen },
   { key: 'calendars', href: '/admin/calendars', icon: FiCalendar },
   { key: 'partners', href: '/admin/partners', icon: FiBriefcase },
+  { key: 'certificates', href: '/admin/certificates', icon: FiAward },
   { key: 'contacts', href: '/admin/contacts', icon: FiMapPin },
   { key: 'messages', href: '/admin/messages', icon: FiGlobe },
   { key: 'admins', href: '/admin/admins', icon: FiUsers },

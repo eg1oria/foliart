@@ -105,6 +105,7 @@ describe('admin users Server Actions', () => {
         articles: 'view',
         calendars: 'none',
         partners: 'none',
+        certificates: 'none',
         contacts: 'none',
         messages: 'none',
       },
@@ -184,6 +185,7 @@ describe('admin users Server Actions', () => {
       articles: 'none',
       calendars: 'view',
       partners: 'none',
+      certificates: 'none',
       contacts: 'none',
       messages: 'none',
     });

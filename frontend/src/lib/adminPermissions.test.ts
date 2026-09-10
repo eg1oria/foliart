@@ -27,6 +27,7 @@ describe('admin permissions', () => {
       articles: 'none',
       calendars: 'none',
       partners: 'none',
+      certificates: 'none',
       contacts: 'none',
       messages: 'none',
     });
@@ -57,6 +58,7 @@ describe('admin permissions', () => {
       'articles',
       'calendars',
       'partners',
+      'certificates',
       'contacts',
       'messages',
     ]);

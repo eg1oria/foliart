@@ -52,6 +52,7 @@ describe('admin users validation', () => {
       articles: 'view',
       calendars: 'none',
       partners: 'none',
+      certificates: 'none',
       contacts: 'none',
       messages: 'none',
     });
@@ -78,6 +79,7 @@ describe('admin users validation', () => {
         articles: 'none',
         calendars: 'none',
         partners: 'none',
+        certificates: 'none',
         contacts: 'none',
         messages: 'none',
       },

@@ -3,6 +3,7 @@ export const adminSections = [
   'articles',
   'calendars',
   'partners',
+  'certificates',
   'contacts',
   'messages',
 ] as const;
@@ -24,6 +25,7 @@ export const adminSectionLabels: Record<AdminSection, string> = {
   articles: 'Статьи',
   calendars: 'Календарь',
   partners: 'Партнёры',
+  certificates: 'Сертификат',
   contacts: 'Контакты',
   messages: 'Переводы',
 };
@@ -39,6 +41,7 @@ export const adminSectionPaths: Record<AdminSection, string> = {
   articles: '/admin/articles',
   calendars: '/admin/calendars',
   partners: '/admin/partners',
+  certificates: '/admin/certificates',
   contacts: '/admin/contacts',
   messages: '/admin/messages',
 };

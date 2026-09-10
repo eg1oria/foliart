@@ -1,8 +1,11 @@
-import { FiEdit3, FiExternalLink, FiImage } from 'react-icons/fi';
+import { FiEdit3, FiExternalLink, FiImage, FiPlus, FiTrash2 } from 'react-icons/fi';
 
+import AdminDeleteButton from '@/components/admin/AdminDeleteButton';
 import { AdminEmptyState, AdminNotice, AdminPanel, AdminShell } from '@/components/admin/AdminShell';
 import {
   adminCx,
+  adminDangerButtonClassName,
+  adminPrimaryButtonClassName,
   adminSecondaryButtonClassName,
 } from '@/components/admin/adminStyles';
 import MediaImage from '@/components/catalog/MediaImage';
@@ -15,12 +18,20 @@ import { getCategoryHref } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
 import { richDescriptionToPlainText } from '@/lib/richDescription';
 
+import { deleteCategoryAction } from '../actions';
+
+function getStatusMessage(status?: string) {
+  if (status === 'created') return 'Категория создана.';
+  if (status === 'deleted') return 'Категория удалена.';
+  return null;
+}
+
 export default async function ProductCategoriesPage({
   params,
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ contentLocale?: string }>;
+  searchParams: Promise<{ contentLocale?: string; error?: string; status?: string }>;
 }) {
   const { locale } = await params;
   const session = await requireAdminSection(
@@ -32,6 +43,7 @@ export default async function ProductCategoriesPage({
   const canManage = canManageSection(session, 'products');
   const query = await searchParams;
   const contentLocale = normalizeContentLocale(query.contentLocale);
+  const statusMessage = getStatusMessage(query.status);
   const categoriesResult = await getCategories(
     contentLocale,
     noStoreApiFetchOptions,
@@ -42,17 +54,32 @@ export default async function ProductCategoriesPage({
 
   return (
     <AdminShell
-      description="Контролируйте названия, описания и изображения категорий без изменения их структуры."
-      title="Переводы категорий"
+      description="Добавляйте и удаляйте категории каталога, контролируйте их названия, описания и изображения."
+      title="Категории каталога"
     >
       <div className="mx-auto max-w-6xl">
-        
+        {canManage ? (
+          <div className="mb-4 flex justify-end">
+            <Link
+              href={withContentLocale('/admin/products/categories/new', 'ru')}
+              className={adminCx(adminPrimaryButtonClassName, 'gap-2')}
+            >
+              <FiPlus aria-hidden="true" />
+              Добавить категорию
+            </Link>
+          </div>
+        ) : null}
 
         <AdminPanel
           badge="Категории"
-          title="Локализованный контент"
-          description="Создание и удаление категорий здесь недоступно; изменяются название, описание и изображение."
+          title="Структура и локализованный контент"
+          description="Удалить можно только пустую категорию — товары никогда не удаляются вместе с ней."
         >
+          <div className="mb-5 space-y-4 empty:mb-0">
+            {statusMessage ? <AdminNotice tone="success">{statusMessage}</AdminNotice> : null}
+            {query.error ? <AdminNotice tone="error">{query.error}</AdminNotice> : null}
+          </div>
+
           {categoriesResult.error ? (
             <div className="space-y-5">
               <AdminNotice tone="error">Не удалось загрузить категории.</AdminNotice>
@@ -66,11 +93,11 @@ export default async function ProductCategoriesPage({
             <AdminEmptyState
               badge="Пусто"
               title="Категорий пока нет"
-              description="Категории появятся после добавления в основной каталог."
+              description="Добавьте первую категорию — без неё товары создать нельзя."
             />
           ) : (
             <div className="overflow-hidden rounded-lg border border-[#0b5a45]/10 bg-white">
-              <div className="hidden grid-cols-[minmax(0,1fr)_140px_170px_220px] gap-4 bg-[#eef4ef] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#567068] md:grid">
+              <div className="hidden grid-cols-[minmax(0,1fr)_140px_170px_260px] gap-4 bg-[#eef4ef] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#567068] md:grid">
                 <span>Категория</span>
                 <span>Товаров</span>
                 <span>Статус</span>
@@ -82,7 +109,7 @@ export default async function ProductCategoriesPage({
                   return (
                     <article
                       key={category.id}
-                      className="grid gap-3 px-4 py-4 md:grid-cols-[minmax(0,1fr)_140px_170px_220px] md:items-center md:gap-4"
+                      className="grid gap-3 px-4 py-4 md:grid-cols-[minmax(0,1fr)_140px_170px_260px] md:items-center md:gap-4"
                     >
                       <div className="flex min-w-0 items-center gap-3">
                         <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-[#0b5a45]/10 bg-white">
@@ -133,19 +160,56 @@ export default async function ProductCategoriesPage({
                           <FiExternalLink aria-hidden="true" />
                         </Link>
                         {canManage ? (
-                          <Link
-                            href={withContentLocale(
-                              `/admin/products/categories/${category.id}`,
-                              contentLocale,
+                          <>
+                            <Link
+                              href={withContentLocale(
+                                `/admin/products/categories/${category.id}`,
+                                contentLocale,
+                              )}
+                              className={adminCx(
+                                adminSecondaryButtonClassName,
+                                'h-9 min-h-9 gap-1.5 px-3 text-xs',
+                              )}
+                            >
+                              <FiEdit3 aria-hidden="true" />
+                              Изменить
+                            </Link>
+                            {category.productCount > 0 ? (
+                              <button
+                                type="button"
+                                disabled
+                                aria-label={`Удалить категорию ${category.name}`}
+                                title="В категории есть товары: перенесите их в другую категорию в карточке товара или удалите"
+                                className={adminCx(
+                                  adminDangerButtonClassName,
+                                  'h-9 min-h-9 w-9 cursor-not-allowed px-0',
+                                )}
+                              >
+                                <FiTrash2 aria-hidden="true" />
+                              </button>
+                            ) : (
+                              <form action={deleteCategoryAction}>
+                                <input type="hidden" name="locale" value={locale} />
+                                <input
+                                  type="hidden"
+                                  name="contentLocale"
+                                  value={contentLocale}
+                                />
+                                <input type="hidden" name="categoryId" value={category.id} />
+                                <AdminDeleteButton
+                                  className={adminCx(
+                                    adminDangerButtonClassName,
+                                    'h-9 min-h-9 w-9 px-0',
+                                  )}
+                                  confirmMessage={`Удалить категорию «${category.name}»?`}
+                                  iconOnly
+                                  pendingLabel="Удаление…"
+                                >
+                                  Удалить
+                                </AdminDeleteButton>
+                              </form>
                             )}
-                            className={adminCx(
-                              adminSecondaryButtonClassName,
-                              'h-9 min-h-9 gap-1.5 px-3 text-xs',
-                            )}
-                          >
-                            <FiEdit3 aria-hidden="true" />
-                            Изменить
-                          </Link>
+                          </>
                         ) : null}
                       </div>
                     </article>

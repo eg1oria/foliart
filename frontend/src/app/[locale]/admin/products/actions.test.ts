@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   adminApiFetch: vi.fn(),
   getCategories: vi.fn(),
+  getCategory: vi.fn(),
   redirect: vi.fn((path: string) => {
     throw new Error(`REDIRECT:${path}`);
   }),
@@ -32,13 +33,19 @@ vi.mock('@/lib/renderRichDescription', () => ({
 vi.mock('@/lib/api', () => ({
   categoriesCacheTag: 'categories',
   getCategories: mocks.getCategories,
+  getCategory: mocks.getCategory,
   getProduct: vi.fn(),
   getProducts: vi.fn(),
   noStoreApiFetchOptions: {},
   productsCacheTag: 'products',
 }));
 
-import { deleteProductAction, updateCategoryTranslationAction } from './actions';
+import {
+  createCategoryAction,
+  deleteCategoryAction,
+  deleteProductAction,
+  updateCategoryTranslationAction,
+} from './actions';
 
 function formData(entries: Record<string, string>) {
   const data = new FormData();
@@ -136,5 +143,82 @@ describe('category Server Actions', () => {
 
     const [, init] = mocks.adminApiFetch.mock.calls[0] as [string, RequestInit];
     expect((init.body as FormData).get('image')).toBeNull();
+  });
+});
+
+describe('category create and delete Server Actions', () => {
+  const image = new File(['image-bytes'], 'category.webp', { type: 'image/webp' });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.requireAdminSection.mockResolvedValue({});
+    mocks.getCategories.mockResolvedValue([]);
+    mocks.adminApiFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ id: 12, slug: 'biopreparaty' }),
+    });
+  });
+
+  it('creates a category as Russian multipart and opens its editor', async () => {
+    const data = formData({
+      locale: 'ru',
+      contentLocale: 'ru',
+      name: 'Биопрепараты',
+      description: 'Описание',
+    });
+    data.set('image', image);
+
+    await expect(createCategoryAction({ status: 'idle' }, data)).rejects.toThrow(
+      'REDIRECT:/ru/admin/products/categories/12?contentLocale=ru&status=created',
+    );
+
+    const [path, init] = mocks.adminApiFetch.mock.calls[0] as [string, RequestInit];
+    expect(path).toBe('/api/categories');
+    expect(init.method).toBe('POST');
+    const payload = init.body as FormData;
+    expect(payload.get('contentLocale')).toBe('ru');
+    expect(payload.get('name')).toBe('Биопрепараты');
+    expect(payload.get('image')).toBe(image);
+  });
+
+  it('requires a category name before calling the backend', async () => {
+    await expect(
+      createCategoryAction({ status: 'idle' }, formData({ locale: 'ru', name: '   ' })),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        status: 'error',
+        fieldErrors: { name: expect.any(String) },
+      }),
+    );
+    expect(mocks.adminApiFetch).not.toHaveBeenCalled();
+  });
+
+  // The whole point of the delete guard: a populated category must never be
+  // dropped, because its products would go with it.
+  it('refuses to delete a category that still holds products', async () => {
+    mocks.getCategory.mockResolvedValue({ id: 3, name: 'Монопродукты', productCount: 4 });
+
+    await expect(
+      deleteCategoryAction(formData({ locale: 'ru', contentLocale: 'ru', categoryId: '3' })),
+    ).rejects.toThrow('REDIRECT');
+
+    expect(mocks.adminApiFetch).not.toHaveBeenCalled();
+  });
+
+  it('deletes an empty category', async () => {
+    mocks.getCategory.mockResolvedValue({
+      id: 3,
+      name: 'Монопродукты',
+      slug: 'monoprodukty',
+      productCount: 0,
+    });
+
+    await expect(
+      deleteCategoryAction(formData({ locale: 'ru', contentLocale: 'ru', categoryId: '3' })),
+    ).rejects.toThrow('REDIRECT:/ru/admin/products/categories?contentLocale=ru&status=deleted');
+
+    const [path, init] = mocks.adminApiFetch.mock.calls[0] as [string, RequestInit];
+    expect(path).toBe('/api/categories/3');
+    expect(init.method).toBe('DELETE');
   });
 });

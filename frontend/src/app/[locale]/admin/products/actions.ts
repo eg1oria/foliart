@@ -10,6 +10,7 @@ import { requireAdminSection } from '@/lib/adminAuthServer';
 import {
   categoriesCacheTag,
   getCategories,
+  getCategory,
   getProduct,
   getProducts,
   noStoreApiFetchOptions,
@@ -88,6 +89,22 @@ function buildCategoryEditorPath(
   const searchParams = new URLSearchParams({ contentLocale });
   if (status) searchParams.set('status', status);
   return `/${locale}/admin/products/categories/${categoryId}?${searchParams.toString()}`;
+}
+
+function buildCategoryListPath(
+  locale: string,
+  params: Record<string, string | undefined> = {},
+) {
+  const searchParams = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(params)) {
+    if (value) {
+      searchParams.set(key, value);
+    }
+  }
+
+  const query = searchParams.toString();
+  return `/${locale}/admin/products/categories${query ? `?${query}` : ''}`;
 }
 
 function normalizeLocale(value: FormDataEntryValue | null) {
@@ -207,6 +224,26 @@ async function revalidateCategoryPages(categoryId: string) {
 
     for (const product of products) {
       revalidatePath(`/${locale}${getProductHref(category, product)}`);
+    }
+  }
+}
+
+/**
+ * Adding or removing a category changes the catalog index and every admin list
+ * that names categories, but there is no per-product page to touch: an added
+ * category is empty, and a removed one only ever was.
+ */
+async function revalidateCategoryListPages(categoryHref?: string) {
+  updateCatalogTags();
+
+  for (const locale of catalogLocales) {
+    revalidatePath(`/${locale}/catalog`);
+    revalidatePath(`/${locale}/admin/products`);
+    revalidatePath(`/${locale}/admin/products/categories`);
+    revalidatePath(`/${locale}/admin/products/new`);
+
+    if (categoryHref) {
+      revalidatePath(`/${locale}${categoryHref}`);
     }
   }
 }
@@ -460,4 +497,121 @@ export async function updateCategoryTranslationAction(
 
   await revalidateCategoryPages(categoryId);
   redirect(buildCategoryEditorPath(locale, categoryId, contentLocale, 'updated'));
+}
+
+export async function createCategoryAction(
+  _previousState: CategoryActionState,
+  formData: FormData,
+): Promise<CategoryActionState> {
+  const locale = normalizeLocale(formData.get('locale'));
+  await requireAdminSection(locale, 'products', 'manage');
+
+  // Categories are created in Russian only: the RU text is what the public
+  // slug and every translation fallback are derived from.
+  const contentLocale = 'ru';
+  const name = normalizeText(formData.get('name'));
+  const description = sanitizeRichDescription(normalizeText(formData.get('description')));
+  const image = getFile(formData.get('image'));
+  const imageError = validateImageFile(image);
+
+  if (!name || imageError) {
+    return {
+      status: 'error',
+      message: 'Проверьте обязательные поля.',
+      fieldErrors: {
+        ...(name ? {} : { name: 'Введите название категории.' }),
+        ...(imageError ? { image: imageError } : {}),
+      },
+    };
+  }
+
+  // Multipart, and with the text fields first: the backend names the stored
+  // file after the category name it has already parsed off the stream.
+  const payload = new FormData();
+  payload.append('contentLocale', contentLocale);
+  payload.append('name', name);
+  payload.append('description', description);
+  if (image) payload.append('image', image);
+
+  const response = await adminApiFetch('/api/categories', {
+    method: 'POST',
+    headers: getAdminApiHeaders(),
+    body: payload,
+  });
+
+  if (!response.ok) {
+    return {
+      status: 'error',
+      message: await getActionError(response, locale, 'Не удалось создать категорию.'),
+    };
+  }
+
+  const createdCategory = (await response.json().catch(() => null)) as {
+    id?: number;
+    slug?: string;
+  } | null;
+
+  await revalidateCategoryListPages(
+    createdCategory ? getCategoryHref({ name, slug: createdCategory.slug }) : undefined,
+  );
+
+  if (createdCategory?.id) {
+    redirect(buildCategoryEditorPath(locale, createdCategory.id, contentLocale, 'created'));
+  }
+
+  redirect(buildCategoryListPath(locale, { contentLocale, status: 'created' }));
+}
+
+export async function deleteCategoryAction(formData: FormData) {
+  const locale = normalizeLocale(formData.get('locale'));
+  const contentLocale = normalizeContentLocale(normalizeText(formData.get('contentLocale')));
+  await requireAdminSection(locale, 'products', 'manage');
+
+  const categoryId = normalizeText(formData.get('categoryId'));
+
+  if (!/^\d+$/.test(categoryId)) {
+    redirect(
+      buildCategoryListPath(locale, {
+        contentLocale,
+        error: 'Выберите категорию для удаления.',
+      }),
+    );
+  }
+
+  const currentCategory = await getCategory(
+    Number.parseInt(categoryId, 10),
+    undefined,
+    noStoreApiFetchOptions,
+  ).catch(() => null);
+
+  // The backend is the one that refuses to drop a populated category; checking
+  // here as well keeps a stale list from even sending the request.
+  if (currentCategory && currentCategory.productCount > 0) {
+    redirect(
+      buildCategoryListPath(locale, {
+        contentLocale,
+        error:
+          'Сначала перенесите или удалите товары этой категории — иначе они пропадут из каталога.',
+      }),
+    );
+  }
+
+  const response = await adminApiFetch(`/api/categories/${categoryId}`, {
+    method: 'DELETE',
+    headers: getAdminApiHeaders(),
+  });
+
+  if (!response.ok) {
+    const message =
+      response.status === 409
+        ? 'В категории есть товары. Перенесите или удалите их, затем повторите удаление.'
+        : await getActionError(response, locale, 'Не удалось удалить категорию.');
+
+    redirect(buildCategoryListPath(locale, { contentLocale, error: message }));
+  }
+
+  await revalidateCategoryListPages(
+    currentCategory ? getCategoryHref(currentCategory) : undefined,
+  );
+  redirect(buildCategoryListPath(locale, { contentLocale, status: 'deleted' }));
 }

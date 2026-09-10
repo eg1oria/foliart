@@ -43,6 +43,19 @@ model RegionalContact {
   @@index([sortOrder])
 }
 
+// A single stored document per slug: the conformity certificate the catalog
+// links to is `conformity`. Keyed by slug so a second named certificate needs
+// no migration, and an empty `fileUrl` means the public link falls back to the
+// bundled scan.
+model Certificate {
+  slug         String   @id
+  fileUrl      String   @default("")
+  mimeType     String   @default("")
+  originalName String   @default("")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 model Partner {
   id        Int      @id @default(autoincrement())
   name      String

@@ -96,6 +96,7 @@ describe('AdminUsersService', () => {
         articles: 'manage',
         calendars: 'manage',
         partners: 'manage',
+        certificates: 'manage',
         contacts: 'manage',
         messages: 'manage',
       });
@@ -197,6 +198,7 @@ describe('AdminUsersService', () => {
         articles: 'none',
         calendars: 'none',
         partners: 'none',
+        certificates: 'none',
         contacts: 'none',
         messages: 'none',
       });
@@ -233,6 +235,7 @@ describe('AdminUsersService', () => {
           articles: 'none',
           calendars: 'none',
           partners: 'none',
+          certificates: 'none',
           contacts: 'none',
           messages: 'none',
         }),
@@ -255,6 +258,7 @@ describe('AdminUsersService', () => {
             articles: 'none',
             calendars: 'none',
             partners: 'none',
+            certificates: 'none',
             contacts: 'none',
             messages: 'none',
           },

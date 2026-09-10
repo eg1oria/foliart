@@ -2,10 +2,12 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
   Patch,
+  Post,
   Query,
   UploadedFile,
   UseGuards,
@@ -18,6 +20,7 @@ import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
 import { AdminApiGuard } from '../admin-api.guard';
 import {
+  DEFAULT_CONTENT_LOCALE,
   isSupportedContentLocale,
   normalizeContentLocale,
 } from '../content-locales';
@@ -167,6 +170,55 @@ export class CategoriesController {
     return this.categoriesService.findOne(id, locale, contentLocale);
   }
 
+  @Post()
+  @UseGuards(AdminApiGuard)
+  @UseInterceptors(createImageInterceptor())
+  async create(
+    @Body() body: Record<string, string | undefined>,
+    @UploadedFile() image?: StoredUploadFile,
+  ) {
+    const localeInput = body.contentLocale ?? DEFAULT_CONTENT_LOCALE;
+
+    if (!isSupportedContentLocale(localeInput)) {
+      removeUploadedFile(image?.path);
+      throw new BadRequestException('Unsupported content locale');
+    }
+
+    const contentLocale = normalizeContentLocale(localeInput);
+
+    if (contentLocale !== DEFAULT_CONTENT_LOCALE) {
+      removeUploadedFile(image?.path);
+      throw new BadRequestException(
+        'Categories must be created in Russian first',
+      );
+    }
+
+    const name = body.name?.trim() ?? '';
+
+    if (!name) {
+      removeUploadedFile(image?.path);
+      throw new BadRequestException('Category name is required');
+    }
+
+    try {
+      const imageFile = image?.filename
+        ? await optimizeUploadedImage(image)
+        : undefined;
+
+      return await this.categoriesService.create({
+        locale: contentLocale,
+        name,
+        description: body.description?.trim() ?? '',
+        imageUrl: imageFile
+          ? `${storedCategoryImagePrefix}${imageFile.filename}`
+          : undefined,
+      });
+    } catch (error) {
+      removeUploadedFile(image?.path);
+      throw error;
+    }
+  }
+
   @Patch(':id')
   @UseGuards(AdminApiGuard)
   @UseInterceptors(createImageInterceptor())
@@ -211,5 +263,15 @@ export class CategoriesController {
       removeUploadedFile(image?.path);
       throw error;
     }
+  }
+
+  @Delete(':id')
+  @UseGuards(AdminApiGuard)
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    const deletedCategory = await this.categoriesService.remove(id);
+
+    removeUploadedFile(getStoredCategoryImagePath(deletedCategory.imageUrl));
+
+    return { id: deletedCategory.id };
   }
 }

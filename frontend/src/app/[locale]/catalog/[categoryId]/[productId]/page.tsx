@@ -6,7 +6,7 @@ import MediaImage from '@/components/catalog/MediaImage';
 import ProductImageLightbox from '@/components/catalog/ProductImageLightbox';
 import SpecialistSection from '@/components/catalog/SpecialistSection';
 import { Link } from '@/i18n/routing';
-import { getCategories, getProducts } from '@/lib/api';
+import { getCategories, getCertificate, getProducts } from '@/lib/api';
 import {
   findCategoryByParam,
   findProductByParam,
@@ -96,7 +96,12 @@ export default async function ProductDetailsPage({
   const { locale, categoryId: rawCategoryId, productId: rawProductId } = await params;
   const copy = getCatalogCopy(locale);
   const breadcrumbCopy = getBreadcrumbCopy(locale);
-  const { category, product } = await getProductPageData(rawCategoryId, rawProductId, locale);
+  const [{ category, product }, certificate] = await Promise.all([
+    getProductPageData(rawCategoryId, rawProductId, locale),
+    // A missing certificate must never take a product page down: the bundled
+    // scan stays the fallback.
+    getCertificate().catch(() => null),
+  ]);
 
   if (rawCategoryId !== getCategorySlug(category) || rawProductId !== getProductSlug(product)) {
     redirect(`/${locale}${getProductHref(category, product)}`);
@@ -104,7 +109,8 @@ export default async function ProductDetailsPage({
 
   const categoryImage = resolveMediaUrl(category.imageUrl);
   const productImage = resolveMediaUrl(product.imageUrl);
-  const certificateImage = resolvePublicAssetUrl('/sertificate.webp');
+  const certificateImage =
+    resolveMediaUrl(certificate?.fileUrl) ?? resolvePublicAssetUrl('/sertificate.webp');
   const certificateLabel =
     locale === 'ru'
       ? 'Сертификат соответствия'

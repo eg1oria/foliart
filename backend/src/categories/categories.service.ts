@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   DEFAULT_CONTENT_LOCALE,
   isDefaultContentLocale,
@@ -6,6 +10,7 @@ import {
   normalizeContentLocale,
 } from '../content-locales';
 import { PrismaService } from '../prisma/prisma.service';
+import { createUniquePublicSlug } from '../public-slug.util';
 
 const catalogCategoryLegacyImagePattern =
   /^\/?catalog-categories\/(1|4|5|6)\.(?:jpe?g|png|webp)$/i;
@@ -23,6 +28,8 @@ type CategoryWithLegacyAndTranslations = {
   description: string;
   descriptionEn: string;
   imageUrl: string;
+  productCount?: number;
+  _count?: { products: number };
   translations?: Array<{
     locale: string;
     name: string;
@@ -106,10 +113,19 @@ export class CategoriesService {
       ? this.getTranslation(category, adminLocale)
       : null;
 
-    const { translations: _translations, ...categoryFields } = category;
+    const {
+      translations: _translations,
+      _count: productRelationCount,
+      ...categoryFields
+    } = category;
 
     return {
       ...categoryFields,
+      // The stored counter is a cache the product editor keeps in sync; the
+      // live relation count is what the admin list gates deletion on, so a
+      // counter that drifted must never win here.
+      productCount:
+        productRelationCount?.products ?? category.productCount ?? 0,
       name: locale ? localizedName : category.name,
       description: locale ? localizedDescription : category.description,
       imageUrl: this.resolveImageUrl(category.imageUrl),
@@ -132,7 +148,7 @@ export class CategoriesService {
 
   async findAll(locale?: string, contentLocale?: string) {
     const categories = await this.prisma.category.findMany({
-      include: { translations: true },
+      include: { translations: true, _count: { select: { products: true } } },
       orderBy: { id: 'asc' },
     });
 
@@ -144,7 +160,7 @@ export class CategoriesService {
   async findOne(id: number, locale?: string, contentLocale?: string) {
     const category = await this.prisma.category.findUnique({
       where: { id },
-      include: { translations: true },
+      include: { translations: true, _count: { select: { products: true } } },
     });
 
     if (!category) {
@@ -165,6 +181,81 @@ export class CategoriesService {
     }
 
     return category.imageUrl;
+  }
+
+  async create(input: {
+    locale: string;
+    name: string;
+    description: string;
+    imageUrl?: string;
+  }) {
+    const contentLocale = normalizeContentLocale(input.locale);
+
+    return this.prisma.$transaction(async (tx) => {
+      const slug = await createUniquePublicSlug(input.name, async (candidate) =>
+        Boolean(
+          await tx.category.findFirst({
+            where: { slug: candidate },
+            select: { id: true },
+          }),
+        ),
+      );
+
+      return tx.category.create({
+        data: {
+          slug,
+          name: isDefaultContentLocale(contentLocale) ? input.name : '',
+          description: isDefaultContentLocale(contentLocale)
+            ? input.description
+            : '',
+          nameEn: isLegacyEnglishContentLocale(contentLocale) ? input.name : '',
+          descriptionEn: isLegacyEnglishContentLocale(contentLocale)
+            ? input.description
+            : '',
+          imageUrl: input.imageUrl ?? '',
+          productCount: 0,
+          translations: {
+            create: {
+              locale: contentLocale,
+              name: input.name,
+              description: input.description,
+            },
+          },
+        },
+      });
+    });
+  }
+
+  /**
+   * A category is only ever dropped once it is empty: products carry a required
+   * `categoryId`, so deleting a populated category would either orphan or
+   * cascade away catalog entries. Callers move the products elsewhere first.
+   */
+  async remove(id: number) {
+    return this.prisma.$transaction(async (tx) => {
+      const category = await tx.category.findUnique({
+        where: { id },
+        select: { id: true, name: true, imageUrl: true },
+      });
+
+      if (!category) {
+        throw new NotFoundException(`Category #${id} not found`);
+      }
+
+      const productCount = await tx.product.count({
+        where: { categoryId: id },
+      });
+
+      if (productCount > 0) {
+        throw new ConflictException(
+          `Category #${id} still holds ${productCount} product(s); move or delete them first`,
+        );
+      }
+
+      await tx.category.delete({ where: { id } });
+
+      return category;
+    });
   }
 
   async updateTranslation(

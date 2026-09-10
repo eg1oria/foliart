@@ -3,6 +3,7 @@ export const ADMIN_SECTIONS = [
   'articles',
   'calendars',
   'partners',
+  'certificates',
   'contacts',
   'messages',
 ] as const;

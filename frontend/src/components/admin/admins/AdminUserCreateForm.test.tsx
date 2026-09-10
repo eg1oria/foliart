@@ -15,6 +15,8 @@ vi.mock('@/i18n/routing', () => ({
   ),
 }));
 
+import { adminSections } from '@/lib/adminPermissions';
+
 import AdminUserCreateForm from './AdminUserCreateForm';
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
@@ -97,11 +99,13 @@ describe('AdminUserCreateForm', () => {
 
     const checked = container.querySelectorAll('input[type="radio"]:checked');
 
-    expect(checked).toHaveLength(6);
+    expect(checked).toHaveLength(adminSections.length);
     expect(
       Array.from(checked).every((input) => (input as HTMLInputElement).value === 'manage'),
     ).toBe(true);
-    expect(container.textContent).toContain('Выдано разделов: 6 из 6');
+    expect(container.textContent).toContain(
+      `Выдано разделов: ${adminSections.length} из ${adminSections.length}`,
+    );
   });
 
   it('warns that an admin without sections sees nothing', () => {

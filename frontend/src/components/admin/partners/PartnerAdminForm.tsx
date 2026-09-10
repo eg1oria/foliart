@@ -122,7 +122,7 @@ export default function PartnerAdminForm({
               name="name"
               required
               defaultValue={partner?.name ?? ''}
-              placeholder='ООО "ЭкоГрин"'
+              placeholder="Название организации"
               aria-invalid={Boolean(fieldErrors.name)}
               aria-describedby={fieldErrors.name ? 'partner-name-error' : undefined}
               className={adminInputClassName}
@@ -138,7 +138,7 @@ export default function PartnerAdminForm({
               type="text"
               name="address"
               defaultValue={partner?.address ?? ''}
-              placeholder="г. Краснодар"
+              placeholder="Город, улица, дом"
               className={adminInputClassName}
             />
           </label>
@@ -151,7 +151,7 @@ export default function PartnerAdminForm({
               name="phones"
               rows={4}
               defaultValue={partner?.phones ?? ''}
-              placeholder="+7 (861) 224-75-37&#10;+7 (989) 802 43 78"
+              placeholder="+7 (___) ___-__-__&#10;+7 (___) ___-__-__"
               className={adminTextareaClassName}
             />
             <span className={adminHintClassName}>
@@ -168,7 +168,7 @@ export default function PartnerAdminForm({
                 type="email"
                 name="email"
                 defaultValue={partner?.email ?? ''}
-                placeholder="info@ecogreen.ru"
+                placeholder="mail@example.ru"
                 aria-invalid={Boolean(fieldErrors.email)}
                 aria-describedby={fieldErrors.email ? 'partner-email-error' : undefined}
                 className={adminInputClassName}
@@ -184,7 +184,7 @@ export default function PartnerAdminForm({
                 type="text"
                 name="website"
                 defaultValue={partner?.website ?? ''}
-                placeholder="https://ecogreen.ru"
+                placeholder="https://example.ru"
                 aria-invalid={Boolean(fieldErrors.website)}
                 aria-describedby={fieldErrors.website ? 'partner-website-error' : undefined}
                 className={adminInputClassName}

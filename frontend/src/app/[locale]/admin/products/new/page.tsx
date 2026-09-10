@@ -55,7 +55,7 @@ export default async function NewProductPage({
             <AdminEmptyState
               badge="Нет категорий"
               title="Нельзя создать товар"
-              description="Для товара нужна существующая категория. Добавление категорий не входит в этот редактор."
+              description="Для товара нужна существующая категория — добавьте её в разделе «Категории»."
             />
           ) : (
             <ProductAdminForm
