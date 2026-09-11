@@ -1,14 +1,17 @@
 import Image from 'next/image';
 import { Link } from '@/i18n/routing';
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
+import { resolveSiteImage } from '@/lib/media';
+import { getSiteImageMap } from '@/lib/siteImagesServer';
 import ContactModalTrigger from './ContactModalTrigger';
 
-export default function Footer() {
-  const t = useTranslations('Footer');
+export default async function Footer() {
+  const t = await getTranslations('Footer');
+  const background = resolveSiteImage(await getSiteImageMap(), 'footer-bg');
 
   return (
     <footer className="relative overflow-hidden">
-      <Image src="/footer3.webp" alt="" fill sizes="100vw" className="object-cover" />
+      <Image src={background.src} alt="" fill sizes="100vw" className="object-cover" />
       <div className="absolute inset-0 bg-black/50" />
 
       <div className="footer-section relative z-10 flex flex-col items-center gap-6 py-5 md:flex-row md:items-start">

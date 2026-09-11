@@ -12,6 +12,7 @@ import { resolveMediaUrl } from '@/lib/media';
 import { renderRichDescription } from '@/lib/renderRichDescription';
 import { richDescriptionToPlainText } from '@/lib/richDescription';
 import { buildBreadcrumbSchema, buildPageMetadata, stringifyJsonLd } from '@/lib/seo';
+import { getSiteImage } from '@/lib/siteImagesServer';
 import { notFound, redirect } from 'next/navigation';
 
 export async function generateMetadata({
@@ -37,7 +38,7 @@ export async function generateMetadata({
               ? 'Calendario agrícola'
               : 'Agricultural calendar',
       description: copy.subtitle,
-      image: '/articles-head.webp',
+      image: (await getSiteImage('calendar-hero')).src,
     });
   }
 

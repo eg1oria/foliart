@@ -6,6 +6,7 @@ import { getArticleHref, getArticlesCopy, formatArticleDate } from '@/lib/articl
 import { getArticles } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
 import { buildBreadcrumbSchema, buildPageMetadata, stringifyJsonLd } from '@/lib/seo';
+import { getSiteImage } from '@/lib/siteImagesServer';
 import Image from 'next/image';
 
 export async function generateMetadata({
@@ -34,7 +35,7 @@ export async function generateMetadata({
           : locale === 'es'
             ? 'Artículos útiles sobre nutrición vegetal, recuperación tras el estrés y sistemas de fertilización de los especialistas de Foliart.'
             : 'Useful articles about plant nutrition, stress recovery, and fertilizer systems from Foliart specialists.',
-    image: '/articles-head.webp',
+    image: (await getSiteImage('articles-hero')).src,
   });
 }
 
@@ -42,6 +43,7 @@ export default async function ArticlesPage({ params }: { params: Promise<{ local
   const { locale } = await params;
   const copy = getArticlesCopy(locale);
   const breadcrumbCopy = getBreadcrumbCopy(locale);
+  const hero = await getSiteImage('articles-hero');
   const articles = await getArticles(locale);
   const breadcrumbSchema = buildBreadcrumbSchema(locale, [
     { name: breadcrumbCopy.home, path: '/' },
@@ -56,7 +58,7 @@ export default async function ArticlesPage({ params }: { params: Promise<{ local
       />
       <section className="catalog-header relative flex flex-col justify-center overflow-hidden px-6 pb-16 pt-30 md:pt-60">
         <Image
-          src="/articles-head.webp"
+          src={hero.src}
           alt=""
           fill
           priority

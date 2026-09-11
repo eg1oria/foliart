@@ -1,14 +1,17 @@
 import ContactModalTrigger from '@/components/ContactModalTrigger';
 import Image from 'next/image';
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import { FaQuoteLeft } from 'react-icons/fa6';
 import { HiOutlineMail, HiOutlinePhone } from 'react-icons/hi';
+import { resolveSiteImage } from '@/lib/media';
+import { getSiteImageMap } from '@/lib/siteImagesServer';
 
-export default function SpecialistSection() {
-  const t = useTranslations('Specialist');
-  const contactT = useTranslations('Contacts');
+export default async function SpecialistSection() {
+  const t = await getTranslations('Specialist');
+  const contactT = await getTranslations('Contacts');
   const phone = contactT('officePhone');
   const email = contactT('officeEmail');
+  const portrait = resolveSiteImage(await getSiteImageMap(), 'catalog-specialist');
 
   return (
     <div className="overflow-hidden  shadow-[0_30px_70px_-52px_rgba(11,62,49,0.75)]">
@@ -22,7 +25,7 @@ export default function SpecialistSection() {
           <div className="relative mx-auto w-full max-w-[210px] pb-8">
             <div className="relative aspect-square overflow-hidden rounded-full bg-[#d5dbe2]">
               <Image
-                src="/specialist.webp"
+                src={portrait.src}
                 alt={t('imageAlt')}
                 fill
                 sizes="(max-width: 1280px) 210px, 240px"

@@ -14,6 +14,7 @@ import { PartnersModule } from './partners/partners.module';
 import { ProductsModule } from './products/products.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RegionalContactsModule } from './regional-contacts/regional-contacts.module';
+import { SiteImagesModule } from './site-images/site-images.module';
 import { UiMessagesModule } from './ui-messages/ui-messages.module';
 
 @Module({
@@ -36,6 +37,7 @@ import { UiMessagesModule } from './ui-messages/ui-messages.module';
     CertificatesModule,
     ContactModule,
     PrismaModule,
+    SiteImagesModule,
     UiMessagesModule,
   ],
   controllers: [AppController],

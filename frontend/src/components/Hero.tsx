@@ -1,36 +1,47 @@
 import Image from 'next/image';
-import { useLocale, useTranslations } from 'next-intl';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { getFullLogo } from '@/lib/logo';
+import { getSiteImageMap } from '@/lib/siteImagesServer';
+import { resolveSiteImage } from '@/lib/media';
 
-export default function Hero() {
-  const t = useTranslations('Hero');
-  const locale = useLocale();
+export default async function Hero() {
+  const t = await getTranslations('Hero');
+  const locale = await getLocale();
   const isRu = locale === 'ru';
   const logoWidth = 480;
   const logo = getFullLogo(locale, logoWidth);
+  const siteImages = await getSiteImageMap();
+  const background = resolveSiteImage(siteImages, 'home-hero');
 
   const items = [
     {
       title: t('items.item1'),
-      img: '/hero-icon1.webp',
+      img: resolveSiteImage(siteImages, 'home-icon-1'),
     },
     {
       title: t('items.item2'),
-      img: '/hero-icon2.webp',
+      img: resolveSiteImage(siteImages, 'home-icon-2'),
     },
     {
       title: t('items.item3'),
-      img: '/hero-icon3.webp',
+      img: resolveSiteImage(siteImages, 'home-icon-3'),
     },
     {
       title: t('items.item4'),
-      img: '/hero-icon4.webp',
+      img: resolveSiteImage(siteImages, 'home-icon-4'),
     },
   ];
 
   return (
     <section className="hero-section relative flex min-h-[100svh] flex-col items-center justify-start pb-20 pt-30 md:justify-center md:pb-40 md:pt-40">
-      <Image src="/hero.webp" alt="" fill sizes="100vw" className="object-cover -z-10" priority />
+      <Image
+        src={background.src}
+        alt=""
+        fill
+        sizes="100vw"
+        className="object-cover -z-10"
+        priority
+      />
       <div className="absolute inset-0 bg-black/50 -z-10" />
       <Image
         src={logo.src}
@@ -53,10 +64,10 @@ export default function Hero() {
             key={item.title}
             className="flex w-full min-w-0 items-start gap-5 tablet:max-w-[250px] tablet:flex-col tablet:items-center tablet:gap-9">
             <Image
-              src={item.img}
+              src={item.img.src}
               alt={item.title}
-              width={45}
-              height={45}
+              width={item.img.width ?? 45}
+              height={item.img.height ?? 45}
               className="h-auto w-auto shrink-0"
             />
             <span className="mt-2 min-w-0 flex-1 text-lg leading-6 text-start text-white/80 tablet:text-center">

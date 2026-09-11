@@ -9,6 +9,7 @@ import {
   FiCalendar,
   FiFolder,
   FiGlobe,
+  FiImage,
   FiMapPin,
   FiUser,
   FiUsers,
@@ -57,6 +58,10 @@ const navI18n: Record<string, Record<AdminTabKey, AdminNavStrings>> = {
       label: 'Contacts',
       description: 'Regional representatives on the contacts page',
     },
+    'site-images': {
+      label: 'Site images',
+      description: 'Photos across the public site',
+    },
     messages: {
       label: 'Translations',
       description: 'Public interface messages',
@@ -99,6 +104,10 @@ const navI18n: Record<string, Record<AdminTabKey, AdminNavStrings>> = {
       label: 'Контакты',
       description: 'Представители в регионах на странице контактов',
     },
+    'site-images': {
+      label: 'Изображения сайта',
+      description: 'Фотографии на страницах публичного сайта',
+    },
     messages: {
       label: 'Переводы',
       description: 'Интерфейсные тексты публичного сайта',
@@ -123,6 +132,7 @@ export const adminNavItems: AdminNavItem[] = [
   { key: 'partners', href: '/admin/partners', icon: FiBriefcase },
   { key: 'certificates', href: '/admin/certificates', icon: FiAward },
   { key: 'contacts', href: '/admin/contacts', icon: FiMapPin },
+  { key: 'site-images', href: '/admin/site-images', icon: FiImage },
   { key: 'messages', href: '/admin/messages', icon: FiGlobe },
   { key: 'admins', href: '/admin/admins', icon: FiUsers },
 ];
@@ -137,9 +147,22 @@ export function getAdminNavStrings(locale: string) {
   return navI18n[locale] ?? navI18n['en'];
 }
 
+/**
+ * Tabs that stay out of the sidebar while a section is still being rolled out.
+ * They are hidden here rather than removed from `adminNavItems`, because that
+ * list is also what `getActiveAdminTab` matches a route against — dropping an
+ * entry from it leaves `AdminChrome` with no active tab, and the whole panel
+ * disappears on that route instead of just its link.
+ */
+const hiddenAdminTabs = new Set<AdminTabKey>(['site-images']);
+
 // The admins tab belongs to the super admin only; every content tab follows the
 // per-section permissions of whoever is signed in.
 export function isAdminTabVisible(key: AdminTabKey, session: AdminSessionUser) {
+  if (hiddenAdminTabs.has(key)) {
+    return false;
+  }
+
   if (key === 'admins') {
     return session.isSuperAdmin;
   }

@@ -19,7 +19,7 @@ import {
   parseApplication,
   parseComposition,
 } from '@/lib/catalog';
-import { resolveMediaUrl, resolvePublicAssetUrl } from '@/lib/media';
+import { resolveMediaUrl } from '@/lib/media';
 import { renderRichDescription } from '@/lib/renderRichDescription';
 import { richDescriptionToPlainText } from '@/lib/richDescription';
 import {
@@ -28,6 +28,7 @@ import {
   buildProductSchema,
   stringifyJsonLd,
 } from '@/lib/seo';
+import { getSiteImage } from '@/lib/siteImagesServer';
 import { notFound, redirect } from 'next/navigation';
 import { FiChevronDown } from 'react-icons/fi';
 import { GrDocumentText } from 'react-icons/gr';
@@ -83,7 +84,7 @@ export async function generateMetadata({
             ? 'Catálogo de fertilizantes'
             : 'Fertilizer catalog',
       description: copy.subtitle,
-      image: '/catalog-head.webp',
+      image: (await getSiteImage('catalog-hero')).src,
     });
   }
 }
@@ -110,7 +111,8 @@ export default async function ProductDetailsPage({
   const categoryImage = resolveMediaUrl(category.imageUrl);
   const productImage = resolveMediaUrl(product.imageUrl);
   const certificateImage =
-    resolveMediaUrl(certificate?.fileUrl) ?? resolvePublicAssetUrl('/sertificate.webp');
+    resolveMediaUrl(certificate?.fileUrl) ??
+    (await getSiteImage('catalog-certificate-fallback')).src;
   const certificateLabel =
     locale === 'ru'
       ? 'Сертификат соответствия'

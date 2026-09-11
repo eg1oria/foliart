@@ -10,6 +10,7 @@ import { getPartners, type Partner } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
 import { toPartnerCard } from '@/lib/partners';
 import { buildPageMetadata } from '@/lib/seo';
+import { getSiteImage } from '@/lib/siteImagesServer';
 
 export async function generateMetadata({
   params,
@@ -28,7 +29,7 @@ export async function generateMetadata({
         : locale === 'es'
           ? 'Socios regionales y distribuidores de los productos Foliart en Krasnodar y Crimea.'
           : 'Regional partners and distributors of Foliart products in Krasnodar and Crimea.',
-    image: '/partners-head.webp',
+    image: (await getSiteImage('partners-hero')).src,
   });
 }
 
@@ -42,13 +43,14 @@ export default async function Partners({
   // A partner list that cannot be loaded should not take the whole page down;
   // the header still renders and the cards come back on the next request.
   const partners = await getPartners().catch(() => [] as Partner[]);
+  const hero = await getSiteImage('partners-hero');
   const cards = partners.map(toPartnerCard).filter((card) => card.name);
 
   return (
     <main>
       <div className="catalog-header relative flex flex-col items-center justify-center overflow-hidden px-6 py-14 pt-30 text-center md:items-start md:pt-60">
         <Image
-          src="/partners-head.webp"
+          src={hero.src}
           alt=""
           fill
           priority

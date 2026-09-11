@@ -1,3 +1,4 @@
+import type { SiteImageMap } from './siteImages';
 import { PUBLIC_REVALIDATE_SECONDS } from './seo';
 
 export type AdminTranslationBase = {
@@ -167,6 +168,7 @@ export const productsCacheTag = 'products';
 export const partnersCacheTag = 'partners';
 export const certificatesCacheTag = 'certificates';
 export const regionalContactsCacheTag = 'regional-contacts';
+export const siteImagesCacheTag = 'site-images';
 
 function resolveFetchOptions(fetchOptions?: ApiFetchOptions): ApiFetchOptions {
   const resolved = fetchOptions ?? publicApiFetchOptions;
@@ -352,6 +354,10 @@ export async function getCertificate(
     `/api/certificates/${slug}`,
     withCacheTag(fetchOptions, certificatesCacheTag),
   );
+}
+
+export async function getSiteImages(fetchOptions?: ApiFetchOptions): Promise<SiteImageMap> {
+  return fetchJson<SiteImageMap>('/api/site-images', withCacheTag(fetchOptions, siteImagesCacheTag));
 }
 
 export async function getRegionalContacts(

@@ -1,3 +1,6 @@
+import type { SiteImageKey, SiteImageMap } from './siteImages';
+import { siteImageSlots } from './siteImages';
+
 const absoluteUrlPattern = /^https?:\/\//i;
 const frontendPublicPrefixes = ['catalog-categories/'] as const;
 const catalogCategoryLegacyImagePattern =
@@ -9,8 +12,33 @@ const catalogCategoryImageMap: Record<string, string> = {
   '4': 'category4',
 };
 
-export function resolvePublicAssetUrl(path: string): string {
-  return path;
+export type ResolvedSiteImage = {
+  src: string;
+  /** Only set once a file has been uploaded for the slot. */
+  width: number | null;
+  height: number | null;
+};
+
+/**
+ * A slot with no upload renders the file bundled in `public/`, byte for byte
+ * what the site showed before the admin section existed. `width`/`height` are
+ * null in that case: the call site keeps its own literals, and only a stored
+ * file — which may well have a different ratio — overrides them.
+ */
+export function resolveSiteImage(images: SiteImageMap, key: SiteImageKey): ResolvedSiteImage {
+  const slot = siteImageSlots[key];
+  const stored = images[key];
+  const storedUrl = stored ? resolveMediaUrl(stored.imageUrl) : null;
+
+  if (!storedUrl) {
+    return { src: slot.default, width: null, height: null };
+  }
+
+  return {
+    src: storedUrl,
+    width: stored?.width || null,
+    height: stored?.height || null,
+  };
 }
 
 export function resolveMediaUrl(path?: string | null): string | null {

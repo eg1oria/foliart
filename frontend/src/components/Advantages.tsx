@@ -1,19 +1,22 @@
 import Image from 'next/image';
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
+import { resolveSiteImage } from '@/lib/media';
+import { getSiteImageMap } from '@/lib/siteImagesServer';
 
-export default function Advantages() {
-  const t = useTranslations('Advantages');
+export default async function Advantages() {
+  const t = await getTranslations('Advantages');
+  const siteImages = await getSiteImageMap();
 
   const items = [
     {
       title: t('items.item1.title'),
-      img: '/advantage1.webp',
+      img: resolveSiteImage(siteImages, 'home-advantage-1'),
       width: 430,
       height: 240,
     },
     {
       title: t('items.item2.title'),
-      img: '/advantage2.webp',
+      img: resolveSiteImage(siteImages, 'home-advantage-2'),
       width: 500,
       height: 167,
       desc: t('items.item2.desc'),
@@ -21,14 +24,14 @@ export default function Advantages() {
     },
     {
       title: t('items.item3.title'),
-      img: '/advantage3.webp',
+      img: resolveSiteImage(siteImages, 'home-advantage-3'),
       width: 360,
       height: 361,
       desc: t('items.item3.desc'),
     },
     {
       title: t('items.item4.title'),
-      img: '/advantage4.webp',
+      img: resolveSiteImage(siteImages, 'home-advantage-4'),
       width: 300,
       height: 500,
       desc: t('items.item4.desc'),
@@ -36,7 +39,7 @@ export default function Advantages() {
     },
     {
       title: t('items.item5.title'),
-      img: '/advantage5.webp',
+      img: resolveSiteImage(siteImages, 'home-advantage-5'),
       width: 500,
       height: 333,
     },
@@ -54,10 +57,10 @@ export default function Advantages() {
               item.right ? 'min-[1000px]:flex-row-reverse' : 'min-[1000px]:flex-row'
             }`}>
             <Image
-              src={item.img}
+              src={item.img.src}
               alt={item.title}
-              width={500}
-              height={item.height}
+              width={item.img.width ?? 500}
+              height={item.img.height ?? item.height}
               sizes={`(max-width: 999px) 90vw, ${item.width}px`}
               className="h-auto w-full"
               style={{ maxWidth: item.width }}

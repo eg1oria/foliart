@@ -5,6 +5,7 @@ export const ADMIN_SECTIONS = [
   'partners',
   'certificates',
   'contacts',
+  'site-images',
   'messages',
 ] as const;
 

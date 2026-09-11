@@ -6,6 +6,7 @@ import { getCalendarHref, getCalendarsCopy, getCalendarImages } from '@/lib/cale
 import { resolveMediaUrl } from '@/lib/media';
 import { richDescriptionToPlainText } from '@/lib/richDescription';
 import { buildPageMetadata } from '@/lib/seo';
+import { getSiteImage } from '@/lib/siteImagesServer';
 import Image from 'next/image';
 
 export async function generateMetadata({
@@ -28,7 +29,7 @@ export async function generateMetadata({
             ? 'Calendario agrícola'
             : 'Agricultural calendar',
     description: copy.subtitle,
-    image: '/articles-head.webp',
+    image: (await getSiteImage('calendar-hero')).src,
   });
 }
 
@@ -36,12 +37,13 @@ export default async function CalendarPage({ params }: { params: Promise<{ local
   const { locale } = await params;
   const copy = getCalendarsCopy(locale);
   const calendars = await getCalendars(locale);
+  const hero = await getSiteImage('calendar-hero');
 
   return (
     <main className="pb-24">
       <section className="catalog-header relative flex flex-col justify-center overflow-hidden px-6 pb-16 pt-30 md:pt-60">
         <Image
-          src="/articles-head.webp"
+          src={hero.src}
           alt=""
           fill
           priority

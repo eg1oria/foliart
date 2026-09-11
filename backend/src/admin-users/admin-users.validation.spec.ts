@@ -54,6 +54,7 @@ describe('admin users validation', () => {
       partners: 'none',
       certificates: 'none',
       contacts: 'none',
+      'site-images': 'none',
       messages: 'none',
     });
   });
@@ -81,6 +82,7 @@ describe('admin users validation', () => {
         partners: 'none',
         certificates: 'none',
         contacts: 'none',
+        'site-images': 'none',
         messages: 'none',
       },
     });

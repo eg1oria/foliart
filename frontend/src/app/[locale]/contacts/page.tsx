@@ -9,6 +9,7 @@ import { TbArrowBackUp } from 'react-icons/tb';
 import { getRegionalContacts, type RegionalContact } from '@/lib/api';
 import { toRegionalContactCard } from '@/lib/regionalContacts';
 import { buildPageMetadata } from '@/lib/seo';
+import { getSiteImage } from '@/lib/siteImagesServer';
 
 export async function generateMetadata({
   params,
@@ -23,7 +24,7 @@ export async function generateMetadata({
     path: '/contacts',
     title: locale === 'ru' ? 'Контакты' : 'Contacts',
     description: t('subtitle'),
-    image: '/contacts.webp',
+    image: (await getSiteImage('contacts-hero')).src,
   });
 }
 
@@ -37,6 +38,8 @@ export default async function Contacts({
   // A regional list that cannot be loaded must not take the page down: the
   // office block and the feedback form stay usable either way.
   const regionalContacts = await getRegionalContacts().catch(() => [] as RegionalContact[]);
+  const hero = await getSiteImage('contacts-hero');
+  const formBackground = await getSiteImage('contacts-form-bg');
   const regionalCards = regionalContacts
     .map(toRegionalContactCard)
     .filter((contact) => contact.region);
@@ -67,7 +70,7 @@ export default async function Contacts({
     <main>
       <section className="catalog-header relative flex flex-col justify-center overflow-hidden px-6 pb-16 pt-30 md:pt-60">
         <Image
-          src="/contacts.webp"
+          src={hero.src}
           alt=""
           fill
           priority
@@ -163,7 +166,7 @@ export default async function Contacts({
             id="feedback"
             className="scroll-mt-28 md:items-start items-center gap-10 md:gap=0 mt-10 flex flex-col-reverse md:grid md:grid-cols-2 justify-between relative mb-20 p-4  md:p-8">
             <Image
-              src="/about-head1.webp"
+              src={formBackground.src}
               alt=""
               fill
               sizes="100vw"

@@ -3,10 +3,10 @@ import ContactForm from '@/components/ContactForm';
 import Image from 'next/image';
 import { Link } from '@/i18n/routing';
 import { TbArrowBackUp } from 'react-icons/tb';
-import { useLocale, useTranslations } from 'next-intl';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { buildPageMetadata } from '@/lib/seo';
 import { getFullLogo } from '@/lib/logo';
+import { getSiteImage } from '@/lib/siteImagesServer';
 
 export async function generateMetadata({
   params,
@@ -28,20 +28,22 @@ export async function generateMetadata({
             ? 'Sobre nosotros'
             : 'About the company',
     description: t('subtitle'),
-    image: '/about-head1.webp',
+    image: (await getSiteImage('about-hero')).src,
   });
 }
 
-export default function About() {
-  const t = useTranslations('About');
-  const locale = useLocale();
+export default async function About() {
+  const t = await getTranslations('About');
+  const locale = await getLocale();
   const logo = getFullLogo(locale);
+  const hero = await getSiteImage('about-hero');
+  const formBackground = await getSiteImage('about-form-bg');
 
   return (
     <main>
       <div className="catalog-header relative flex flex-col items-center justify-center overflow-hidden py-14 pt-30 text-center md:pt-60">
         <Image
-          src="/about-head1.webp"
+          src={hero.src}
           alt=""
           fill
           priority
@@ -107,7 +109,7 @@ export default function About() {
             id="feedback"
             className="scroll-mt-28 md:items-start items-center gap-10 md:gap=0 md:mt-0 flex flex-col-reverse md:grid md:grid-cols-2 justify-between relative mb-20 p-4 md:p-8">
             <Image
-              src="/about-form.webp"
+              src={formBackground.src}
               alt=""
               fill
               sizes="100vw"

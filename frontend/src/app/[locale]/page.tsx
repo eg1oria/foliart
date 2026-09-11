@@ -4,6 +4,7 @@ import Complexs from '@/components/Complexs';
 import Hero from '@/components/Hero';
 import { Link } from '@/i18n/routing';
 import { buildPageMetadata } from '@/lib/seo';
+import { getSiteImage } from '@/lib/siteImagesServer';
 import { useTranslations } from 'next-intl';
 
 export async function generateMetadata({
@@ -31,7 +32,7 @@ export async function generateMetadata({
     path: '/',
     title: titles[locale] ?? titles.en,
     description: descriptions[locale] ?? descriptions.en,
-    image: '/hero.webp',
+    image: (await getSiteImage('home-hero')).src,
   });
 }
 

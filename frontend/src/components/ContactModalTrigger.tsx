@@ -7,6 +7,7 @@ import { RxCross1 } from 'react-icons/rx';
 import { Link } from '@/i18n/routing';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
+import { useSiteImage } from '@/components/SiteImagesProvider';
 import {
   type ContactFormType,
   getContactFormValue,
@@ -37,6 +38,7 @@ export default function ContactModalTrigger({
   const formT = useTranslations('ContactForm');
   const callbackT = useTranslations('CallbackModal');
   const questionT = useTranslations('QuestionModal');
+  const artwork = useSiteImage('contact-modal');
   const isQuestionModal = modalType === 'question';
   const closeLabel = isQuestionModal ? questionT('close') : callbackT('close');
   const isSending = submitStatus === 'sending';
@@ -148,7 +150,7 @@ export default function ContactModalTrigger({
   const renderQuestionArtwork = () => {
     return (
       <div className="relative hidden min-h-[622px] overflow-hidden bg-white min-[760px]:block">
-        <Image src="/question.webp" alt="" fill sizes="470px" className="object-cover" />
+        <Image src={artwork.src} alt="" fill sizes="470px" className="object-cover" />
       </div>
     );
   };

@@ -11,6 +11,7 @@ import {
 } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
 import { buildBreadcrumbSchema, buildPageMetadata, stringifyJsonLd } from '@/lib/seo';
+import { getSiteImage } from '@/lib/siteImagesServer';
 import Image from 'next/image';
 
 export async function generateMetadata({
@@ -33,13 +34,14 @@ export async function generateMetadata({
             ? 'Catálogo de fertilizantes'
             : 'Fertilizer catalog',
     description: copy.subtitle,
-    image: '/catalog-head.webp',
+    image: (await getSiteImage('catalog-hero')).src,
   });
 }
 
 export default async function CatalogPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const copy = getCatalogCopy(locale);
+  const hero = await getSiteImage('catalog-hero');
   const breadcrumbCopy = getBreadcrumbCopy(locale);
   const categoryCta =
     locale === 'ru'
@@ -66,7 +68,7 @@ export default async function CatalogPage({ params }: { params: Promise<{ locale
       />
       <div className="catalog-header relative flex flex-col items-start justify-center overflow-hidden px-6 py-14 pt-30 md:pt-60 text-center">
         <Image
-          src="/catalog-head.webp"
+          src={hero.src}
           alt=""
           fill
           priority

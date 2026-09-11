@@ -17,6 +17,7 @@ import {
   stringifyJsonLd,
   stripHtml,
 } from '@/lib/seo';
+import { getSiteImage } from '@/lib/siteImagesServer';
 import { notFound, redirect } from 'next/navigation';
 import { FiArrowLeft, FiEye } from 'react-icons/fi';
 import ArticleViewCounter from './view-counter';
@@ -61,7 +62,7 @@ export async function generateMetadata({
             : locale === 'es'
               ? 'Artículos útiles sobre nutrición vegetal, recuperación tras el estrés y sistemas de fertilización de los especialistas de Foliart.'
               : 'Useful articles about plant nutrition, stress recovery, and fertilizer systems from Foliart specialists.',
-      image: '/articles-head.webp',
+      image: (await getSiteImage('articles-hero')).src,
     });
   }
 

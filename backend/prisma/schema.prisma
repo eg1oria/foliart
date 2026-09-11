@@ -56,6 +56,20 @@ model Certificate {
   updatedAt    DateTime @updatedAt
 }
 
+// One row per replaced photo slot; a slot with no row renders the file bundled
+// in the frontend's `public/`. `width`/`height` are the stored file's own
+// dimensions: most slots render with explicit sizes rather than `fill`, so a
+// replacement of a different ratio would otherwise distort or shift the layout.
+model SiteImage {
+  key       String   @id
+  imageUrl  String
+  width     Int      @default(0)
+  height    Int      @default(0)
+  revision  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Partner {
   id        Int      @id @default(autoincrement())
   name      String

@@ -15,6 +15,7 @@ import { resolveMediaUrl } from '@/lib/media';
 import { renderRichDescription } from '@/lib/renderRichDescription';
 import { richDescriptionToPlainText } from '@/lib/richDescription';
 import { buildBreadcrumbSchema, buildPageMetadata, stringifyJsonLd } from '@/lib/seo';
+import { getSiteImage } from '@/lib/siteImagesServer';
 import { notFound, redirect } from 'next/navigation';
 import { FiInfo } from 'react-icons/fi';
 
@@ -62,7 +63,7 @@ export async function generateMetadata({
             ? 'Catálogo de fertilizantes'
             : 'Fertilizer catalog',
       description: copy.subtitle,
-      image: '/catalog-head.webp',
+      image: (await getSiteImage('catalog-hero')).src,
     });
   }
 }

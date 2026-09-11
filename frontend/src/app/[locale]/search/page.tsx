@@ -22,6 +22,7 @@ import {
 } from '@/lib/search';
 import { getSearchIndex } from '@/lib/searchIndex';
 import { buildBreadcrumbSchema, buildPageMetadata, stringifyJsonLd } from '@/lib/seo';
+import { getSiteImage } from '@/lib/siteImagesServer';
 
 type SearchPageProps = {
   params: Promise<{ locale: string }>;
@@ -51,7 +52,7 @@ export async function generateMetadata({
     path: '/search',
     title: query ? t('resultsFor', { query }) : t('pageTitle'),
     description: t('pageSubtitle'),
-    image: '/catalog-head.webp',
+    image: (await getSiteImage('search-hero')).src,
   });
 
   return {
@@ -65,6 +66,7 @@ export default async function SearchPage({ params, searchParams }: SearchPagePro
   const [{ locale }, resolvedSearchParams] = await Promise.all([params, searchParams]);
   const t = await getTranslations({ locale, namespace: 'Search' });
   const breadcrumbCopy = getBreadcrumbCopy(locale);
+  const hero = await getSiteImage('search-hero');
 
   const query = normalizeSearchQuery(readParam(resolvedSearchParams.q));
   const typeFilter = parseTypeFilter(readParam(resolvedSearchParams.type));
@@ -192,7 +194,7 @@ export default async function SearchPage({ params, searchParams }: SearchPagePro
       {/* No `overflow-hidden` here: the suggestion dropdown has to escape the hero. */}
       <section className="catalog-header relative flex flex-col justify-center px-6 pb-14 pt-30 md:pb-20 md:pt-60">
         <Image
-          src="/catalog-head.webp"
+          src={hero.src}
           alt=""
           fill
           priority

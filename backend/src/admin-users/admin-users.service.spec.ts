@@ -98,6 +98,7 @@ describe('AdminUsersService', () => {
         partners: 'manage',
         certificates: 'manage',
         contacts: 'manage',
+        'site-images': 'manage',
         messages: 'manage',
       });
     });
@@ -200,6 +201,7 @@ describe('AdminUsersService', () => {
         partners: 'none',
         certificates: 'none',
         contacts: 'none',
+        'site-images': 'none',
         messages: 'none',
       });
 
@@ -237,6 +239,7 @@ describe('AdminUsersService', () => {
           partners: 'none',
           certificates: 'none',
           contacts: 'none',
+          'site-images': 'none',
           messages: 'none',
         }),
       ).rejects.toBeInstanceOf(ConflictException);
@@ -260,6 +263,7 @@ describe('AdminUsersService', () => {
             partners: 'none',
             certificates: 'none',
             contacts: 'none',
+            'site-images': 'none',
             messages: 'none',
           },
         }),

@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Image from 'next/image';
-import { useTranslations } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import { TbArrowBackUp } from 'react-icons/tb';
 import { Link } from '@/i18n/routing';
 import { buildPageMetadata } from '@/lib/seo';
+import { getSiteImage } from '@/lib/siteImagesServer';
 
 type PrivacySectionId =
   | 'general'
@@ -53,12 +53,13 @@ export async function generateMetadata({
     path: '/privacy',
     title: t('title'),
     description: t('subtitle'),
-    image: '/about-head1.webp',
+    image: (await getSiteImage('privacy-hero')).src,
   });
 }
 
-export default function PrivacyPage() {
-  const t = useTranslations('Privacy');
+export default async function PrivacyPage() {
+  const t = await getTranslations('Privacy');
+  const hero = await getSiteImage('privacy-hero');
 
   const renderRichText = (key: string): ReactNode =>
     t.rich(key, {
@@ -83,7 +84,7 @@ export default function PrivacyPage() {
     <main>
       <div className="catalog-header relative flex flex-col justify-center overflow-hidden px-6 pb-16 pt-30 md:pt-60">
         <Image
-          src="/about-head1.webp"
+          src={hero.src}
           alt=""
           fill
           priority
