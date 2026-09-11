@@ -20,6 +20,17 @@ export type ProductAdminTranslation = AdminTranslationBase & {
   application: string;
 };
 
+/** One file attached to a product card — a certificate, a data sheet, … */
+export type ProductDocument = {
+  id: number;
+  locale: string;
+  title: string;
+  fileUrl: string;
+  mimeType: string;
+  originalName: string;
+  byteSize: number;
+};
+
 export type ArticleAdminTranslation = AdminTranslationBase & {
   title: string;
   excerpt: string;
@@ -67,7 +78,13 @@ export type Product = {
   imageUrl: string;
   imageUrlEn: string;
   slugSourceName?: string;
+  /** Files for the requested locale, or the Russian set when it has none. */
+  documents?: ProductDocument[];
+  documentsFromDefaultLocale?: boolean;
   adminTranslation?: ProductAdminTranslation;
+  /** Files attached to the admin's content locale only — never borrowed. */
+  adminDocuments?: ProductDocument[];
+  adminDocumentsFallbackCount?: number;
 };
 
 export type Article = {
@@ -115,14 +132,6 @@ export type Partner = {
   sortOrder: number;
 };
 
-export type Certificate = {
-  slug: string;
-  fileUrl: string;
-  mimeType: string;
-  originalName: string;
-  updatedAt: string | null;
-};
-
 export type RegionalContact = {
   id: number;
   region: string;
@@ -166,7 +175,6 @@ export const articlesCacheTag = 'articles';
 export const categoriesCacheTag = 'categories';
 export const productsCacheTag = 'products';
 export const partnersCacheTag = 'partners';
-export const certificatesCacheTag = 'certificates';
 export const regionalContactsCacheTag = 'regional-contacts';
 export const siteImagesCacheTag = 'site-images';
 
@@ -341,18 +349,6 @@ export async function getPartner(
   return fetchJson<Partner>(
     `/api/partners/${partnerId}`,
     withCacheTag(fetchOptions, partnersCacheTag),
-  );
-}
-
-export const CONFORMITY_CERTIFICATE_SLUG = 'conformity';
-
-export async function getCertificate(
-  slug: string = CONFORMITY_CERTIFICATE_SLUG,
-  fetchOptions?: ApiFetchOptions,
-): Promise<Certificate> {
-  return fetchJson<Certificate>(
-    `/api/certificates/${slug}`,
-    withCacheTag(fetchOptions, certificatesCacheTag),
   );
 }
 

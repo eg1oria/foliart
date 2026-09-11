@@ -189,7 +189,7 @@ export const siteImageSlots = {
     default: '/sertificate.webp',
     group: 'catalog',
     label: 'Сертификат по умолчанию',
-    hint: 'Показывается в карточке товара, пока в разделе «Сертификат» ничего не загружено',
+    hint: 'Показывается в карточке товара, у которого не загружены свои документы',
     aspect: '3/4',
     recommended: '1200×1600',
     maxDimension: 1600,

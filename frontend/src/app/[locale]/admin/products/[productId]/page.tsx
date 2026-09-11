@@ -3,6 +3,7 @@ import { FiArrowLeft } from 'react-icons/fi';
 
 import { AdminEmptyState, AdminNotice, AdminPanel, AdminShell } from '@/components/admin/AdminShell';
 import ProductAdminForm from '@/components/admin/products/ProductAdminForm';
+import ProductDocumentsManager from '@/components/admin/products/ProductDocumentsManager';
 import { adminCx, adminSecondaryButtonClassName } from '@/components/admin/adminStyles';
 import { Link } from '@/i18n/routing';
 import { requireAdminSection } from '@/lib/adminAuthServer';
@@ -20,7 +21,7 @@ export default async function EditProductPage({
   searchParams,
 }: {
   params: Promise<{ locale: string; productId: string }>;
-  searchParams: Promise<{ contentLocale?: string; status?: string }>;
+  searchParams: Promise<{ contentLocale?: string; error?: string; status?: string }>;
 }) {
   const { locale, productId: rawProductId } = await params;
   await requireAdminSection(locale, 'products', 'manage', `/${locale}/admin/products/${rawProductId}`);
@@ -53,6 +54,16 @@ export default async function EditProductPage({
       : query.status === 'updated'
         ? 'Изменения сохранены.'
         : null;
+  const documentMessage =
+    query.status === 'document-added'
+      ? 'Документ загружен.'
+      : query.status === 'document-renamed'
+        ? 'Название документа сохранено.'
+        : query.status === 'document-deleted'
+          ? 'Документ удалён.'
+          : query.status === 'document-moved'
+            ? 'Порядок документов изменён.'
+            : null;
 
   return (
     <AdminShell
@@ -106,6 +117,32 @@ export default async function EditProductPage({
             />
           )}
         </AdminPanel>
+
+        {product ? (
+          <AdminPanel
+            className="mt-5"
+            id="documents"
+            badge="Документы"
+            title={`Документы товара (${contentLocale.toUpperCase()})`}
+            description="Сертификаты и другие файлы, которые открываются по ссылке из карточки товара. Можно прикрепить несколько файлов и задать название каждому. Набор документов свой для каждого языка."
+          >
+            <div className="space-y-4">
+              {documentMessage ? (
+                <AdminNotice tone="success">{documentMessage}</AdminNotice>
+              ) : null}
+              {query.error ? <AdminNotice tone="error">{query.error}</AdminNotice> : null}
+
+              <ProductDocumentsManager
+                key={`${product.id}:${contentLocale}:documents`}
+                contentLocale={contentLocale}
+                documents={product.adminDocuments ?? []}
+                fallbackCount={product.adminDocumentsFallbackCount ?? 0}
+                locale={locale}
+                productId={product.id}
+              />
+            </div>
+          </AdminPanel>
+        ) : null}
       </div>
     </AdminShell>
   );

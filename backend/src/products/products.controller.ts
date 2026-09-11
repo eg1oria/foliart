@@ -28,6 +28,7 @@ import {
   optimizeUploadedImage,
   type StoredImageUploadFile,
 } from '../images/image-upload.util';
+import { getStoredProductDocumentPath } from './product-documents.controller';
 import { ProductsService } from './products.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -384,6 +385,9 @@ export class ProductsController {
     removeUploadedFiles([
       getStoredProductImagePath(deletedProduct.imageUrl),
       getStoredProductImagePath(deletedProduct.imageUrlEn),
+      ...deletedProduct.documents.map((document) =>
+        getStoredProductDocumentPath(document.fileUrl),
+      ),
     ]);
 
     return { id: deletedProduct.id };

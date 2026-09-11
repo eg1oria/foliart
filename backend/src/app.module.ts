@@ -7,7 +7,6 @@ import { AppService } from './app.service';
 import { AdminUsersModule } from './admin-users/admin-users.module';
 import { ArticlesModule } from './articles/articles.module';
 import { CalendarsModule } from './calendars/calendars.module';
-import { CertificatesModule } from './certificates/certificates.module';
 import { CategoriesModule } from './categories/categories.module';
 import { ContactModule } from './contact/contact.module';
 import { PartnersModule } from './partners/partners.module';
@@ -34,7 +33,6 @@ import { UiMessagesModule } from './ui-messages/ui-messages.module';
     RegionalContactsModule,
     ArticlesModule,
     CalendarsModule,
-    CertificatesModule,
     ContactModule,
     PrismaModule,
     SiteImagesModule,

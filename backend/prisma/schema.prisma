@@ -43,19 +43,6 @@ model RegionalContact {
   @@index([sortOrder])
 }
 
-// A single stored document per slug: the conformity certificate the catalog
-// links to is `conformity`. Keyed by slug so a second named certificate needs
-// no migration, and an empty `fileUrl` means the public link falls back to the
-// bundled scan.
-model Certificate {
-  slug         String   @id
-  fileUrl      String   @default("")
-  mimeType     String   @default("")
-  originalName String   @default("")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-
 // One row per replaced photo slot; a slot with no row renders the file bundled
 // in the frontend's `public/`. `width`/`height` are the stored file's own
 // dimensions: most slots render with explicit sizes rather than `fill`, so a
@@ -103,6 +90,30 @@ model Product {
   imageUrl      String
   imageUrlEn    String               @default("")
   translations  ProductTranslation[]
+  documents     ProductDocument[]
+}
+
+// Attached files shown in the product card — conformity certificates, safety
+// data sheets and the like. One row per file: a product may carry several, each
+// with its own visible title, and the set differs per language, so `locale`
+// holds the content locale the file belongs to. A locale with no rows of its
+// own falls back to the Russian set when the public page is rendered.
+model ProductDocument {
+  id           Int      @id @default(autoincrement())
+  productId    Int
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  locale       String
+  title        String   @default("")
+  fileUrl      String
+  mimeType     String   @default("")
+  originalName String   @default("")
+  byteSize     Int      @default(0)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([productId, locale])
+  @@index([sortOrder])
 }
 
 model Article {

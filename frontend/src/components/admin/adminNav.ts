@@ -2,7 +2,6 @@ import type { AdminSection, AdminSessionUser } from '@/lib/adminPermissions';
 import { canViewSection } from '@/lib/adminPermissions';
 import type { IconType } from 'react-icons';
 import {
-  FiAward,
   FiBookOpen,
   FiBox,
   FiBriefcase,
@@ -50,10 +49,6 @@ const navI18n: Record<string, Record<AdminTabKey, AdminNavStrings>> = {
       label: 'Partners',
       description: 'Partner cards on the about page',
     },
-    certificates: {
-      label: 'Certificate',
-      description: 'Certificate of conformity linked from product pages',
-    },
     contacts: {
       label: 'Contacts',
       description: 'Regional representatives on the contacts page',
@@ -96,10 +91,6 @@ const navI18n: Record<string, Record<AdminTabKey, AdminNavStrings>> = {
       label: 'Партнёры',
       description: 'Карточки партнёров на странице «О компании»',
     },
-    certificates: {
-      label: 'Сертификат',
-      description: 'Сертификат соответствия со страниц товаров',
-    },
     contacts: {
       label: 'Контакты',
       description: 'Представители в регионах на странице контактов',
@@ -130,7 +121,6 @@ export const adminNavItems: AdminNavItem[] = [
   { key: 'articles', href: '/admin/articles', icon: FiBookOpen },
   { key: 'calendars', href: '/admin/calendars', icon: FiCalendar },
   { key: 'partners', href: '/admin/partners', icon: FiBriefcase },
-  { key: 'certificates', href: '/admin/certificates', icon: FiAward },
   { key: 'contacts', href: '/admin/contacts', icon: FiMapPin },
   { key: 'site-images', href: '/admin/site-images', icon: FiImage },
   { key: 'messages', href: '/admin/messages', icon: FiGlobe },

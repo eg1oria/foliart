@@ -8,6 +8,18 @@ import {
 } from '../content-locales';
 import { PrismaService } from '../prisma/prisma.service';
 import { createUniquePublicSlug } from '../public-slug.util';
+import { documentOrderBy } from './product-documents.service';
+
+type ProductDocumentFields = {
+  id: number;
+  locale: string;
+  title: string;
+  fileUrl: string;
+  mimeType: string;
+  originalName: string;
+  byteSize: number;
+  sortOrder: number;
+};
 
 type ProductTranslationFields = {
   name: string;
@@ -26,6 +38,7 @@ type ProductWithLegacyAndTranslations = ProductTranslationFields & {
   imageUrl: string;
   imageUrlEn: string;
   translations?: Array<ProductTranslationFields & { locale: string }>;
+  documents?: ProductDocumentFields[];
 };
 
 type CreateProductInput = ProductTranslationFields & {
@@ -91,6 +104,45 @@ export class ProductsService {
       hasTranslation: false,
     };
   }
+  /**
+   * Attached files are authored per language rather than translated, so a
+   * locale shows its own set and only borrows the Russian one when it has
+   * nothing of its own — an untranslated page still links its documents.
+   */
+  private getDocuments(
+    product: ProductWithLegacyAndTranslations,
+    locale: string,
+  ) {
+    const documents = product.documents ?? [];
+    const normalizedLocale = normalizeContentLocale(locale);
+    const matching = documents.filter(
+      (document) => document.locale === normalizedLocale,
+    );
+
+    if (matching.length > 0) {
+      return { documents: matching, isFallback: false };
+    }
+
+    return {
+      documents: documents.filter((document) =>
+        isDefaultContentLocale(document.locale),
+      ),
+      isFallback: !isDefaultContentLocale(normalizedLocale),
+    };
+  }
+
+  private toPublicDocument(document: ProductDocumentFields) {
+    return {
+      id: document.id,
+      locale: document.locale,
+      title: document.title,
+      fileUrl: document.fileUrl,
+      mimeType: document.mimeType,
+      originalName: document.originalName,
+      byteSize: document.byteSize,
+    };
+  }
+
   private resolveLocale<T extends ProductWithLegacyAndTranslations>(
     product: T,
     locale?: string,
@@ -105,7 +157,20 @@ export class ProductsService {
       ? this.getTranslation(product, adminLocale)
       : null;
 
-    const { translations: _translations, ...productFields } = product;
+    const {
+      translations: _translations,
+      documents: _documents,
+      ...productFields
+    } = product;
+    const publicDocuments = this.getDocuments(
+      product,
+      locale ?? DEFAULT_CONTENT_LOCALE,
+    );
+    // The admin editor works on one language at a time and must never show a
+    // borrowed file as if it were attached here, so it gets the exact set.
+    const adminDocuments = adminLocale
+      ? this.getDocuments(product, adminLocale)
+      : null;
     const resolve = (
       selectedValue: string,
       fallbackValue: string,
@@ -143,6 +208,10 @@ export class ProductsService {
       // storage so the separate international image can be restored later.
       imageUrl: product.imageUrl,
       slugSourceName: product.name,
+      documents: publicDocuments.documents.map((document) =>
+        this.toPublicDocument(document),
+      ),
+      documentsFromDefaultLocale: publicDocuments.isFallback,
       ...(adminTranslation && adminLocale
         ? {
             adminTranslation: {
@@ -155,6 +224,12 @@ export class ProductsService {
               composition: adminTranslation.composition,
               application: adminTranslation.application,
             },
+            adminDocuments: (product.documents ?? [])
+              .filter((document) => document.locale === adminLocale)
+              .map((document) => this.toPublicDocument(document)),
+            adminDocumentsFallbackCount: adminDocuments?.isFallback
+              ? adminDocuments.documents.length
+              : 0,
           }
         : {}),
     };
@@ -228,7 +303,7 @@ export class ProductsService {
 
   async findAll(locale?: string, contentLocale?: string) {
     const products = await this.prisma.product.findMany({
-      include: { translations: true },
+      include: { translations: true, documents: { orderBy: documentOrderBy } },
       orderBy: { id: 'asc' },
     });
 
@@ -244,7 +319,7 @@ export class ProductsService {
   ) {
     const products = await this.prisma.product.findMany({
       where: { categoryId },
-      include: { translations: true },
+      include: { translations: true, documents: { orderBy: documentOrderBy } },
       orderBy: { id: 'asc' },
     });
 
@@ -256,7 +331,7 @@ export class ProductsService {
   async findOne(id: number, locale?: string, contentLocale?: string) {
     const product = await this.prisma.product.findUnique({
       where: { id },
-      include: { translations: true },
+      include: { translations: true, documents: { orderBy: documentOrderBy } },
     });
 
     if (!product) {
@@ -386,6 +461,9 @@ export class ProductsService {
           categoryId: true,
           imageUrl: true,
           imageUrlEn: true,
+          // Rows cascade with the product; the files they point at do not, so
+          // the caller needs their URLs before the delete happens.
+          documents: { select: { fileUrl: true } },
         },
       });
 

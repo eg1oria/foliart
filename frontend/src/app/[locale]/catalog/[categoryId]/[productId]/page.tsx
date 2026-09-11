@@ -6,7 +6,7 @@ import MediaImage from '@/components/catalog/MediaImage';
 import ProductImageLightbox from '@/components/catalog/ProductImageLightbox';
 import SpecialistSection from '@/components/catalog/SpecialistSection';
 import { Link } from '@/i18n/routing';
-import { getCategories, getCertificate, getProducts } from '@/lib/api';
+import { getCategories, getProducts } from '@/lib/api';
 import {
   findCategoryByParam,
   findProductByParam,
@@ -20,6 +20,7 @@ import {
   parseComposition,
 } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
+import { getProductDocumentLabel } from '@/lib/productDocuments';
 import { renderRichDescription } from '@/lib/renderRichDescription';
 import { richDescriptionToPlainText } from '@/lib/richDescription';
 import {
@@ -97,12 +98,11 @@ export default async function ProductDetailsPage({
   const { locale, categoryId: rawCategoryId, productId: rawProductId } = await params;
   const copy = getCatalogCopy(locale);
   const breadcrumbCopy = getBreadcrumbCopy(locale);
-  const [{ category, product }, certificate] = await Promise.all([
-    getProductPageData(rawCategoryId, rawProductId, locale),
-    // A missing certificate must never take a product page down: the bundled
-    // scan stays the fallback.
-    getCertificate().catch(() => null),
-  ]);
+  const { category, product } = await getProductPageData(
+    rawCategoryId,
+    rawProductId,
+    locale,
+  );
 
   if (rawCategoryId !== getCategorySlug(category) || rawProductId !== getProductSlug(product)) {
     redirect(`/${locale}${getProductHref(category, product)}`);
@@ -110,9 +110,9 @@ export default async function ProductDetailsPage({
 
   const categoryImage = resolveMediaUrl(category.imageUrl);
   const productImage = resolveMediaUrl(product.imageUrl);
-  const certificateImage =
-    resolveMediaUrl(certificate?.fileUrl) ??
-    (await getSiteImage('catalog-certificate-fallback')).src;
+  // Products carry their own documents; the bundled scan is what a card with
+  // none of them still links.
+  const certificateImage = (await getSiteImage('catalog-certificate-fallback')).src;
   const certificateLabel =
     locale === 'ru'
       ? 'Сертификат соответствия'
@@ -199,20 +199,40 @@ export default async function ProductDetailsPage({
         : locale === 'es'
           ? 'El producto es compatible con la mayoría de fertilizantes y productos fitosanitarios. No está permitida la mezcla en cuba con productos a base de cobre o azufre. Es obligatorio realizar un test de compatibilidad antes del uso.'
           : 'The product is compatible with most fertilizers and crop protection products. Mixing with copper- and sulfur-based products in the same tank is not allowed. A compatibility test is required before use.';
-  const certificateLink = certificateImage ? (
-    <a
-      href={certificateImage}
-      target="_blank"
-      rel="noreferrer"
-      className="group inline-flex w-fit items-center gap-4 self-start xl:pt-2">
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#f45734] text-white shadow-[0_18px_30px_-22px_rgba(244,87,52,0.9)] transition group-hover:scale-[1.04]">
-        <GrDocumentText className="text-[1.4rem]" />
-      </span>
-      <span className="text-[1rem] text-[#3b76f6] transition group-hover:text-[#0b5a45]">
-        {certificateLabel}
-      </span>
-    </a>
-  ) : null;
+  // A product carries its own files — several of them, named per language.
+  const productDocuments = (product.documents ?? []).filter((document) =>
+    Boolean(resolveMediaUrl(document.fileUrl)),
+  );
+  const documentLinks =
+    productDocuments.length > 0
+      ? productDocuments.map((document) => ({
+          href: resolveMediaUrl(document.fileUrl) as string,
+          key: `document-${document.id}`,
+          label: getProductDocumentLabel(document),
+        }))
+      : certificateImage
+        ? [{ href: certificateImage, key: 'certificate', label: certificateLabel }]
+        : [];
+  const certificateLink =
+    documentLinks.length > 0 ? (
+      <div className="flex flex-col gap-4 self-start xl:pt-2">
+        {documentLinks.map((document) => (
+          <a
+            key={document.key}
+            href={document.href}
+            target="_blank"
+            rel="noreferrer"
+            className="group inline-flex w-fit items-center gap-4">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#f45734] text-white shadow-[0_18px_30px_-22px_rgba(244,87,52,0.9)] transition group-hover:scale-[1.04]">
+              <GrDocumentText className="text-[1.4rem]" />
+            </span>
+            <span className="text-[1rem] text-[#3b76f6] transition group-hover:text-[#0b5a45]">
+              {document.label}
+            </span>
+          </a>
+        ))}
+      </div>
+    ) : null;
   const productPath = getProductHref(category, product);
   const breadcrumbSchema = buildBreadcrumbSchema(locale, [
     { name: breadcrumbCopy.home, path: '/' },

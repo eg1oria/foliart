@@ -3,7 +3,6 @@ export const ADMIN_SECTIONS = [
   'articles',
   'calendars',
   'partners',
-  'certificates',
   'contacts',
   'site-images',
   'messages',
