@@ -30,6 +30,6 @@ export default function robots(): MetadataRoute.Robots {
     sitemap: `${siteOrigin}/sitemap.xml`,
     // No `host:` — Yandex dropped the directive in 2018 and it was never part
     // of RFC 9309. The canonical host is declared where every crawler reads
-    // it: the 301 from `www` in nginx, plus `rel=canonical` on every page.
+    // it: `rel=canonical` on every page.
   };
 }
