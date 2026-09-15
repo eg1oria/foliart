@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import HeroBreadcrumbs, { getBreadcrumbCopy } from '@/components/HeroBreadcrumbs';
 import MediaImage from '@/components/catalog/MediaImage';
-import { Link } from '@/i18n/routing';
+import { Link, routing } from '@/i18n/routing';
 import {
   formatArticleDate,
   getArticleHref,
+  getArticleLocalesById,
   getArticleSlug,
   getArticlesCopy,
 } from '@/lib/articles';
@@ -18,7 +19,7 @@ import {
   stripHtml,
 } from '@/lib/seo';
 import { getSiteImage } from '@/lib/siteImagesServer';
-import { notFound, redirect } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { FiArrowLeft, FiEye } from 'react-icons/fi';
 import ArticleViewCounter from './view-counter';
 import { renderArticleContent } from '@/lib/renderArticleContent';
@@ -31,6 +32,16 @@ async function getArticleByRouteParam(value: string, locale: string): Promise<Ar
   } catch {
     return null;
   }
+}
+
+// Translations are published one language at a time, so hreflang must list only
+// the locales whose article list already carries this article.
+async function getArticleLocales(articleId: number, currentLocale: string) {
+  const articlesByLocale = await Promise.all(
+    routing.locales.map(async (locale) => [locale, await getArticles(locale)] as const),
+  );
+
+  return getArticleLocalesById(articlesByLocale).get(articleId) ?? [currentLocale];
 }
 
 export async function generateMetadata({
@@ -74,6 +85,7 @@ export async function generateMetadata({
     description: article.excerpt || stripHtml(renderedContent) || copy.detailsEmpty,
     image: resolveMediaUrl(article.imageUrl),
     type: 'article',
+    availableLocales: await getArticleLocales(article.id, locale),
   });
 }
 
@@ -95,7 +107,7 @@ export default async function ArticleDetailsPage({
   }
 
   if (rawArticleId !== getArticleSlug(article)) {
-    redirect(`/${locale}${getArticleHref(article)}`);
+    permanentRedirect(`/${locale}${getArticleHref(article)}`);
   }
 
   const relatedArticles = articles.filter((item) => item.id !== article.id).slice(0, 2);

@@ -95,6 +95,18 @@ const createConfig = (): NextConfig => {
         },
       ];
     },
+    // One-off: the Zn+Mg product was published as "Zn+Mn" and its auto-derived
+    // slug `znmn` got indexed before the name was fixed. Hand that URL's signal
+    // over to the real one instead of leaving a 404 in Search Console.
+    async redirects() {
+      return [
+        {
+          source: '/:locale(ru|en|fr|es)/catalog/kompleksnye-preparaty/znmn',
+          destination: '/:locale/catalog/kompleksnye-preparaty/znmg',
+          permanent: true,
+        },
+      ];
+    },
     async headers() {
       return [
         {

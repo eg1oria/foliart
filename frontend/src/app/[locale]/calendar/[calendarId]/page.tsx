@@ -13,7 +13,7 @@ import { renderRichDescription } from '@/lib/renderRichDescription';
 import { richDescriptionToPlainText } from '@/lib/richDescription';
 import { buildBreadcrumbSchema, buildPageMetadata, stringifyJsonLd } from '@/lib/seo';
 import { getSiteImage } from '@/lib/siteImagesServer';
-import { notFound, redirect } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 
 export async function generateMetadata({
   params,
@@ -66,7 +66,7 @@ export default async function CalendarDetailsPage({
   }
 
   if (rawCalendarId !== getCalendarSlug(calendar)) {
-    redirect(`/${locale}${getCalendarHref(calendar)}`);
+    permanentRedirect(`/${locale}${getCalendarHref(calendar)}`);
   }
 
   const {

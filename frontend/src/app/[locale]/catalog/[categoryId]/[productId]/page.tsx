@@ -30,7 +30,7 @@ import {
   stringifyJsonLd,
 } from '@/lib/seo';
 import { getSiteImage } from '@/lib/siteImagesServer';
-import { notFound, redirect } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { FiChevronDown } from 'react-icons/fi';
 import { GrDocumentText } from 'react-icons/gr';
 import { TbArrowBackUp } from 'react-icons/tb';
@@ -105,7 +105,7 @@ export default async function ProductDetailsPage({
   );
 
   if (rawCategoryId !== getCategorySlug(category) || rawProductId !== getProductSlug(product)) {
-    redirect(`/${locale}${getProductHref(category, product)}`);
+    permanentRedirect(`/${locale}${getProductHref(category, product)}`);
   }
 
   const categoryImage = resolveMediaUrl(category.imageUrl);

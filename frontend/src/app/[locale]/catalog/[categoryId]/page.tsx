@@ -16,7 +16,7 @@ import { renderRichDescription } from '@/lib/renderRichDescription';
 import { richDescriptionToPlainText } from '@/lib/richDescription';
 import { buildBreadcrumbSchema, buildPageMetadata, stringifyJsonLd } from '@/lib/seo';
 import { getSiteImage } from '@/lib/siteImagesServer';
-import { notFound, redirect } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { FiInfo } from 'react-icons/fi';
 
 async function getCategoryPageData(categoryParam: string, locale: string) {
@@ -103,7 +103,7 @@ export default async function CategoryProductsPage({
   const categoryDescriptionHtml = renderRichDescription(category.description);
 
   if (rawCategoryId !== getCategorySlug(category)) {
-    redirect(`/${locale}${getCategoryHref(category)}`);
+    permanentRedirect(`/${locale}${getCategoryHref(category)}`);
   }
 
   const categoryImage = resolveMediaUrl(category.imageUrl);

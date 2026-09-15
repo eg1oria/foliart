@@ -9,6 +9,25 @@ export function getArticleHref(article: Pick<Article, 'title' | 'slugSourceTitle
   return `/articles/${getArticleSlug(article)}`;
 }
 
+// The backend leaves an article out of a locale's list until that translation is
+// complete and answers 404 for it there, so the per-locale lists are the record
+// of which language versions exist.
+export function getArticleLocalesById(
+  articlesByLocale: ReadonlyArray<readonly [string, ReadonlyArray<Pick<Article, 'id'>>]>,
+) {
+  const localesById = new Map<number, string[]>();
+
+  for (const [locale, articles] of articlesByLocale) {
+    for (const article of articles) {
+      const locales = localesById.get(article.id) ?? [];
+      locales.push(locale);
+      localesById.set(article.id, locales);
+    }
+  }
+
+  return localesById;
+}
+
 export function findArticleByParam(articles: Article[], value: string) {
   const parsedId = parseEntityId(value);
 

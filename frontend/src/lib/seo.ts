@@ -29,6 +29,8 @@ type BuildPageMetadataArgs = {
   image?: string | null;
   keywords?: string[];
   type?: 'website' | 'article';
+  /** Locales the page actually exists in; every routed locale when omitted. */
+  availableLocales?: readonly string[];
 };
 
 type BreadcrumbItem = {
@@ -198,19 +200,25 @@ export function getOpenGraphImages(image?: string | null) {
 
 // ─── Alternates (hreflang) ────────────────────────────────────────────────────
 
+// Only locales the page exists in may be listed: Google follows every declared
+// alternate, and one pointing at a missing translation is reported as a 404.
 export function buildLocalizedAlternates(
   locale: string,
   path: string,
+  availableLocales: readonly string[] = routing.locales,
 ): NonNullable<Metadata['alternates']> {
   const languages = Object.fromEntries(
-    routing.locales.map((item) => [item, getLocalizedPath(item, path)]),
-  ) as Record<SupportedLocale, string>;
+    availableLocales.map((item) => [item, getLocalizedPath(item, path)]),
+  ) as Partial<Record<SupportedLocale, string>>;
+  const defaultLocale = availableLocales.includes(routing.defaultLocale)
+    ? routing.defaultLocale
+    : locale;
 
   return {
     canonical: getLocalizedPath(locale, path),
     languages: {
       ...languages,
-      'x-default': getLocalizedPath(routing.defaultLocale, path),
+      'x-default': getLocalizedPath(defaultLocale, path),
     },
   };
 }
@@ -225,6 +233,7 @@ export function buildPageMetadata({
   image,
   keywords = [],
   type = 'website',
+  availableLocales = routing.locales,
 }: BuildPageMetadataArgs): Metadata {
   const resolvedDescription = trimDescription(description || getDefaultSiteDescription(locale));
   const fullTitle = buildDocumentTitle(title);
@@ -240,7 +249,7 @@ export function buildPageMetadata({
     title,
     description: resolvedDescription,
     keywords: resolvedKeywords,
-    alternates: buildLocalizedAlternates(locale, path),
+    alternates: buildLocalizedAlternates(locale, path, availableLocales),
     openGraph: {
       type,
       title: fullTitle,
@@ -248,7 +257,7 @@ export function buildPageMetadata({
       url: getLocalizedPath(locale, path),
       siteName: SITE_NAME,
       locale: getOpenGraphLocale(locale),
-      alternateLocale: routing.locales
+      alternateLocale: availableLocales
         .filter((item) => item !== locale)
         .map((item) => getOpenGraphLocale(item)),
       images: getOpenGraphImages(image),

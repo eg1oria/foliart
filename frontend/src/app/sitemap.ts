@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { routing } from '@/i18n/routing';
-import { getArticles, getCalendars, getCategories, getProducts } from '@/lib/api';
-import { getArticleHref } from '@/lib/articles';
+import { getArticles, getCalendars, getCategories, getProducts, type Article } from '@/lib/api';
+import { getArticleHref, getArticleLocalesById } from '@/lib/articles';
 import { getCalendarHref } from '@/lib/calendars';
 import { getCategoryHref, getProductHref } from '@/lib/catalog';
 import { getSiteOrigin, getLocalizedPath } from '@/lib/seo';
@@ -31,10 +31,14 @@ const staticPublicPaths = [
   '/search',
 ];
 
-function buildAlternates(path: string, siteOrigin: string) {
+function buildAlternates(
+  path: string,
+  siteOrigin: string,
+  locales: readonly string[] = routing.locales,
+) {
   return {
     languages: Object.fromEntries(
-      routing.locales.map((locale) => [locale, `${siteOrigin}${getLocalizedPath(locale, path)}`]),
+      locales.map((locale) => [locale, `${siteOrigin}${getLocalizedPath(locale, path)}`]),
     ),
   };
 }
@@ -51,16 +55,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     alternates: buildAlternates(path, siteOrigin),
   }));
 
-  // Загружаем данные только один раз для defaultLocale — hrefs одинаковые для всех локалей.
+  // Каталог и календари загружаем один раз для defaultLocale — hrefs одинаковые для всех
+  // локалей, и эти страницы существуют на каждом языке. Статьи — по каждой локали: бэкенд
+  // отдаёт статью только там, где её перевод готов, и hreflang на неготовый перевод
+  // Google записывает в 404.
   // Ошибку намеренно не глушим: пустой ответ здесь неотличим от «раздела больше нет»,
   // и краулер получил бы 200 с sitemap, где не хватает большей части сайта. Пусть
   // лучше маршрут отдаст 5xx — поисковики просто повторят запрос позже.
-  const [categories, products, articles, calendars] = await Promise.all([
-    getCategories(routing.defaultLocale),
-    getProducts(undefined, routing.defaultLocale),
-    getArticles(routing.defaultLocale),
-    getCalendars(routing.defaultLocale),
+  const [[categories, products, calendars], articleLists] = await Promise.all([
+    Promise.all([
+      getCategories(routing.defaultLocale),
+      getProducts(undefined, routing.defaultLocale),
+      getCalendars(routing.defaultLocale),
+    ]),
+    Promise.all(routing.locales.map((locale) => getArticles(locale))),
   ]);
+
+  const articlesByLocale = routing.locales.map(
+    (locale, index) => [locale, articleLists[index]] as const,
+  );
+  const articleLocalesById = getArticleLocalesById(articlesByLocale);
+  const articlesById = new Map<number, Article>();
+  for (const [, list] of articlesByLocale) {
+    for (const article of list) {
+      if (!articlesById.has(article.id)) articlesById.set(article.id, article);
+    }
+  }
 
   const categoriesById = new Map(categories.map((c) => [c.id, c]));
 
@@ -90,14 +110,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ];
   });
 
-  const articleEntries: MetadataRoute.Sitemap = articles.map((article) => {
+  const articleEntries: MetadataRoute.Sitemap = [...articlesById.values()].map((article) => {
     const path = getArticleHref(article);
+    const locales = articleLocalesById.get(article.id) ?? [routing.defaultLocale];
+    const primaryLocale = locales.includes(routing.defaultLocale) ? routing.defaultLocale : locales[0];
     return {
-      url: `${siteOrigin}${getLocalizedPath(routing.defaultLocale, path)}`,
+      url: `${siteOrigin}${getLocalizedPath(primaryLocale, path)}`,
       lastModified: new Date(article.publishedAt),
       changeFrequency: 'yearly',
       priority: 0.6,
-      alternates: buildAlternates(path, siteOrigin),
+      alternates: buildAlternates(path, siteOrigin, locales),
     };
   });
 

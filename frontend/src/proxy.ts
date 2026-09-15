@@ -17,8 +17,25 @@ function getRequestPath(request: NextRequest) {
   return `${request.nextUrl.pathname}${request.nextUrl.search}`;
 }
 
+function hasLocalePrefix(pathname: string) {
+  return routing.locales.some(
+    (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`),
+  );
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Only the prefix-less public sections listed in the matcher get here without
+  // a locale. Crawlers learned those URLs from alternates the middleware used to
+  // advertise, so answer them with a permanent redirect to the default locale
+  // instead of a 404 — that hands the link signal over to the real page.
+  if (pathname !== '/' && !hasLocalePrefix(pathname)) {
+    const localizedUrl = request.nextUrl.clone();
+    localizedUrl.pathname = `/${routing.defaultLocale}${pathname}`;
+
+    return NextResponse.redirect(localizedUrl, 301);
+  }
 
   if (!isAdminPath(pathname)) {
     return intlMiddleware(request);
@@ -69,5 +86,9 @@ export async function proxy(request: NextRequest) {
 export default proxy;
 
 export const config = {
-  matcher: ['/', '/(ru|en|fr|es)/:path*'],
+  matcher: [
+    '/',
+    '/(ru|en|fr|es)/:path*',
+    '/(about|articles|calendar|catalog|contacts|privacy|search)/:path*',
+  ],
 };
