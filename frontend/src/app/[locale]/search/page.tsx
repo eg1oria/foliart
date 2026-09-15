@@ -5,6 +5,7 @@ import { FiArrowRight, FiSearch } from 'react-icons/fi';
 import HeroBreadcrumbs, { getBreadcrumbCopy } from '@/components/HeroBreadcrumbs';
 import MediaImage from '@/components/catalog/MediaImage';
 import SearchField from '@/components/search/SearchField';
+import SearchMatchedTags from '@/components/search/SearchMatchedTags';
 import { Link } from '@/i18n/routing';
 import { formatArticleDate } from '@/lib/articles';
 import {
@@ -139,6 +140,12 @@ export default async function SearchPage({ params, searchParams }: SearchPagePro
                 {document.description}
               </span>
             ) : null}
+
+            <SearchMatchedTags
+              document={document}
+              query={query}
+              className="mt-3 flex-wrap text-sm"
+            />
           </span>
 
           <FiArrowRight

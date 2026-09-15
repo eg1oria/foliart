@@ -67,6 +67,8 @@ function buildArticleDocument(article: Article): SearchDocument {
     href: getArticleHref(article),
     description: toSummary(article.excerpt),
     image: resolveMediaUrl(article.imageUrl),
+    // Hashtags from the body ("#пшеница") — the list API omits the body itself.
+    tags: article.tags?.length ? article.tags : undefined,
     date: article.publishedAt,
   };
 }

@@ -12,8 +12,15 @@ import {
   createArticleImageLayout,
   normalizeArticleImageLayout,
 } from './article-image-layout';
-import { normalizeArticleDocument } from './article-content-json';
-import { sanitizeArticleContent } from './article-content.util';
+import {
+  extractArticleHashtags,
+  getArticleDocumentText,
+  normalizeArticleDocument,
+} from './article-content-json';
+import {
+  sanitizeArticleContent,
+  stripHtmlToText,
+} from './article-content.util';
 
 type ArticleTranslationFields = {
   title: string;
@@ -187,6 +194,44 @@ export class ArticlesService {
     return {};
   }
 
+  /**
+   * Hashtags from the body the article page would show. The list omits the
+   * body itself, so this is what lets the site search find articles by tag.
+   */
+  private getArticleTags(
+    article: ArticleWithLegacyAndTranslations,
+    locale: string | undefined,
+    legacyContent: string,
+  ) {
+    const requestedLocale = normalizeContentLocale(
+      locale ?? DEFAULT_CONTENT_LOCALE,
+    );
+    const translations = article.translations ?? [];
+    const source =
+      translations.find(
+        (item) =>
+          item.locale === requestedLocale &&
+          item.title.trim() &&
+          (item.content.trim() || item.contentJson),
+      ) ??
+      translations.find((item) => item.locale === DEFAULT_CONTENT_LOCALE);
+
+    try {
+      const text = source?.contentJson
+        ? getArticleDocumentText(normalizeArticleDocument(source.contentJson))
+        : stripHtmlToText(
+            // Keep block boundaries so "…урожае.</p><p>#тег" stays two words.
+            legacyContent.replace(
+              /<\/(?:p|li|h[1-6]|blockquote)>|<br\s*\/?>/gi,
+              '$& ',
+            ),
+          );
+      return extractArticleHashtags(text);
+    } catch {
+      return [];
+    }
+  }
+
   async findAll(locale?: string, contentLocale?: string) {
     const articles = await this.prisma.article.findMany({
       include: { translations: true },
@@ -211,6 +256,7 @@ export class ArticlesService {
       return {
         ...summary,
         slug: article.slug ?? slugifyArticleTitle(article.title),
+        tags: this.getArticleTags(article, locale, resolved.content),
         ...(adminTranslation
           ? {
               adminTranslation: {

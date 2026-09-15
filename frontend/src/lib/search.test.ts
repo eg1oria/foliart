@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createSearchEntries,
   foldSearchText,
+  getMatchedSearchTags,
   getSearchHighlightParts,
   groupHitsByType,
   isSearchableQuery,
@@ -99,6 +100,36 @@ describe('search ranking', () => {
   it('falls back to keywords and descriptions with a lower rank', () => {
     const titles = titlesFor('стресса');
     expect(titles).toEqual(['ВЕРАЙЗОН']);
+  });
+
+  it('finds an article by a hashtag from its body', () => {
+    const tagged: SearchDocument = {
+      id: 'article:2',
+      type: 'article',
+      title: 'Озимые зерновые: первая гербицидная обработка',
+      href: '/articles/ozimye-zernovye-pervaya-gerbitsidnaya-obrabotka',
+      tags: ['ОзимыеЗерновые', 'Пшеница', 'антистресс'],
+    };
+
+    expect(
+      searchDocuments([...documents, tagged], 'пше').map((hit) => hit.document.id),
+    ).toContain('article:2');
+    expect(searchDocuments([tagged], '#пшеница')).toHaveLength(1);
+  });
+
+  it('reports which hashtags a document matched by', () => {
+    const tagged: SearchDocument = {
+      id: 'article:2',
+      type: 'article',
+      title: 'Первая гербицидная обработка',
+      href: '/articles/pervaya-gerbitsidnaya-obrabotka',
+      tags: ['ОзимыеЗерновые', 'Пшеница', 'антистресс'],
+    };
+
+    expect(getMatchedSearchTags(tagged, 'пше')).toEqual(['Пшеница']);
+    expect(getMatchedSearchTags(tagged, '#зерно')).toEqual(['ОзимыеЗерновые']);
+    expect(getMatchedSearchTags(tagged, 'гербицид')).toEqual([]);
+    expect(getMatchedSearchTags(documents[0], 'пше')).toEqual([]);
   });
 
   it('ranks the category above the product that only mentions it', () => {

@@ -19,6 +19,8 @@ export type SearchDocument = {
   context?: string;
   image?: string | null;
   keywords?: string[];
+  /** Hashtags as written, without "#". Searched like keywords and shown on a match. */
+  tags?: string[];
   /** ISO date, only for articles — used to sort the "latest" blocks. */
   date?: string;
 };
@@ -172,7 +174,7 @@ function toLatinFieldSet(fields: FieldSet): FieldSet {
 export function createSearchEntry(document: SearchDocument): SearchEntry {
   const title = foldSearchText(document.title);
   const secondary = foldSearchText(
-    [document.context ?? '', ...(document.keywords ?? [])].join(' '),
+    [document.context ?? '', ...(document.keywords ?? []), ...(document.tags ?? [])].join(' '),
   );
   const body = foldSearchText(document.description ?? '');
   const folded = buildFieldSet(title, secondary, body);
@@ -182,6 +184,30 @@ export function createSearchEntry(document: SearchDocument): SearchEntry {
 
 export function createSearchEntries(documents: SearchDocument[]): SearchEntry[] {
   return documents.map(createSearchEntry);
+}
+
+const matchedTagsLimit = 3;
+
+/**
+ * Tags that some query token lands in, using the same prefix/substring rules as
+ * the secondary field — so the UI can show "#пшеница" next to an article hit.
+ */
+export function getMatchedSearchTags(document: SearchDocument, query: string): string[] {
+  if (!document.tags?.length || !isSearchableQuery(query)) return [];
+
+  const tokens = Array.from(
+    new Set(buildQueryVariants(query).flatMap((variant) => variant.split(' ').filter(Boolean))),
+  );
+  const latinTokens = tokens.map(toLatinSearchText);
+  const landsIn = (tag: string, candidates: string[]) =>
+    candidates.some((token) => tag.startsWith(token) || (token.length >= 4 && tag.includes(token)));
+
+  return document.tags
+    .filter((tag) => {
+      const folded = foldSearchText(tag).replace(/ /g, '');
+      return landsIn(folded, tokens) || landsIn(toLatinSearchText(folded), latinTokens);
+    })
+    .slice(0, matchedTagsLimit);
 }
 
 // ─── Scoring ──────────────────────────────────────────────────────────────────

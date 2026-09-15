@@ -100,6 +100,8 @@ export type Article = {
   viewCount: number;
   slugSourceTitle?: string;
   slug?: string;
+  /** Hashtags from the body as written, without "#". Only in the list. */
+  tags?: string[];
   contentPayload?: ArticleContentPayload;
   adminTranslation?: ArticleAdminTranslation;
 };

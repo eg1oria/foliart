@@ -21,6 +21,7 @@ import {
   readRecentSearches,
   rememberRecentSearch,
 } from '@/lib/searchClient';
+import SearchMatchedTags from './SearchMatchedTags';
 
 type SearchFieldProps = {
   /** `overlay` shows recent searches and popular sections inside the dropdown. */
@@ -298,6 +299,11 @@ export default function SearchField({
                                 ? `${t(`badges.${document.type}`)} · ${document.context}`
                                 : t(`badges.${document.type}`)}
                             </span>
+                            <SearchMatchedTags
+                              document={document}
+                              query={query}
+                              className="mt-1 flex-nowrap overflow-hidden whitespace-nowrap text-xs"
+                            />
                           </span>
                         </button>
                       </li>

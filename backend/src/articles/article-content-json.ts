@@ -344,6 +344,7 @@ export function getArticleDocumentText(document: JSONContent) {
   const chunks: string[] = [];
   const visit = (node: JSONContent) => {
     if (node.text) chunks.push(node.text);
+    if (node.type === 'hardBreak') chunks.push(' ');
     node.content?.forEach(visit);
     if (
       ['paragraph', 'heading', 'listItem', 'blockquote'].includes(
@@ -354,6 +355,25 @@ export function getArticleDocumentText(document: JSONContent) {
   };
   visit(document);
   return chunks.join('').replace(/\s+/g, ' ').trim();
+}
+
+// Not preceded by a word character, "/" or "&" — skips URL anchors and entities.
+const hashtagPattern = /(?<![\p{L}\p{N}_/&])#([\p{L}\p{N}_]+)/gu;
+const maxHashtags = 50;
+
+/**
+ * Hashtags without "#", spelled as first written ("#ЗащитаРастений"), in order
+ * of appearance. Repeats are dropped case-insensitively.
+ */
+export function extractArticleHashtags(text: string) {
+  const tags = new Map<string, string>();
+  for (const match of text.matchAll(hashtagPattern)) {
+    if (!/\p{L}/u.test(match[1])) continue;
+    const key = match[1].toLowerCase();
+    if (!tags.has(key)) tags.set(key, match[1]);
+    if (tags.size >= maxHashtags) break;
+  }
+  return [...tags.values()];
 }
 
 export function getArticleDocumentMediaIds(document: JSONContent) {

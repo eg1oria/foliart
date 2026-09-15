@@ -177,6 +177,11 @@ header,
   margin: 0;
 }
 
+/* The editor keeps an empty paragraph one line tall; mirror that on the page. */
+.article-content p:empty {
+  min-height: 1lh;
+}
+
 .article-content ul,
 .article-content ol {
   margin: 0;

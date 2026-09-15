@@ -127,6 +127,57 @@ describe('ArticlesService', () => {
     });
   });
 
+  it('lists hashtags from the article body for search', async () => {
+    prismaServiceMock.article.findMany.mockResolvedValue([
+      {
+        ...baseArticle,
+        translations: [
+          {
+            ...russianTranslation,
+            contentJson: {
+              type: 'doc',
+              content: [
+                {
+                  type: 'paragraph',
+                  content: [{ type: 'text', text: 'Итог' }],
+                },
+                { type: 'paragraph' },
+                {
+                  type: 'paragraph',
+                  content: [
+                    { type: 'text', text: '#Пшеница #гербициды' },
+                    { type: 'hardBreak' },
+                    { type: 'text', text: '#пшеница #агроном' },
+                  ],
+                },
+              ],
+            },
+          },
+        ],
+      },
+    ]);
+
+    const articles = await service.findAll('ru');
+
+    expect(articles[0].tags).toEqual(['Пшеница', 'гербициды', 'агроном']);
+  });
+
+  it('lists hashtags from legacy HTML without URL anchors or numbers', async () => {
+    const content =
+      '<p>См. https://foliart.me/page#section</p><p>#озимые #2026</p>';
+    prismaServiceMock.article.findMany.mockResolvedValue([
+      {
+        ...baseArticle,
+        content,
+        translations: [{ ...russianTranslation, content }],
+      },
+    ]);
+
+    const articles = await service.findAll('ru');
+
+    expect(articles[0].tags).toEqual(['озимые']);
+  });
+
   it('returns not found for a direct public link without a translation', async () => {
     prismaServiceMock.article.findUnique.mockResolvedValue(baseArticle);
 
