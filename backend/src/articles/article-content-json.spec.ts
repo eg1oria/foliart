@@ -103,6 +103,34 @@ describe('TipTap article JSON contract', () => {
     expect(() => normalizeArticleDocument(value)).toThrow(message);
   });
 
+  it('drops marks from line breaks pasted inside formatted text', () => {
+    const document = normalizeArticleDocument({
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            { type: 'hardBreak', marks: [{ type: 'bold' }] },
+            { type: 'text', text: 'Bold', marks: [{ type: 'bold' }] },
+          ],
+        },
+      ],
+    });
+    expect(document.content?.[0].content?.[0]).toEqual({ type: 'hardBreak' });
+  });
+
+  it.each([
+    [{ type: 'hardBreak', marks: [{ type: 'strike' }] }, 'not allowed'],
+    [{ type: 'hardBreak', text: 'x' }, 'cannot contain text'],
+  ])('still validates line break fields', (hardBreak, message) => {
+    expect(() =>
+      normalizeArticleDocument({
+        type: 'doc',
+        content: [{ type: 'paragraph', content: [hardBreak] }],
+      }),
+    ).toThrow(message);
+  });
+
   it('allows upload placeholders only in drafts', () => {
     const value = {
       type: 'doc',

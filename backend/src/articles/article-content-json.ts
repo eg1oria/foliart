@@ -157,16 +157,21 @@ export function normalizeArticleDocument(
       };
     }
 
-    if (node.text !== undefined || node.marks !== undefined) {
-      fail(`${path} cannot contain text or marks`);
-    }
-
     if (type === 'hardBreak') {
       if (!['paragraph', 'heading'].includes(parent ?? ''))
         fail(`${path} has an invalid parent`);
+      if (node.text !== undefined) fail(`${path} cannot contain text`);
+      // A break pasted from Word or Google Docs inside bold/italic text comes
+      // in carrying that mark. It renders the same either way, so the marks
+      // are validated and dropped instead of rejecting the whole document.
+      normalizeMarks(node.marks, `${path}.marks`);
       if (node.attrs !== undefined || node.content !== undefined)
         fail(`${path} cannot have attrs or content`);
       return { type };
+    }
+
+    if (node.text !== undefined || node.marks !== undefined) {
+      fail(`${path} cannot contain text or marks`);
     }
 
     if (type === 'image') {
