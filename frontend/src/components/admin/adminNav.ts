@@ -10,6 +10,7 @@ import {
   FiGlobe,
   FiImage,
   FiMapPin,
+  FiShare2,
   FiUser,
   FiUsers,
 } from 'react-icons/fi';
@@ -57,6 +58,10 @@ const navI18n: Record<string, Record<AdminTabKey, AdminNavStrings>> = {
       label: 'Site images',
       description: 'Photos across the public site',
     },
+    'social-links': {
+      label: 'Social links',
+      description: 'Network badges in the header, per language',
+    },
     messages: {
       label: 'Translations',
       description: 'Public interface messages',
@@ -99,6 +104,10 @@ const navI18n: Record<string, Record<AdminTabKey, AdminNavStrings>> = {
       label: 'Изображения сайта',
       description: 'Фотографии на страницах публичного сайта',
     },
+    'social-links': {
+      label: 'Соцсети в шапке',
+      description: 'Кнопки соцсетей в шапке сайта — отдельно для каждого языка',
+    },
     messages: {
       label: 'Переводы',
       description: 'Интерфейсные тексты публичного сайта',
@@ -123,6 +132,7 @@ export const adminNavItems: AdminNavItem[] = [
   { key: 'partners', href: '/admin/partners', icon: FiBriefcase },
   { key: 'contacts', href: '/admin/contacts', icon: FiMapPin },
   { key: 'site-images', href: '/admin/site-images', icon: FiImage },
+  { key: 'social-links', href: '/admin/social-links', icon: FiShare2 },
   { key: 'messages', href: '/admin/messages', icon: FiGlobe },
   { key: 'admins', href: '/admin/admins', icon: FiUsers },
 ];

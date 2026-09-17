@@ -29,6 +29,7 @@ describe('admin permissions', () => {
       partners: 'none',
       contacts: 'none',
       'site-images': 'none',
+      'social-links': 'none',
       messages: 'none',
     });
   });
@@ -60,6 +61,7 @@ describe('admin permissions', () => {
       'partners',
       'contacts',
       'site-images',
+      'social-links',
       'messages',
     ]);
     expect(canManageSection(superAdmin, 'messages')).toBe(true);

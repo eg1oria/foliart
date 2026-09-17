@@ -107,6 +107,7 @@ describe('admin users Server Actions', () => {
         partners: 'none',
           contacts: 'none',
         'site-images': 'none',
+        'social-links': 'none',
         messages: 'none',
       },
     });
@@ -187,6 +188,7 @@ describe('admin users Server Actions', () => {
       partners: 'none',
       contacts: 'none',
       'site-images': 'none',
+      'social-links': 'none',
       messages: 'none',
     });
     expect(state.status).toBe('success');

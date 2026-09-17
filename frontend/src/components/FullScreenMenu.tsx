@@ -7,6 +7,7 @@ import { RxCross1 } from 'react-icons/rx';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { formatProductCount } from '@/lib/catalog';
 import { getFullLogo } from '@/lib/logo';
+import type { SocialLinkItem } from '@/lib/socialLinks';
 import { useLocale, useTranslations } from 'next-intl';
 import ContactModalTrigger from './ContactModalTrigger';
 import SocialLinks from './SocialLinks';
@@ -25,6 +26,7 @@ type FullscreenMenuProps = {
   onClose: () => void;
   catalogChildren?: CatalogChild[];
   calendarChildren?: CatalogChild[];
+  socialLinks?: SocialLinkItem[];
 };
 
 export default function FullscreenMenu({
@@ -32,6 +34,7 @@ export default function FullscreenMenu({
   onClose,
   catalogChildren = [],
   calendarChildren = [],
+  socialLinks = [],
 }: FullscreenMenuProps) {
   const t = useTranslations('Header');
   const footerT = useTranslations('Footer');
@@ -282,7 +285,7 @@ export default function FullscreenMenu({
             </ContactModalTrigger>
             <SocialLinks
               onLinkClick={onClose}
-              locale={locale}
+              links={socialLinks}
               linkClassName="flex h-11 w-11 items-center justify-center rounded-full border border-white/25 text-white transition-colors hover:border-transparent hover:bg-[#074031] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             />
           </div>

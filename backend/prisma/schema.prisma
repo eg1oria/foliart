@@ -57,6 +57,25 @@ model SiteImage {
   updatedAt DateTime @updatedAt
 }
 
+// Social network badges in the site header and the fullscreen menu. One row per
+// badge per content locale, because the networks differ by country: a locale
+// with no rows simply renders no badges. A badge shows either an icon (`icon`
+// holds a key from the registry both sides share) or a short text label, never
+// both, and a locale is capped at five of them.
+model SocialLink {
+  id        Int      @id @default(autoincrement())
+  locale    String
+  label     String
+  href      String
+  icon      String   @default("")
+  text      String   @default("")
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([locale, sortOrder])
+}
+
 model Partner {
   id        Int      @id @default(autoincrement())
   name      String

@@ -1,4 +1,5 @@
 import type { SiteImageMap } from './siteImages';
+import type { SocialLink } from './socialLinks';
 import { PUBLIC_REVALIDATE_SECONDS } from './seo';
 
 export type AdminTranslationBase = {
@@ -179,6 +180,7 @@ export const productsCacheTag = 'products';
 export const partnersCacheTag = 'partners';
 export const regionalContactsCacheTag = 'regional-contacts';
 export const siteImagesCacheTag = 'site-images';
+export const socialLinksCacheTag = 'social-links';
 
 function resolveFetchOptions(fetchOptions?: ApiFetchOptions): ApiFetchOptions {
   const resolved = fetchOptions ?? publicApiFetchOptions;
@@ -374,5 +376,15 @@ export async function getRegionalContact(
   return fetchJson<RegionalContact>(
     `/api/regional-contacts/${contactId}`,
     withCacheTag(fetchOptions, regionalContactsCacheTag),
+  );
+}
+
+export async function getSocialLinks(
+  locale: string,
+  fetchOptions?: ApiFetchOptions,
+): Promise<SocialLink[]> {
+  return fetchJson<SocialLink[]>(
+    `/api/social-links/${encodeURIComponent(locale)}`,
+    withCacheTag(fetchOptions, socialLinksCacheTag),
   );
 }

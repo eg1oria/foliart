@@ -12,11 +12,12 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { SiteImagesProvider } from '@/components/SiteImagesProvider';
 import YandexMetrika from '@/components/YandexMetrika';
-import { getCalendars, getCategories } from '@/lib/api';
+import { getCalendars, getCategories, getSocialLinks } from '@/lib/api';
 import { getCalendarHref, getCalendarImages } from '@/lib/calendars';
 import { getCategoryHref } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
 import { getSiteImageMap } from '@/lib/siteImagesServer';
+import { toSocialLinkItems } from '@/lib/socialLinks';
 import {
   buildOrganizationSchema,
   buildWebsiteSchema,
@@ -161,6 +162,17 @@ async function getHeaderCalendarChildren(locale: string) {
   }
 }
 
+// The header badges are editable per language in the admin panel. A language
+// with no rows — or an unreachable API — simply renders no badges, the same as
+// an unknown locale did while the list was hardcoded.
+async function getHeaderSocialLinks(locale: string) {
+  try {
+    return toSocialLinkItems(await getSocialLinks(locale));
+  } catch {
+    return [];
+  }
+}
+
 export default async function RootLayout({
   children,
   params,
@@ -177,12 +189,14 @@ export default async function RootLayout({
   const organizationJsonLd = buildOrganizationSchema(locale);
   const websiteJsonLd = buildWebsiteSchema(locale);
 
-  const [messages, catalogChildren, calendarChildren, siteImages] = await Promise.all([
-    getMessages(),
-    getHeaderCatalogChildren(locale),
-    getHeaderCalendarChildren(locale),
-    getSiteImageMap(),
-  ]);
+  const [messages, catalogChildren, calendarChildren, siteImages, socialLinks] =
+    await Promise.all([
+      getMessages(),
+      getHeaderCatalogChildren(locale),
+      getHeaderCalendarChildren(locale),
+      getSiteImageMap(),
+      getHeaderSocialLinks(locale),
+    ]);
 
   return (
     <html
@@ -238,6 +252,7 @@ gtag('config', '${GOOGLE_ANALYTICS_ID}', { send_page_view: true });`}
               key={locale}
               catalogChildren={catalogChildren}
               calendarChildren={calendarChildren}
+              socialLinks={socialLinks}
             />
             {children}
             <AdminRouteHidden>

@@ -5,6 +5,7 @@ export const adminSections = [
   'partners',
   'contacts',
   'site-images',
+  'social-links',
   'messages',
 ] as const;
 export const adminAccessLevels = ['none', 'view', 'manage'] as const;
@@ -27,6 +28,7 @@ export const adminSectionLabels: Record<AdminSection, string> = {
   partners: 'Партнёры',
   contacts: 'Контакты',
   'site-images': 'Изображения сайта',
+  'social-links': 'Соцсети в шапке',
   messages: 'Переводы',
 };
 
@@ -43,6 +45,7 @@ export const adminSectionPaths: Record<AdminSection, string> = {
   partners: '/admin/partners',
   contacts: '/admin/contacts',
   'site-images': '/admin/site-images',
+  'social-links': '/admin/social-links',
   messages: '/admin/messages',
 };
 
