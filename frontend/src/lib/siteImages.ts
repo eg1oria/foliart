@@ -32,6 +32,10 @@ export type SiteImageSlot = {
   recommended: string;
   /** Longest edge the upload is resized to; sent to the backend on upload. */
   maxDimension: number;
+  /** Public page the slot is on, when it is not its group's page. */
+  path?: string;
+  /** Only visible on a product card, so the admin link needs a real product. */
+  productPage?: true;
 };
 
 /**
@@ -184,6 +188,7 @@ export const siteImageSlots = {
     aspect: '1/1',
     recommended: '600×600',
     maxDimension: 800,
+    productPage: true,
   },
   'catalog-certificate-fallback': {
     default: '/sertificate.webp',
@@ -193,6 +198,7 @@ export const siteImageSlots = {
     aspect: '3/4',
     recommended: '1200×1600',
     maxDimension: 1600,
+    productPage: true,
   },
   'search-hero': {
     default: '/catalog-head.webp',
@@ -202,6 +208,7 @@ export const siteImageSlots = {
     aspect: '16/9',
     recommended: '1920×1080',
     maxDimension: 1920,
+    path: '/search',
   },
   'articles-hero': {
     default: '/articles-head.webp',
@@ -308,6 +315,18 @@ export const siteImageGroupPaths: Record<SiteImageGroup, string> = {
   privacy: '/privacy',
   common: '/',
 };
+
+/**
+ * Page the admin's "open on site" link leads to. `productPath` is any existing
+ * product card; without one a product-only slot falls back to the catalog.
+ */
+export function getSiteImageSlotPath(key: SiteImageKey, productPath?: string | null): string {
+  const slot: SiteImageSlot = siteImageSlots[key];
+
+  if (slot.productPage && productPath) return productPath;
+
+  return slot.path ?? siteImageGroupPaths[slot.group];
+}
 
 export function isSiteImageKey(value: unknown): value is SiteImageKey {
   return typeof value === 'string' && value in siteImageSlots;

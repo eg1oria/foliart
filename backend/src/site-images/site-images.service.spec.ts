@@ -13,13 +13,18 @@ describe('SiteImagesService', () => {
   };
 
   function createService(existing: typeof storedRow | null = null) {
+    const siteImage = {
+      findMany: jest.fn().mockResolvedValue(existing ? [existing] : []),
+      findUnique: jest.fn().mockResolvedValue(existing),
+      upsert: jest.fn().mockResolvedValue(undefined),
+      delete: jest.fn().mockResolvedValue(undefined),
+    };
     const prisma = {
-      siteImage: {
-        findMany: jest.fn().mockResolvedValue(existing ? [existing] : []),
-        findUnique: jest.fn().mockResolvedValue(existing),
-        upsert: jest.fn().mockResolvedValue(undefined),
-        delete: jest.fn().mockResolvedValue(undefined),
-      },
+      siteImage,
+      $transaction: jest.fn(
+        (run: (tx: { siteImage: typeof siteImage }) => Promise<unknown>) =>
+          run({ siteImage }),
+      ),
     };
 
     return {

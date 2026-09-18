@@ -20,12 +20,15 @@ export default function SiteImagesAdminBoard({
   highlightKey,
   images,
   locale,
+  productPath,
 }: {
   canManage: boolean;
   /** Slot the last upload or reset touched — its tab opens instead of «Главная». */
   highlightKey?: string;
   images: SiteImageMap;
   locale: string;
+  /** Any product card, for the slots that are only visible there. */
+  productPath?: string | null;
 }) {
   const [group, setGroup] = useState<SiteImageGroup>(
     isSiteImageKey(highlightKey) ? siteImageSlots[highlightKey].group : 'home',
@@ -79,6 +82,7 @@ export default function SiteImagesAdminBoard({
             highlighted={key === highlightKey}
             images={images}
             locale={locale}
+            productPath={productPath}
             slotKey={key}
           />
         ))}

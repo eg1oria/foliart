@@ -186,6 +186,8 @@ export class SiteImagesController {
       throw new BadRequestException('Image file is required');
     }
 
+    let previous: Awaited<ReturnType<SiteImagesService['save']>>;
+
     try {
       if (file.size > maxImageUploadBytes) {
         throw new BadRequestException('Image must be no larger than 5 MB');
@@ -196,19 +198,21 @@ export class SiteImagesController {
       });
       const { width, height } = await readStoredDimensions(optimized.path);
 
-      const previous = await this.siteImages.save(key, {
+      previous = await this.siteImages.save(key, {
         imageUrl: `${storedSiteImagePrefix}${optimized.filename}`,
         width,
         height,
       });
-
-      removeUploadedFile(getStoredSiteImagePath(previous?.imageUrl));
-
-      return this.siteImages.findAll();
     } catch (error) {
       removeUploadedFile(file.path);
       throw error;
     }
+
+    // Past this point the row already points at the new file, so nothing below
+    // may unlink it — a failed read of the set must not leave the slot broken.
+    removeUploadedFile(getStoredSiteImagePath(previous?.imageUrl));
+
+    return this.siteImages.findAll();
   }
 
   @Delete(':key')

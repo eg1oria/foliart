@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { resolveSiteImage } from './media';
 import {
+  getSiteImageSlotPath,
   isSiteImageKey,
   siteImageGroupPaths,
   siteImageKeys,
@@ -90,5 +91,13 @@ describe('site image slots', () => {
     expect(isSiteImageKey('home-hero')).toBe(true);
     expect(isSiteImageKey('home-hero-2')).toBe(false);
     expect(isSiteImageKey(null)).toBe(false);
+  });
+
+  it('links every slot to the page it is actually visible on', () => {
+    expect(getSiteImageSlotPath('home-hero')).toBe('/');
+    expect(getSiteImageSlotPath('search-hero')).toBe('/search');
+    expect(getSiteImageSlotPath('catalog-specialist', '/catalog/a/b')).toBe('/catalog/a/b');
+    expect(getSiteImageSlotPath('catalog-certificate-fallback', null)).toBe('/catalog');
+    expect(getSiteImageSlotPath('catalog-hero', '/catalog/a/b')).toBe('/catalog');
   });
 });

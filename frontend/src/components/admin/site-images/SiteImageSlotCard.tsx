@@ -9,7 +9,7 @@ import { adminCx, adminPrimaryButtonClassName } from '@/components/admin/adminSt
 import { Link } from '@/i18n/routing';
 import { resolveSiteImage } from '@/lib/media';
 import {
-  siteImageGroupPaths,
+  getSiteImageSlotPath,
   siteImageSlots,
   type SiteImageKey,
   type SiteImageMap,
@@ -46,12 +46,14 @@ export default function SiteImageSlotCard({
   highlighted = false,
   images,
   locale,
+  productPath,
   slotKey,
 }: {
   canManage: boolean;
   highlighted?: boolean;
   images: SiteImageMap;
   locale: string;
+  productPath?: string | null;
   slotKey: SiteImageKey;
 }) {
   const slot = siteImageSlots[slotKey];
@@ -94,10 +96,12 @@ export default function SiteImageSlotCard({
   }, [file]);
 
   // After an upload or reset the page reloads on the same tab; bring the card
-  // that just changed into view so the admin sees the result.
+  // that just changed into view so the admin sees the result. A repeat upload
+  // to the same slot keeps `highlighted` true, so the stored version is what
+  // tells this render apart from the previous one.
   useEffect(() => {
     if (highlighted) cardRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-  }, [highlighted]);
+  }, [highlighted, storedVersion]);
 
   const selectFile = (nextFile: File | null) => {
     const nextError = validateSiteImageFile(nextFile);
@@ -215,7 +219,7 @@ export default function SiteImageSlotCard({
 
         <div className="-mr-1 flex shrink-0 items-center">
           <Link
-            href={siteImageGroupPaths[slot.group]}
+            href={getSiteImageSlotPath(slotKey, productPath)}
             target="_blank"
             title="Посмотреть на сайте"
             aria-label="Посмотреть на сайте"

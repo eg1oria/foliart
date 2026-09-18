@@ -2,8 +2,33 @@ import { AdminNotice, AdminPanel, AdminShell } from '@/components/admin/AdminShe
 import SiteImagesAdminBoard from '@/components/admin/site-images/SiteImagesAdminBoard';
 import { requireAdminSection } from '@/lib/adminAuthServer';
 import { canManageSection } from '@/lib/adminPermissions';
-import { getSiteImages, noStoreApiFetchOptions } from '@/lib/api';
+import { getCategories, getProducts, getSiteImages, noStoreApiFetchOptions } from '@/lib/api';
+import { getProductHref } from '@/lib/catalog';
 import { siteImageKeys, type SiteImageMap } from '@/lib/siteImages';
+
+/**
+ * The specialist portrait and the fallback certificate are only rendered on a
+ * product card, so their "open on site" link needs a real one. Any product
+ * will do; without one the link falls back to the catalog.
+ */
+async function getSampleProductPath(locale: string) {
+  try {
+    const [categories, products] = await Promise.all([
+      getCategories(locale),
+      getProducts(undefined, locale),
+    ]);
+    const categoriesById = new Map(categories.map((category) => [category.id, category]));
+
+    for (const product of products) {
+      const category = categoriesById.get(product.categoryId);
+      if (category) return getProductHref(category, product);
+    }
+  } catch {
+    // The link is a convenience; a backend hiccup must not break the page.
+  }
+
+  return null;
+}
 
 export default async function AdminSiteImagesPage({
   params,
@@ -21,9 +46,12 @@ export default async function AdminSiteImagesPage({
   );
   const canManage = canManageSection(session, 'site-images');
   const query = await searchParams;
-  const imagesResult = await getSiteImages(noStoreApiFetchOptions)
-    .then((images) => ({ images, error: false as const }))
-    .catch(() => ({ images: {} as SiteImageMap, error: true as const }));
+  const [imagesResult, productPath] = await Promise.all([
+    getSiteImages(noStoreApiFetchOptions)
+      .then((images) => ({ images, error: false as const }))
+      .catch(() => ({ images: {} as SiteImageMap, error: true as const })),
+    getSampleProductPath(locale),
+  ]);
   const { images } = imagesResult;
   // Only registry keys count: a row left behind by a renamed slot must not be
   // reported as a replaced photo the admin can no longer see.
@@ -69,6 +97,7 @@ export default async function AdminSiteImagesPage({
             highlightKey={query.key}
             images={images}
             locale={locale}
+            productPath={productPath}
           />
         </AdminPanel>
       </div>

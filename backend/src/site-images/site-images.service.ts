@@ -37,27 +37,36 @@ export class SiteImagesService {
     );
   }
 
-  /** Returns the file that was replaced, so the caller can delete it. */
+  /**
+   * Returns the file that was replaced, so the caller can delete it. The read
+   * and the write share a transaction: two uploads to one slot must not both
+   * see the same previous row, or the file of the one that lost stays on disk
+   * with nothing pointing at it.
+   */
   async save(key: string, file: SiteImageFile) {
-    const previous = await this.prisma.siteImage.findUnique({ where: { key } });
+    return this.prisma.$transaction(async (tx) => {
+      const previous = await tx.siteImage.findUnique({ where: { key } });
 
-    await this.prisma.siteImage.upsert({
-      where: { key },
-      create: { key, ...file, revision: 1 },
-      update: { ...file, revision: { increment: 1 } },
+      await tx.siteImage.upsert({
+        where: { key },
+        create: { key, ...file, revision: 1 },
+        update: { ...file, revision: { increment: 1 } },
+      });
+
+      return previous;
     });
-
-    return previous;
   }
 
   /** Returns the removed file, so the caller can delete it. */
   async reset(key: string) {
-    const previous = await this.prisma.siteImage.findUnique({ where: { key } });
+    return this.prisma.$transaction(async (tx) => {
+      const previous = await tx.siteImage.findUnique({ where: { key } });
 
-    if (previous) {
-      await this.prisma.siteImage.delete({ where: { key } });
-    }
+      if (previous) {
+        await tx.siteImage.delete({ where: { key } });
+      }
 
-    return previous;
+      return previous;
+    });
   }
 }
