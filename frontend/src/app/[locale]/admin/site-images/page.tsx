@@ -3,7 +3,7 @@ import SiteImagesAdminBoard from '@/components/admin/site-images/SiteImagesAdmin
 import { requireAdminSection } from '@/lib/adminAuthServer';
 import { canManageSection } from '@/lib/adminPermissions';
 import { getSiteImages, noStoreApiFetchOptions } from '@/lib/api';
-import { siteImageKeys, siteImageSlots, type SiteImageMap } from '@/lib/siteImages';
+import { siteImageKeys, type SiteImageMap } from '@/lib/siteImages';
 
 export default async function AdminSiteImagesPage({
   params,
@@ -58,21 +58,19 @@ export default async function AdminSiteImagesPage({
         ) : null}
 
         <AdminPanel
-          badge="Изображения"
           title="Фотографии страниц"
           description={
             canManage
-              ? 'Выберите страницу, перетащите новое фото на превью и нажмите «Загрузить». Кнопка «Вернуть исходное» возвращает слот к изображению, встроенному в сайт.'
-              : 'Просмотр изображений публичного сайта. Для замены нужен полный доступ к разделу.'
+              ? 'Нажмите на фото или перетащите на него новый файл, затем «Сохранить».'
+              : 'Только просмотр — для замены нужен полный доступ к разделу.'
           }>
-          <SiteImagesAdminBoard canManage={canManage} images={images} locale={locale} />
+          <SiteImagesAdminBoard
+            canManage={canManage}
+            highlightKey={query.key}
+            images={images}
+            locale={locale}
+          />
         </AdminPanel>
-
-        <p className="text-xs leading-5 text-[#6a7f76]">
-          Логотип в шапке и подвале сюда не входит — он остаётся частью вёрстки. Всего в разделе{' '}
-          {siteImageKeys.length} слотов на {new Set(siteImageKeys.map((key) => siteImageSlots[key].group)).size}{' '}
-          группах страниц.
-        </p>
       </div>
     </AdminShell>
   );
