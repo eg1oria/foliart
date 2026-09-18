@@ -66,6 +66,18 @@ export default function SiteImageSlotCard({
   const inputRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
+  // A repeat upload to the same slot redirects to the same URL, so the page is
+  // not remounted and the picked file would linger as «Не сохранено». A new
+  // stored revision means that file is now live — drop the local selection.
+  const storedVersion = stored ? `${stored.revision}:${stored.updatedAt}` : null;
+  const [seenVersion, setSeenVersion] = useState(storedVersion);
+  if (seenVersion !== storedVersion) {
+    setSeenVersion(storedVersion);
+    setFile(null);
+    setClientError(null);
+    setAspectWarning(null);
+  }
+
   const previewUrl = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
   const visibleError = clientError ?? (state.key === slotKey ? state.fieldErrors?.file : undefined);
   const errorMessage = state.status === 'error' && state.key === slotKey ? state.message : null;
@@ -76,6 +88,10 @@ export default function SiteImageSlotCard({
     },
     [previewUrl],
   );
+
+  useEffect(() => {
+    if (!file && inputRef.current) inputRef.current.value = '';
+  }, [file]);
 
   // After an upload or reset the page reloads on the same tab; bring the card
   // that just changed into view so the admin sees the result.
