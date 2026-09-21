@@ -6,6 +6,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AdminUsersModule } from './admin-users/admin-users.module';
 import { ArticlesModule } from './articles/articles.module';
+import { BackupsModule } from './backups/backups.module';
 import { CalendarsModule } from './calendars/calendars.module';
 import { CategoriesModule } from './categories/categories.module';
 import { ContactModule } from './contact/contact.module';
@@ -33,6 +34,7 @@ import { UiMessagesModule } from './ui-messages/ui-messages.module';
     PartnersModule,
     RegionalContactsModule,
     ArticlesModule,
+    BackupsModule,
     CalendarsModule,
     ContactModule,
     PrismaModule,

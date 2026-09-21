@@ -7,3 +7,6 @@ coverage
 tmp-seed-test
 dev.db.bak
 prod.server.db
+backups
+.restore
+images/.restore

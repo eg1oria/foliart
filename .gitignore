@@ -20,6 +20,11 @@ backend/*.db.bak
 backend/prod*.db
 prod-from-server.db
 
+# Admin-panel backups and restore staging in local development
+backend/backups/
+backend/.restore/
+backend/images/.restore/
+
 # Uploads and test output
 uploads/
 test_output.txt

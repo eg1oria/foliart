@@ -3,12 +3,18 @@ import 'server-only';
 const backendUrl = (process.env.BACKEND_URL ?? 'http://localhost:3001').replace(/\/$/, '');
 const adminRequestTimeoutMs = 30_000;
 
-export async function adminApiFetch(path: string, init: RequestInit) {
+// The timeout also bounds reading the response body, so slow operations and
+// streamed downloads pass a longer one.
+export async function adminApiFetch(
+  path: string,
+  init: RequestInit,
+  { timeoutMs = adminRequestTimeoutMs }: { timeoutMs?: number } = {},
+) {
   try {
     return await fetch(`${backendUrl}${path}`, {
       ...init,
       cache: 'no-store',
-      signal: AbortSignal.timeout(adminRequestTimeoutMs),
+      signal: AbortSignal.timeout(timeoutMs),
     });
   } catch {
     return Response.json(

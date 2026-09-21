@@ -57,10 +57,11 @@ services:
     command:
       - sh
       - -c
-      - chown -R 1000:1000 /app/data /app/images
+      - chown -R 1000:1000 /app/data /app/images /app/backups
     volumes:
       - backend_data:/app/data
       - backend_images:/app/images
+      - backend_backups:/app/backups
     network_mode: none
     read_only: true
     cap_drop:
@@ -119,6 +120,10 @@ services:
       - SMTP_SECURE=${SMTP_SECURE:-false}
       - SMTP_USER=${SMTP_USER:-}
       - SMTP_PASS=${SMTP_PASS:-}
+      # Backups made from the admin panel live in their own volume; only the
+      # newest BACKUP_KEEP archives are kept.
+      - BACKUP_DIR=/app/backups
+      - BACKUP_KEEP=${BACKUP_KEEP:-10}
     depends_on:
       backend-storage-init:
         condition: service_completed_successfully
@@ -127,6 +132,7 @@ services:
     volumes:
       - backend_data:/app/data
       - backend_images:/app/images
+      - backend_backups:/app/backups
     networks:
       - dev
     read_only: true
@@ -197,5 +203,6 @@ volumes:
   # postgres_data:
   backend_data:
   backend_images:
+  backend_backups:
   frontend_next_cache:
   certbot_www:

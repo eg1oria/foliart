@@ -6,6 +6,7 @@ import {
   FiBox,
   FiBriefcase,
   FiCalendar,
+  FiDatabase,
   FiFolder,
   FiGlobe,
   FiImage,
@@ -15,7 +16,12 @@ import {
   FiUsers,
 } from 'react-icons/fi';
 
-export type AdminTabKey = AdminSection | 'admins' | 'account' | 'productCategories';
+export type AdminTabKey =
+  | AdminSection
+  | 'admins'
+  | 'account'
+  | 'backups'
+  | 'productCategories';
 
 export type AdminNavItem = {
   href: string;
@@ -70,6 +76,10 @@ const navI18n: Record<string, Record<AdminTabKey, AdminNavStrings>> = {
       label: 'Admins',
       description: 'Accounts and section access',
     },
+    backups: {
+      label: 'Backups',
+      description: 'Create, download and restore site backups',
+    },
     account: {
       label: 'My profile',
       description: 'Your own password',
@@ -116,6 +126,10 @@ const navI18n: Record<string, Record<AdminTabKey, AdminNavStrings>> = {
       label: 'Администраторы',
       description: 'Учётные записи и доступ к разделам',
     },
+    backups: {
+      label: 'Резервные копии',
+      description: 'Создание, скачивание и восстановление копий сайта',
+    },
     account: {
       label: 'Мой профиль',
       description: 'Смена собственного пароля',
@@ -123,7 +137,7 @@ const navI18n: Record<string, Record<AdminTabKey, AdminNavStrings>> = {
   },
 };
 
-// Content sections plus the super-admin-only accounts screen.
+// Content sections plus the super-admin-only accounts and backups screens.
 export const adminNavItems: AdminNavItem[] = [
   { key: 'products', href: '/admin/products', icon: FiBox },
   { key: 'productCategories', href: '/admin/products/categories', icon: FiFolder },
@@ -135,6 +149,7 @@ export const adminNavItems: AdminNavItem[] = [
   { key: 'social-links', href: '/admin/social-links', icon: FiShare2 },
   { key: 'messages', href: '/admin/messages', icon: FiGlobe },
   { key: 'admins', href: '/admin/admins', icon: FiUsers },
+  { key: 'backups', href: '/admin/backups', icon: FiDatabase },
 ];
 
 export const adminAccountNavItem: AdminNavItem = {
@@ -154,16 +169,19 @@ export function getAdminNavStrings(locale: string) {
  * entry from it leaves `AdminChrome` with no active tab, and the whole panel
  * disappears on that route instead of just its link.
  */
-const hiddenAdminTabs = new Set<AdminTabKey>(['site-images']);
+// `backups` waits for the client's go-ahead; the page itself stays reachable
+// by URL for the super admin.
+const hiddenAdminTabs = new Set<AdminTabKey>(['site-images', 'backups']);
 
-// The admins tab belongs to the super admin only; every content tab follows the
+// The admins and backups tabs belong to the super admin only — a backup holds
+// the whole database, password hashes included. Every content tab follows the
 // per-section permissions of whoever is signed in.
 export function isAdminTabVisible(key: AdminTabKey, session: AdminSessionUser) {
   if (hiddenAdminTabs.has(key)) {
     return false;
   }
 
-  if (key === 'admins') {
+  if (key === 'admins' || key === 'backups') {
     return session.isSuperAdmin;
   }
 

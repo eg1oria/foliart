@@ -5,6 +5,8 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import type { NextFunction, Request, Response } from 'express';
 import { getAdminApiSecret } from './admin-api.guard';
 import { AppModule } from './app.module';
+import { getBackupPaths } from './backups/backup-paths';
+import { applyPendingRestore } from './backups/pending-restore';
 
 const developmentOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000'];
 
@@ -29,6 +31,9 @@ function getAllowedOrigins() {
 
 async function bootstrap() {
   getAdminApiSecret();
+  // Must run before Nest opens the database: a restore staged from the admin
+  // panel is swapped in here, while nothing holds the SQLite file.
+  await applyPendingRestore(getBackupPaths());
   const allowedOrigins = getAllowedOrigins();
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.useBodyParser('json', { limit: '256kb' });

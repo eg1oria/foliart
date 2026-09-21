@@ -50,8 +50,8 @@ COPY --from=builder /app/images ./bundled-images
 COPY prisma ./prisma
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
-RUN mkdir -p /app/data /app/images \
-    && chown node:node /app/data /app/images \
+RUN mkdir -p /app/data /app/images /app/backups \
+    && chown node:node /app/data /app/images /app/backups \
     && chmod 0755 /usr/local/bin/docker-entrypoint.sh
 
 USER node

@@ -31,6 +31,11 @@ describe('admin navigation', () => {
     }
   });
 
+  it('keeps the backups tab out of the sidebar until it is released', () => {
+    expect(getVisibleAdminNavItems(superAdmin).map((item) => item.key)).not.toContain('backups');
+    expect(getActiveAdminTab('/admin/backups')).toBe('backups');
+  });
+
   it('reports no tab for a route outside the panel', () => {
     expect(getActiveAdminTab('/admin/login')).toBeNull();
   });
