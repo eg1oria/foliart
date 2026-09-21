@@ -24,7 +24,12 @@ export const SOCIAL_LINK_ICONS = [
 ] as const;
 export type SocialLinkIcon = (typeof SOCIAL_LINK_ICONS)[number];
 
-export const MAX_SOCIAL_LINKS_PER_LOCALE = 5;
+/**
+ * The header draws the first few badges and hides the rest behind a dropdown,
+ * so the set is no longer capped at what fits the row — this bound only keeps a
+ * stuck client from writing an unbounded list.
+ */
+export const MAX_SOCIAL_LINKS_PER_LOCALE = 30;
 export const MAX_SOCIAL_LINK_LABEL_LENGTH = 60;
 export const MAX_SOCIAL_LINK_HREF_LENGTH = 500;
 /** A text badge sits in the same round button as an icon; more than a handful

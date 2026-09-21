@@ -14,6 +14,7 @@ import {
   socialIconKeys,
   socialIconLabels,
   toSocialLinkFormRows,
+  visibleSocialLinks,
   type SocialLink,
   type SocialLinkFormRow,
   type SocialLinkItem,
@@ -137,7 +138,9 @@ export default function SocialLinksEditor({
 
   const addRow = () => {
     setRows((current) =>
-      current.length >= maxSocialLinks ? current : [...current, createEmptySocialLinkRow(nextRowKey())],
+      current.length >= maxSocialLinks
+        ? current
+        : [...current, createEmptySocialLinkRow(nextRowKey())],
     );
   };
 
@@ -197,7 +200,12 @@ export default function SocialLinksEditor({
         </p>
         <div className="mt-4 min-h-12">
           {previewItems.length ? (
-            <SocialLinks ariaLabel="Предпросмотр кнопок соцсетей" links={previewItems} />
+            <SocialLinks
+              ariaLabel="Предпросмотр кнопок соцсетей"
+              links={previewItems}
+              maxVisible={visibleSocialLinks}
+              moreLabel="Ещё соцсети"
+            />
           ) : (
             <p className="text-sm text-white/60">
               Ни одной кнопки — в шапке для этого языка блок соцсетей не появится.
@@ -373,7 +381,10 @@ export default function SocialLinksEditor({
             </button>
             <span className={adminHintClassName}>
               {rows.length} из {maxSocialLinks}
-              {rows.length >= maxSocialLinks ? ' — больше в шапку не помещается' : ''}
+              {rows.length > visibleSocialLinks
+                ? ` — первые ${visibleSocialLinks} стоят в шапке, остальные ${rows.length - visibleSocialLinks} прячутся в выпадающий список`
+                : ''}
+              {rows.length >= maxSocialLinks ? ' — это предел для одного языка' : ''}
             </span>
           </div>
 

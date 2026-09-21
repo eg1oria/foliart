@@ -4,7 +4,7 @@ import { requireAdminSection } from '@/lib/adminAuthServer';
 import { canManageSection } from '@/lib/adminPermissions';
 import { getSocialLinks, noStoreApiFetchOptions } from '@/lib/api';
 import { getContentLocaleLabel, normalizeContentLocale } from '@/lib/contentLocales';
-import { maxSocialLinks, type SocialLink } from '@/lib/socialLinks';
+import { maxSocialLinks, visibleSocialLinks, type SocialLink } from '@/lib/socialLinks';
 
 export default async function AdminSocialLinksPage({
   params,
@@ -37,7 +37,11 @@ export default async function AdminSocialLinksPage({
         {
           label: 'Кнопок',
           value: `${linksResult.links.length} из ${maxSocialLinks}`,
-          hint: linksResult.links.length ? undefined : 'Блок соцсетей сейчас не выводится',
+          hint: linksResult.links.length
+            ? linksResult.links.length > visibleSocialLinks
+              ? `В шапке видно ${visibleSocialLinks}, ещё ${linksResult.links.length - visibleSocialLinks} — в выпадающем списке`
+              : 'Все кнопки помещаются в шапку'
+            : 'Блок соцсетей сейчас не выводится',
         },
       ]}>
       <div className="space-y-4">
@@ -52,7 +56,7 @@ export default async function AdminSocialLinksPage({
             title={`Соцсети ${getContentLocaleLabel(targetLocale)}`}
             description={
               canManage
-                ? `Кнопка показывает иконку или короткий текст. Порядок в списке — порядок в шапке, не больше ${maxSocialLinks} кнопок на язык.`
+                ? `Кнопка показывает иконку или короткий текст. Порядок в списке — порядок в шапке: первые ${visibleSocialLinks} стоят в ряд, остальные открываются кнопкой «+N» рядом с ними. До ${maxSocialLinks} кнопок на язык.`
                 : 'Просмотр набора кнопок. Для изменений нужен полный доступ к разделу.'
             }>
             <SocialLinksEditor

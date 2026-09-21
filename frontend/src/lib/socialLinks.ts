@@ -1,7 +1,9 @@
 /**
  * Social network badges in the header and the fullscreen menu. The set is
  * edited per content locale in `/admin/social-links`; this module holds
- * everything both the public badge and the admin form agree on.
+ * everything both the public badge and the admin form agree on. The header
+ * shows the first `visibleSocialLinks` of them and hides the rest behind a
+ * dropdown, so the set can grow without the layout moving.
  *
  * The icon keys are mirrored in the backend's `social-links.validation.ts`,
  * which rejects anything outside the list — a key added here without a matching
@@ -39,7 +41,18 @@ export const socialIconLabels: Record<SocialIconKey, string> = {
   x: 'X (Twitter)',
 };
 
-export const maxSocialLinks = 5;
+/**
+ * How many badges the header draws in the row itself. Everything past this
+ * moves into a dropdown next to them, so a long set never stretches the header
+ * or wraps onto a second line.
+ */
+export const visibleSocialLinks = 4;
+
+/**
+ * An upper bound for one language. The header no longer cares how many rows
+ * there are — this only keeps a stuck client from writing an unbounded set.
+ */
+export const maxSocialLinks = 30;
 export const maxSocialLinkLabelLength = 60;
 export const maxSocialLinkHrefLength = 500;
 /** A text badge shares the round button with the icons, so it stays short. */

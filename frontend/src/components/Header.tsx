@@ -10,7 +10,7 @@ import { RxHamburgerMenu } from 'react-icons/rx';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { formatProductCount } from '@/lib/catalog';
 import { getFullLogo } from '@/lib/logo';
-import type { SocialLinkItem } from '@/lib/socialLinks';
+import { visibleSocialLinks, type SocialLinkItem } from '@/lib/socialLinks';
 import { useLocale, useTranslations } from 'next-intl';
 import ContactModalTrigger from './ContactModalTrigger';
 import SearchTrigger from './search/SearchTrigger';
@@ -274,7 +274,11 @@ export default function Header({
             {renderDesktopLocaleSwitcher()}
 
             <div className="flex items-center gap-3">
-              <SocialLinks links={socialLinks} />
+              <SocialLinks
+                links={socialLinks}
+                maxVisible={visibleSocialLinks}
+                moreLabel={t('moreSocial')}
+              />
               {renderPhoneModalTrigger()}
             </div>
           </div>
@@ -445,7 +449,11 @@ export default function Header({
             <SearchTrigger className="h-10 w-10" iconSize={21} />
             {renderDesktopLocaleSwitcher()}
             <div className="flex items-center gap-3">
-              <SocialLinks links={socialLinks} />
+              <SocialLinks
+                links={socialLinks}
+                maxVisible={visibleSocialLinks}
+                moreLabel={t('moreSocial')}
+              />
               {renderPhoneModalTrigger()}
             </div>
           </div>

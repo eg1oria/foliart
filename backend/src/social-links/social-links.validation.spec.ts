@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import {
+  MAX_SOCIAL_LINKS_PER_LOCALE,
   parseSocialLinkLocale,
   parseSocialLinksWriteBody,
 } from './social-links.validation';
@@ -40,6 +41,12 @@ describe('parseSocialLinksWriteBody', () => {
     expect(parseSocialLinksWriteBody({ links: [] })).toEqual([]);
   });
 
+  it('accepts more links than the header shows — the rest go in its dropdown', () => {
+    const links = Array.from({ length: 12 }, () => iconLink);
+
+    expect(parseSocialLinksWriteBody({ links })).toHaveLength(12);
+  });
+
   it('drops leftover text once an icon is picked', () => {
     expect(
       parseSocialLinksWriteBody({ links: [{ ...iconLink, text: 'VK' }] }),
@@ -60,8 +67,13 @@ describe('parseSocialLinksWriteBody', () => {
     ['a body without links', {}],
     ['a non-array links field', { links: 'vk' }],
     [
-      'more than five links',
-      { links: Array.from({ length: 6 }, () => iconLink) },
+      'more links than a language may hold',
+      {
+        links: Array.from(
+          { length: MAX_SOCIAL_LINKS_PER_LOCALE + 1 },
+          () => iconLink,
+        ),
+      },
     ],
     ['a missing label', { links: [{ ...iconLink, label: '' }] }],
     ['a missing address', { links: [{ ...iconLink, href: '' }] }],
