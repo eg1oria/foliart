@@ -3,7 +3,7 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { visibleSocialLinks, type SocialLinkItem } from '@/lib/socialLinks';
+import { maxSocialLinksInRow, type SocialLinkItem } from '@/lib/socialLinks';
 
 import SocialLinks from './SocialLinks';
 
@@ -57,16 +57,28 @@ afterEach(() => {
 
 describe('SocialLinks', () => {
   it('renders nothing without links', () => {
-    render(<SocialLinks links={[]} maxVisible={visibleSocialLinks} />);
+    render(<SocialLinks links={[]} maxVisible={maxSocialLinksInRow} />);
 
     expect(container.querySelector('nav')).toBeNull();
   });
 
-  it('keeps every badge in the row while the set fits the limit', () => {
-    render(<SocialLinks links={makeLinks(visibleSocialLinks)} maxVisible={visibleSocialLinks} />);
+  it('keeps every badge in the row when the set fills it exactly', () => {
+    render(
+      <SocialLinks links={makeLinks(maxSocialLinksInRow)} maxVisible={maxSocialLinksInRow} />,
+    );
 
-    expect(badgeLinks()).toHaveLength(visibleSocialLinks);
+    expect(badgeLinks()).toHaveLength(maxSocialLinksInRow);
     expect(moreButton()).toBeNull();
+  });
+
+  it('gives the last slot to the button as soon as one badge does not fit', () => {
+    render(
+      <SocialLinks links={makeLinks(maxSocialLinksInRow + 1)} maxVisible={maxSocialLinksInRow} />,
+    );
+
+    // Five links stay whole; the sixth turns the row into four plus the button.
+    expect(badgeLinks()).toHaveLength(maxSocialLinksInRow - 1);
+    expect(moreButton()?.textContent).toBe('+2');
   });
 
   it('keeps every badge in the row when no limit is given', () => {
@@ -80,7 +92,7 @@ describe('SocialLinks', () => {
     render(
       <SocialLinks
         links={makeLinks(8)}
-        maxVisible={visibleSocialLinks}
+        maxVisible={maxSocialLinksInRow}
         moreLabel="Ещё соцсети"
       />,
     );
@@ -102,7 +114,7 @@ describe('SocialLinks', () => {
   });
 
   it('opens the hidden links in a dropdown and closes it again', () => {
-    render(<SocialLinks links={makeLinks(8)} maxVisible={visibleSocialLinks} />);
+    render(<SocialLinks links={makeLinks(8)} maxVisible={maxSocialLinksInRow} />);
 
     act(() => {
       moreButton()?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
@@ -127,7 +139,7 @@ describe('SocialLinks', () => {
   });
 
   it('closes the dropdown on a click outside and on Escape', () => {
-    render(<SocialLinks links={makeLinks(8)} maxVisible={visibleSocialLinks} />);
+    render(<SocialLinks links={makeLinks(8)} maxVisible={maxSocialLinksInRow} />);
 
     const open = () =>
       act(() => {
@@ -160,7 +172,7 @@ describe('SocialLinks', () => {
     render(
       <SocialLinks
         links={makeLinks(8)}
-        maxVisible={visibleSocialLinks}
+        maxVisible={maxSocialLinksInRow}
         onLinkClick={() => clicked.push('closed')}
       />,
     );
@@ -177,14 +189,14 @@ describe('SocialLinks', () => {
   });
 
   it('drops the dropdown when the set shrinks back under the limit', () => {
-    render(<SocialLinks links={makeLinks(8)} maxVisible={visibleSocialLinks} />);
+    render(<SocialLinks links={makeLinks(8)} maxVisible={maxSocialLinksInRow} />);
 
     act(() => {
       moreButton()?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
     expect(panelLinks()).toHaveLength(4);
 
-    render(<SocialLinks links={makeLinks(3)} maxVisible={visibleSocialLinks} />);
+    render(<SocialLinks links={makeLinks(3)} maxVisible={maxSocialLinksInRow} />);
 
     expect(moreButton()).toBeNull();
     expect(badgeLinks()).toHaveLength(3);

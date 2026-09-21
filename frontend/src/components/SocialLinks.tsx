@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 
 import { socialIcons } from '@/lib/socialIcons';
-import type { SocialLinkItem } from '@/lib/socialLinks';
+import { splitSocialLinksForRow, type SocialLinkItem } from '@/lib/socialLinks';
 
 type SocialLinksProps = {
   links: SocialLinkItem[];
@@ -11,9 +11,9 @@ type SocialLinksProps = {
   className?: string;
   linkClassName?: string;
   /**
-   * How many badges stay in the row. The rest move into a dropdown opened by a
-   * trailing `+N` button, so the header keeps its width whatever the admin
-   * saves. Left out (or `0`) the whole set is drawn inline.
+   * How many round buttons the row may hold. A set this size or smaller is
+   * drawn whole; a bigger one gives the last slot to a `+N` button that opens
+   * the rest in a dropdown. Left out (or `0`) everything is drawn inline.
    */
   maxVisible?: number;
   /** Label for the `+N` button; the page passes a translated one. */
@@ -62,9 +62,11 @@ export default function SocialLinks({
   const moreButtonRef = useRef<HTMLButtonElement>(null);
   const panelId = useId();
 
-  const isCollapsed = maxVisible > 0 && links.length > maxVisible;
-  const visibleLinks = isCollapsed ? links.slice(0, maxVisible) : links;
-  const overflowLinks = isCollapsed ? links.slice(maxVisible) : [];
+  const { row: visibleLinks, overflow: overflowLinks } = splitSocialLinksForRow(
+    links,
+    maxVisible,
+  );
+  const isCollapsed = overflowLinks.length > 0;
   // Derived rather than stored: a set trimmed back below the limit takes the
   // button away, and a panel left open would have nothing left to close it.
   const isOverflowOpen = isOverflowRequested && isCollapsed;

@@ -1,9 +1,9 @@
 /**
  * Social network badges in the header and the fullscreen menu. The set is
  * edited per content locale in `/admin/social-links`; this module holds
- * everything both the public badge and the admin form agree on. The header
- * shows the first `visibleSocialLinks` of them and hides the rest behind a
- * dropdown, so the set can grow without the layout moving.
+ * everything both the public badge and the admin form agree on. The header fits
+ * `maxSocialLinksInRow` of them and hides the rest behind a dropdown, so the
+ * set can grow without the layout moving.
  *
  * The icon keys are mirrored in the backend's `social-links.validation.ts`,
  * which rejects anything outside the list — a key added here without a matching
@@ -42,11 +42,11 @@ export const socialIconLabels: Record<SocialIconKey, string> = {
 };
 
 /**
- * How many badges the header draws in the row itself. Everything past this
- * moves into a dropdown next to them, so a long set never stretches the header
- * or wraps onto a second line.
+ * How many round buttons the header's row is allowed to hold. A set this size
+ * or smaller is drawn whole; a bigger one gives the last slot to the `+N`
+ * button, so the row keeps its width instead of wrapping onto a second line.
  */
-export const visibleSocialLinks = 4;
+export const maxSocialLinksInRow = 5;
 
 /**
  * An upper bound for one language. The header no longer cares how many rows
@@ -77,6 +77,20 @@ export type SocialLinkItem = {
   icon?: SocialIconKey;
   text?: string;
 };
+
+/**
+ * How a set of badges divides between the header's row and its dropdown. The
+ * `+N` button takes a slot of its own, so a set that overflows shows one badge
+ * fewer than a set that fits exactly — five stay in the row, six become four
+ * plus the button.
+ */
+export function splitSocialLinksForRow<T>(links: T[], slots: number) {
+  if (slots <= 0 || links.length <= slots) {
+    return { row: links, overflow: [] as T[] };
+  }
+
+  return { row: links.slice(0, slots - 1), overflow: links.slice(slots - 1) };
+}
 
 export function isSocialIconKey(value: unknown): value is SocialIconKey {
   return socialIconKeys.includes(value as SocialIconKey);

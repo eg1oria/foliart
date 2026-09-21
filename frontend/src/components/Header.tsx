@@ -10,7 +10,7 @@ import { RxHamburgerMenu } from 'react-icons/rx';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { formatProductCount } from '@/lib/catalog';
 import { getFullLogo } from '@/lib/logo';
-import { visibleSocialLinks, type SocialLinkItem } from '@/lib/socialLinks';
+import { maxSocialLinksInRow, type SocialLinkItem } from '@/lib/socialLinks';
 import { useLocale, useTranslations } from 'next-intl';
 import ContactModalTrigger from './ContactModalTrigger';
 import SearchTrigger from './search/SearchTrigger';
@@ -276,7 +276,7 @@ export default function Header({
             <div className="flex items-center gap-3">
               <SocialLinks
                 links={socialLinks}
-                maxVisible={visibleSocialLinks}
+                maxVisible={maxSocialLinksInRow}
                 moreLabel={t('moreSocial')}
               />
               {renderPhoneModalTrigger()}
@@ -451,7 +451,7 @@ export default function Header({
             <div className="flex items-center gap-3">
               <SocialLinks
                 links={socialLinks}
-                maxVisible={visibleSocialLinks}
+                maxVisible={maxSocialLinksInRow}
                 moreLabel={t('moreSocial')}
               />
               {renderPhoneModalTrigger()}

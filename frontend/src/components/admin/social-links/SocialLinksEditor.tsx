@@ -11,10 +11,11 @@ import {
   isSocialIconKey,
   maxSocialLinkTextLength,
   maxSocialLinks,
+  maxSocialLinksInRow,
   socialIconKeys,
   socialIconLabels,
+  splitSocialLinksForRow,
   toSocialLinkFormRows,
-  visibleSocialLinks,
   type SocialLink,
   type SocialLinkFormRow,
   type SocialLinkItem,
@@ -95,6 +96,8 @@ export default function SocialLinksEditor({
     [baseline, rows],
   );
   const previewItems = useMemo(() => toPreviewItems(rows), [rows]);
+  const hiddenRowCount = splitSocialLinksForRow(previewItems, maxSocialLinksInRow)
+    .overflow.length;
 
   useEffect(() => {
     if (state.status === 'error') errorRef.current?.focus();
@@ -203,7 +206,7 @@ export default function SocialLinksEditor({
             <SocialLinks
               ariaLabel="Предпросмотр кнопок соцсетей"
               links={previewItems}
-              maxVisible={visibleSocialLinks}
+              maxVisible={maxSocialLinksInRow}
               moreLabel="Ещё соцсети"
             />
           ) : (
@@ -381,8 +384,8 @@ export default function SocialLinksEditor({
             </button>
             <span className={adminHintClassName}>
               {rows.length} из {maxSocialLinks}
-              {rows.length > visibleSocialLinks
-                ? ` — первые ${visibleSocialLinks} стоят в шапке, остальные ${rows.length - visibleSocialLinks} прячутся в выпадающий список`
+              {hiddenRowCount > 0
+                ? ` — в шапке видно ${rows.length - hiddenRowCount}, остальные ${hiddenRowCount} прячутся в выпадающий список`
                 : ''}
               {rows.length >= maxSocialLinks ? ' — это предел для одного языка' : ''}
             </span>
