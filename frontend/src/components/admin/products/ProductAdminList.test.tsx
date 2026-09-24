@@ -81,6 +81,7 @@ function product(id: number, overrides: Partial<Product> = {}): Product {
       advantages: '',
       composition: '',
       application: '',
+      compatibility: '',
     },
     ...overrides,
   };
@@ -127,6 +128,7 @@ describe('ProductAdminList', () => {
                 advantages: '',
                 composition: '',
                 application: '',
+                compatibility: '',
               },
             }),
           ]}

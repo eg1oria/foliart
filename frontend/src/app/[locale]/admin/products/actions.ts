@@ -32,6 +32,7 @@ import {
 
 type ProductFormPayload = {
   application: string;
+  compatibility: string;
   advantages: string;
   categoryId: string;
   composition: string;
@@ -128,6 +129,7 @@ function getProductFormPayload(formData: FormData): ProductFormPayload {
     advantages: normalizeText(formData.get('advantages')),
     composition: normalizeText(formData.get('composition')),
     application: normalizeText(formData.get('application')),
+    compatibility: normalizeText(formData.get('compatibility')),
   };
 }
 
@@ -143,6 +145,7 @@ function appendProductPayload(
   payload.append('advantages', values.advantages);
   payload.append('composition', values.composition);
   payload.append('application', values.application);
+  payload.append('compatibility', values.compatibility);
 }
 
 async function getActionError(response: Response, locale: string, fallback: string) {

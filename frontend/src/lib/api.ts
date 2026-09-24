@@ -19,6 +19,7 @@ export type ProductAdminTranslation = AdminTranslationBase & {
   advantages: string;
   composition: string;
   application: string;
+  compatibility: string;
 };
 
 /** One file attached to a product card — a certificate, a data sheet, … */
@@ -76,6 +77,8 @@ export type Product = {
   compositionEn: string;
   application: string;
   applicationEn: string;
+  /** Blank means the site shows its standard wording for the language. */
+  compatibility?: string;
   imageUrl: string;
   imageUrlEn: string;
   slugSourceName?: string;

@@ -42,6 +42,7 @@ describe('ProductsService', () => {
     compositionEn: '',
     application: 'Русская схема',
     applicationEn: '',
+    compatibility: 'Не смешивать с медью.',
     imageUrl: 'products/riza.webp',
     imageUrlEn: 'products/riza-international.webp',
     translations: [
@@ -54,6 +55,7 @@ describe('ProductsService', () => {
         advantages: 'Русское преимущество',
         composition: 'Азот | 20 г/л',
         application: 'Русская схема',
+        compatibility: 'Не смешивать с медью.',
       },
     ],
   };
@@ -167,6 +169,37 @@ describe('ProductsService', () => {
     });
   });
 
+  it('never borrows the Russian compatibility note for another locale', async () => {
+    prismaServiceMock.product.findMany.mockResolvedValue([
+      {
+        ...baseProduct,
+        translations: [
+          ...baseProduct.translations,
+          {
+            id: 2,
+            productId: 1,
+            locale: 'fr',
+            name: 'Riza',
+            description: '',
+            advantages: '',
+            composition: '',
+            application: '',
+            compatibility: '',
+          },
+        ],
+      },
+    ]);
+
+    const [russian] = await service.findAll('ru');
+    const [french] = await service.findAll('fr', 'fr');
+    const [spanish] = await service.findAll('es');
+
+    expect(russian.compatibility).toBe('Не смешивать с медью.');
+    expect(french.compatibility).toBe('');
+    expect(french.adminTranslation?.compatibility).toBe('');
+    expect(spanish.compatibility).toBe('');
+  });
+
   it('updates only the selected translation and mirrors legacy English columns', async () => {
     prismaServiceMock.product.findUnique.mockResolvedValue(baseProduct);
     prismaServiceMock.category.findUnique.mockResolvedValue({ id: 1 });
@@ -184,6 +217,7 @@ describe('ProductsService', () => {
       advantages: 'English advantage',
       composition: 'Nitrogen | 20 g/l',
       application: 'English guide',
+      compatibility: '',
       imageUrlEn: 'products/riza-new-international.webp',
     });
 
@@ -234,6 +268,7 @@ describe('ProductsService', () => {
       advantages: 'Преимущество',
       composition: 'Азот | 20 г/л',
       application: 'Схема',
+      compatibility: '',
       imageUrl: 'products/riza.webp',
     });
 
@@ -269,6 +304,7 @@ describe('ProductsService', () => {
       advantages: '',
       composition: '',
       application: '',
+      compatibility: '',
       imageUrl: 'products/riza-2.webp',
     });
 
@@ -298,6 +334,7 @@ describe('ProductsService', () => {
       advantages: 'Преимущество',
       composition: 'Азот | 20 г/л',
       application: 'Схема',
+      compatibility: '',
     });
 
     expect(prismaServiceMock.category.update).toHaveBeenNthCalledWith(1, {

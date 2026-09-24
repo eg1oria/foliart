@@ -27,6 +27,7 @@ type ProductTranslationFields = {
   advantages: string;
   composition: string;
   application: string;
+  compatibility: string;
 };
 
 type ProductWithLegacyAndTranslations = ProductTranslationFields & {
@@ -80,6 +81,7 @@ export class ProductsService {
         advantages: product.advantages,
         composition: product.composition,
         application: product.application,
+        compatibility: product.compatibility,
         hasTranslation: false,
       };
     }
@@ -91,6 +93,7 @@ export class ProductsService {
         advantages: product.advantagesEn,
         composition: product.compositionEn,
         application: product.applicationEn,
+        compatibility: '',
         hasTranslation: false,
       };
     }
@@ -101,6 +104,7 @@ export class ProductsService {
       advantages: '',
       composition: '',
       application: '',
+      compatibility: '',
       hasTranslation: false,
     };
   }
@@ -204,6 +208,9 @@ export class ProductsService {
         fallback.application,
         product.application,
       ),
+      // Never borrowed from Russian: a blank note makes the site fall back to
+      // its standard wording in the page's own language instead.
+      compatibility: locale ? selected.compatibility : product.compatibility,
       // Product images are shared by every locale for now. Keep imageUrlEn in
       // storage so the separate international image can be restored later.
       imageUrl: product.imageUrl,
@@ -223,6 +230,7 @@ export class ProductsService {
               advantages: adminTranslation.advantages,
               composition: adminTranslation.composition,
               application: adminTranslation.application,
+              compatibility: adminTranslation.compatibility,
             },
             adminDocuments: (product.documents ?? [])
               .filter((document) => document.locale === adminLocale)
@@ -258,6 +266,9 @@ export class ProductsService {
         ? input.application
         : '',
       applicationEn: isLegacyEn ? input.application : '',
+      compatibility: isDefaultContentLocale(contentLocale)
+        ? input.compatibility
+        : '',
     };
   }
 
@@ -272,6 +283,7 @@ export class ProductsService {
         advantages: input.advantages,
         composition: input.composition,
         application: input.application,
+        compatibility: input.compatibility,
       };
     }
 
@@ -377,6 +389,7 @@ export class ProductsService {
               advantages: input.advantages,
               composition: input.composition,
               application: input.application,
+              compatibility: input.compatibility,
             },
           },
         },
@@ -429,6 +442,7 @@ export class ProductsService {
                 advantages: input.advantages,
                 composition: input.composition,
                 application: input.application,
+                compatibility: input.compatibility,
               },
               create: {
                 locale: contentLocale,
@@ -437,6 +451,7 @@ export class ProductsService {
                 advantages: input.advantages,
                 composition: input.composition,
                 application: input.application,
+                compatibility: input.compatibility,
               },
             },
           },

@@ -66,6 +66,7 @@ function createProduct(overrides: Partial<Product> = {}): Product {
       advantages: 'Advantage',
       composition: 'Copper | 88%',
       application: 'Guide',
+      compatibility: '',
     },
     ...overrides,
   };
@@ -88,6 +89,7 @@ describe('product admin filters', () => {
         advantages: '',
         composition: '',
         application: '',
+        compatibility: '',
       },
     }),
   ];

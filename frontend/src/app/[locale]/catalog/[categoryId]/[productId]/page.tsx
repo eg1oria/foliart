@@ -20,6 +20,7 @@ import {
   parseComposition,
 } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
+import { getProductCompatibilityNote } from '@/lib/productCompatibility';
 import { getProductDocumentLabel } from '@/lib/productDocuments';
 import { renderRichDescription } from '@/lib/renderRichDescription';
 import { richDescriptionToPlainText } from '@/lib/richDescription';
@@ -98,11 +99,7 @@ export default async function ProductDetailsPage({
   const { locale, categoryId: rawCategoryId, productId: rawProductId } = await params;
   const copy = getCatalogCopy(locale);
   const breadcrumbCopy = getBreadcrumbCopy(locale);
-  const { category, product } = await getProductPageData(
-    rawCategoryId,
-    rawProductId,
-    locale,
-  );
+  const { category, product } = await getProductPageData(rawCategoryId, rawProductId, locale);
 
   if (rawCategoryId !== getCategorySlug(category) || rawProductId !== getProductSlug(product)) {
     permanentRedirect(`/${locale}${getProductHref(category, product)}`);
@@ -132,10 +129,7 @@ export default async function ProductDetailsPage({
       ? {
           sectionsLabel: 'Разделы товара',
           compositionTitle: 'Состав',
-          compositionEmpty:
-            'Подробная информация о составе будет добавлена в карточку товара позже.',
           applicationTitle: 'Регламент применения',
-          applicationEmpty: 'Рекомендации по срокам, нормам и фазам внесения добавим позже.',
           specialistTitle: 'Помощь специалиста',
           advantagesLabel: `Преимущества ${product.name}`,
         }
@@ -143,11 +137,7 @@ export default async function ProductDetailsPage({
         ? {
             sectionsLabel: 'Sections du produit',
             compositionTitle: 'Composition',
-            compositionEmpty:
-              'Les informations détaillées sur la composition seront ajoutées ultérieurement.',
             applicationTitle: "Guide d'application",
-            applicationEmpty:
-              'Les recommandations sur les délais, doses et stades de croissance seront ajoutées ultérieurement.',
             specialistTitle: "Aide d'un spécialiste",
             advantagesLabel: `Avantages de ${product.name}`,
           }
@@ -155,34 +145,29 @@ export default async function ProductDetailsPage({
           ? {
               sectionsLabel: 'Secciones del producto',
               compositionTitle: 'Composición',
-              compositionEmpty:
-                'La información detallada sobre la composición se añadirá a esta ficha de producto más adelante.',
               applicationTitle: 'Guía de aplicación',
-              applicationEmpty:
-                'Las recomendaciones sobre plazos, dosis y fases de crecimiento se añadirán más adelante.',
               specialistTitle: 'Ayuda de un especialista',
               advantagesLabel: `Ventajas de ${product.name}`,
             }
           : {
               sectionsLabel: 'Product sections',
               compositionTitle: 'Composition',
-              compositionEmpty:
-                'Detailed composition information will be added to this product card later.',
               applicationTitle: 'Application guide',
-              applicationEmpty:
-                'Recommendations on timing, dosage, and growth stage will be added later.',
               specialistTitle: 'Specialist help',
               advantagesLabel: `Advantages of ${product.name}`,
             };
-  const sectionLinks = [
-    { id: 'description', label: copy.descriptionTitle },
-    { id: 'composition', label: pageCopy.compositionTitle },
-    ...(advantages.length > 0
-      ? [{ id: 'advantages', label: pageCopy.advantagesLabel }]
+  // Sections without content are hidden entirely, together with their nav links.
+  const contentSections = [
+    ...(compositionItems.length > 0
+      ? [{ id: 'composition', label: pageCopy.compositionTitle }]
       : []),
-    { id: 'application', label: pageCopy.applicationTitle },
+    ...(advantages.length > 0 ? [{ id: 'advantages', label: pageCopy.advantagesLabel }] : []),
+    ...(applicationItems.length > 0
+      ? [{ id: 'application', label: pageCopy.applicationTitle }]
+      : []),
     { id: 'specialist', label: pageCopy.specialistTitle },
   ];
+  const sectionLinks = [{ id: 'description', label: copy.descriptionTitle }, ...contentSections];
   const askQuestionLabel =
     locale === 'ru'
       ? 'Задать вопрос'
@@ -191,14 +176,7 @@ export default async function ProductDetailsPage({
         : locale === 'es'
           ? 'Hacer una pregunta'
           : 'Ask a question';
-  const compatibilityNote =
-    locale === 'ru'
-      ? 'Препарат совместим с большинством удобрений и средств защиты. Недопустимо совместное использование в баковой смеси с препаратами меди и серы. Перед применением тест на совместимость обязателен.'
-      : locale === 'fr'
-        ? 'Le produit est compatible avec la plupart des engrais et produits phytosanitaires. Le mélange en cuve avec des produits à base de cuivre ou de soufre est interdit. Un test de compatibilité est requis avant utilisation.'
-        : locale === 'es'
-          ? 'El producto es compatible con la mayoría de fertilizantes y productos fitosanitarios. No está permitida la mezcla en cuba con productos a base de cobre o azufre. Es obligatorio realizar un test de compatibilidad antes del uso.'
-          : 'The product is compatible with most fertilizers and crop protection products. Mixing with copper- and sulfur-based products in the same tank is not allowed. A compatibility test is required before use.';
+  const compatibilityNote = getProductCompatibilityNote(product, locale);
   // A product carries its own files — several of them, named per language.
   const productDocuments = (product.documents ?? []).filter((document) =>
     Boolean(resolveMediaUrl(document.fileUrl)),
@@ -345,7 +323,7 @@ export default async function ProductDetailsPage({
               dangerouslySetInnerHTML={{ __html: overviewHtml }}
             />
             <a
-              href="#composition"
+              href={`#${contentSections[0].id}`}
               className="mt-6 inline-flex items-center gap-2 text-sm text-[#3b76f6] transition hover:text-[#0b5a45]">
               <span>{copy.learnMore}</span>
               <FiChevronDown size={16} className="shrink-0" />
@@ -361,33 +339,30 @@ export default async function ProductDetailsPage({
               <p className="text-[0.90rem] leading-6 text-[#a8a49b] italic">{compatibilityNote}</p>
             </div>
           </div>
-          <div className="order-4 flex flex-col gap-14 lg:col-[2/4]">
-            <article id="composition" className="scroll-mt-32 pt-10">
-              <div className="flex items-center gap-5">
-                <h2 className="shrink-0 text-2xl text-[#0b3e31]">{pageCopy.compositionTitle}</h2>
-              </div>
+          <div className="order-4 flex flex-col gap-14 lg:col-[2/4] [&>*+*]:border-t [&>*+*]:border-[#e7eaec]">
+            {compositionItems.length > 0 ? (
+              <article id="composition" className="scroll-mt-32 pt-10">
+                <div className="flex items-center gap-5">
+                  <h2 className="shrink-0 text-2xl text-[#0b3e31]">{pageCopy.compositionTitle}</h2>
+                </div>
 
-              <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1fr)_280px] xl:items-start">
-                {compositionItems.length === 0 ? (
-                  <p className="max-w-3xl text-lg leading-8 text-[#55676d]">
-                    {pageCopy.compositionEmpty}
-                  </p>
-                ) : (
+                <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1fr)_280px] xl:items-start">
                   <CompositionList
                     items={compositionItems}
                     locale={locale}
                     productId={product.id}
                   />
-                )}
 
-                {certificateLink}
-              </div>
-            </article>
+                  {certificateLink}
+                </div>
+              </article>
+            ) : (
+              // Without a composition the documents still need a home.
+              certificateLink && <div className="pt-10">{certificateLink}</div>
+            )}
 
             {advantages.length > 0 && (
-              <article
-                id="advantages"
-                className="scroll-mt-32 border-t border-[#e7eaec] pt-10">
+              <article id="advantages" className="scroll-mt-32 pt-10">
                 <h2 className="text-2xl text-[#0b3e31]">{pageCopy.advantagesLabel}</h2>
 
                 <ul className="mt-8 space-y-1">
@@ -405,14 +380,10 @@ export default async function ProductDetailsPage({
               </article>
             )}
 
-            <article id="application" className="scroll-mt-32 border-t border-[#e7eaec] pt-10">
-              <h2 className="text-2xl text-[#0b3e31]">{pageCopy.applicationTitle}</h2>
+            {applicationItems.length > 0 && (
+              <article id="application" className="scroll-mt-32 pt-10">
+                <h2 className="text-2xl text-[#0b3e31]">{pageCopy.applicationTitle}</h2>
 
-              {applicationItems.length === 0 ? (
-                <p className="mt-6 max-w-3xl text-lg leading-8 text-[#55676d]">
-                  {pageCopy.applicationEmpty}
-                </p>
-              ) : (
                 <div className="mt-8 grid gap-6 md:grid-cols-2">
                   {applicationItems.map((item, index) => (
                     <article
@@ -427,10 +398,10 @@ export default async function ProductDetailsPage({
                     </article>
                   ))}
                 </div>
-              )}
-            </article>
+              </article>
+            )}
 
-            <article id="specialist" className="scroll-mt-32 border-t border-[#e7eaec] pt-10">
+            <article id="specialist" className="scroll-mt-32 pt-10">
               <SpecialistSection />
             </article>
           </div>

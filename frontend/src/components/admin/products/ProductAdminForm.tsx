@@ -14,6 +14,7 @@ import RichDescriptionEditor from '@/components/admin/RichDescriptionEditor';
 import { Link } from '@/i18n/routing';
 import type { Category, Product } from '@/lib/api';
 import { getContentLocaleLabel, withContentLocale } from '@/lib/contentLocales';
+import { getDefaultCompatibilityNote } from '@/lib/productCompatibility';
 import { resolveMediaUrl } from '@/lib/media';
 import { type ProductFormFieldErrors } from '@/lib/productAdmin';
 
@@ -97,6 +98,8 @@ export default function ProductAdminForm({
     translation?.composition ?? (isBaseLocale ? product?.composition : '') ?? '';
   const defaultApplication =
     translation?.application ?? (isBaseLocale ? product?.application : '') ?? '';
+  const defaultCompatibility =
+    translation?.compatibility ?? (isBaseLocale ? product?.compatibility : '') ?? '';
   const category = product
     ? categories.find((item) => item.id === product.categoryId)
     : undefined;
@@ -290,6 +293,21 @@ export default function ProductAdminForm({
             />
             <span className={adminHintClassName}>
               Разделяйте карточки пустой строкой: первая строка — заголовок, остальные — рекомендация.
+            </span>
+          </label>
+
+          <label className={adminFieldClassName}>
+            <span className={adminLabelClassName}>Совместимость</span>
+            <textarea
+              name="compatibility"
+              rows={4}
+              defaultValue={defaultCompatibility}
+              placeholder={getDefaultCompatibilityNote(contentLocale)}
+              className={adminTextareaClassName}
+            />
+            <span className={adminHintClassName}>
+              Примечание под кнопкой «Задать вопрос». Если оставить поле пустым, на сайте будет
+              показан стандартный текст — он виден в поле серым.
             </span>
           </label>
         </div>

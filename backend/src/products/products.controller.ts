@@ -122,6 +122,7 @@ function parseProductBody(body: Record<string, string | undefined>) {
     advantages: body.advantages?.trim() ?? '',
     composition: body.composition?.trim() ?? '',
     application: body.application?.trim() ?? '',
+    compatibility: body.compatibility?.trim() ?? '',
   };
 }
 
@@ -230,6 +231,7 @@ export class ProductsController {
       advantages,
       composition,
       application,
+      compatibility,
     } = parseProductBody(body);
 
     if (!isSupportedContentLocale(contentLocale)) {
@@ -273,6 +275,7 @@ export class ProductsController {
         advantages,
         composition,
         application,
+        compatibility,
         imageUrl: `products/${imageFile.filename}`,
         imageUrlEn: imageFileEn?.filename
           ? `products/${imageFileEn.filename}`
@@ -303,6 +306,7 @@ export class ProductsController {
       advantages,
       composition,
       application,
+      compatibility,
     } = parseProductBody(body);
 
     if (!isSupportedContentLocale(contentLocale)) {
@@ -344,6 +348,7 @@ export class ProductsController {
         advantages,
         composition,
         application,
+        compatibility,
         imageUrl: imageFile?.filename
           ? `products/${imageFile.filename}`
           : undefined,
