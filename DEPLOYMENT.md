@@ -19,6 +19,20 @@ dig +short foliart.me
 dig +short www.foliart.me
 ```
 
+Домен `фолиарт.рф` только перенаправляет на `foliart.me`. Чтобы редирект работал,
+его записи должны смотреть на тот же сервер. В nginx и certbot он указывается в
+punycode — `xn--80apilnmi.xn--p1ai`:
+
+```text
+A     фолиарт.рф      SERVER_IP
+A     www.фолиарт.рф  SERVER_IP
+```
+
+```bash
+dig +short xn--80apilnmi.xn--p1ai
+dig +short www.xn--80apilnmi.xn--p1ai
+```
+
 ## 2. Базовые пакеты
 
 ```bash
@@ -165,6 +179,13 @@ sudo systemctl reload nginx
 sudo certbot certonly --webroot -w /var/www/certbot -d foliart.me -d www.foliart.me
 ```
 
+И отдельный сертификат для `фолиарт.рф`. Он обязателен до раздела 9: полный
+конфиг ссылается на его файлы, и без них `nginx -t` упадёт.
+
+```bash
+sudo certbot certonly --webroot -w /var/www/certbot -d xn--80apilnmi.xn--p1ai -d www.xn--80apilnmi.xn--p1ai
+```
+
 ## 9. Полный Nginx
 
 Конфигу нужен nginx >= 1.15.3: `keepalive_timeout` и `keepalive_requests`
@@ -182,6 +203,14 @@ sudo systemctl reload nginx
 ```bash
 curl -I https://foliart.me
 curl -I https://foliart.me/api/
+```
+
+Редирект с `фолиарт.рф` — в обоих случаях ожидается `301` и
+`Location: https://foliart.me/ru/catalog`:
+
+```bash
+curl -I http://xn--80apilnmi.xn--p1ai/ru/catalog
+curl -I https://xn--80apilnmi.xn--p1ai/ru/catalog
 ```
 
 ## 10. Однократный переход со старого каталога изображений
