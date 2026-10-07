@@ -19,7 +19,7 @@ dig +short foliart.me
 dig +short www.foliart.me
 ```
 
-Домен `фолиарт.рф` только перенаправляет на `foliart.me`. Чтобы редирект работал,
+Домен `фолиарт.рф` только перенаправляет на `www.foliart.me`. Чтобы редирект работал,
 его записи должны смотреть на тот же сервер. В nginx и certbot он указывается в
 punycode — `xn--80apilnmi.xn--p1ai`:
 
@@ -205,11 +205,13 @@ curl -I https://foliart.me
 curl -I https://foliart.me/api/
 ```
 
-Редирект с `фолиарт.рф` — в обоих случаях ожидается `301` и
-`Location: https://foliart.me/ru/catalog`:
+Редирект с `фолиарт.рф` — везде ожидается `301`. Корень ведёт сразу на
+`https://www.foliart.me/ru`, остальные адреса сохраняют путь
+(`Location: https://www.foliart.me/ru/catalog`):
 
 ```bash
-curl -I http://xn--80apilnmi.xn--p1ai/ru/catalog
+curl -I http://xn--80apilnmi.xn--p1ai/
+curl -I https://xn--80apilnmi.xn--p1ai/
 curl -I https://xn--80apilnmi.xn--p1ai/ru/catalog
 ```
 
