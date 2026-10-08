@@ -347,11 +347,7 @@ export default async function ProductDetailsPage({
                 </div>
 
                 <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1fr)_280px] xl:items-start">
-                  <CompositionList
-                    items={compositionItems}
-                    locale={locale}
-                    productId={product.id}
-                  />
+                  <CompositionList items={compositionItems} productId={product.id} />
 
                   {certificateLink}
                 </div>
