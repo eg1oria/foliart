@@ -162,25 +162,10 @@ export function getAdminNavStrings(locale: string) {
   return navI18n[locale] ?? navI18n['en'];
 }
 
-/**
- * Tabs that stay out of the sidebar while a section is still being rolled out.
- * They are hidden here rather than removed from `adminNavItems`, because that
- * list is also what `getActiveAdminTab` matches a route against — dropping an
- * entry from it leaves `AdminChrome` with no active tab, and the whole panel
- * disappears on that route instead of just its link.
- */
-// `backups` waits for the client's go-ahead; the page itself stays reachable
-// by URL for the super admin.
-const hiddenAdminTabs = new Set<AdminTabKey>(['site-images', 'backups']);
-
 // The admins and backups tabs belong to the super admin only — a backup holds
 // the whole database, password hashes included. Every content tab follows the
 // per-section permissions of whoever is signed in.
 export function isAdminTabVisible(key: AdminTabKey, session: AdminSessionUser) {
-  if (hiddenAdminTabs.has(key)) {
-    return false;
-  }
-
   if (key === 'admins' || key === 'backups') {
     return session.isSuperAdmin;
   }

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { createAdminPermissions, type AdminSessionUser } from '@/lib/adminPermissions';
 
-import { getActiveAdminTab, getVisibleAdminNavItems } from './adminNav';
+import { adminNavItems, getActiveAdminTab, getVisibleAdminNavItems } from './adminNav';
 
 const superAdmin: AdminSessionUser = {
   id: 1,
@@ -11,18 +11,33 @@ const superAdmin: AdminSessionUser = {
   username: 'root',
 };
 
+const editor: AdminSessionUser = {
+  id: 2,
+  isSuperAdmin: false,
+  permissions: createAdminPermissions('manage'),
+  username: 'editor',
+};
+
 describe('admin navigation', () => {
-  it('keeps a hidden section out of the sidebar', () => {
-    expect(getVisibleAdminNavItems(superAdmin).map((item) => item.key)).not.toContain('site-images');
+  it('shows every tab to the super admin', () => {
+    expect(getVisibleAdminNavItems(superAdmin)).toEqual(adminNavItems);
   });
 
-  /**
-   * `AdminChrome` drops the sidebar entirely when a route resolves to no tab,
-   * so a hidden section still has to be matchable by its own path.
-   */
-  it('still resolves the hidden section from its route', () => {
-    expect(getActiveAdminTab('/admin/site-images')).toBe('site-images');
-    expect(getActiveAdminTab('/admin/site-images/anything')).toBe('site-images');
+  it('shows the site images tab to whoever can view the section', () => {
+    expect(getVisibleAdminNavItems(editor).map((item) => item.key)).toContain('site-images');
+    expect(
+      getVisibleAdminNavItems({
+        ...editor,
+        permissions: { ...editor.permissions, 'site-images': 'none' },
+      }).map((item) => item.key),
+    ).not.toContain('site-images');
+  });
+
+  it('keeps the admins and backups tabs to the super admin', () => {
+    const keys = getVisibleAdminNavItems(editor).map((item) => item.key);
+
+    expect(keys).not.toContain('admins');
+    expect(keys).not.toContain('backups');
   });
 
   it('resolves every visible section from its own route', () => {
@@ -31,9 +46,9 @@ describe('admin navigation', () => {
     }
   });
 
-  it('keeps the backups tab out of the sidebar until it is released', () => {
-    expect(getVisibleAdminNavItems(superAdmin).map((item) => item.key)).not.toContain('backups');
-    expect(getActiveAdminTab('/admin/backups')).toBe('backups');
+  it('resolves nested routes to the section they belong to', () => {
+    expect(getActiveAdminTab('/admin/site-images/anything')).toBe('site-images');
+    expect(getActiveAdminTab('/admin/products/categories/new')).toBe('productCategories');
   });
 
   it('reports no tab for a route outside the panel', () => {
