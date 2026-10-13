@@ -113,6 +113,7 @@ model Product {
   imageUrlEn    String               @default("")
   translations  ProductTranslation[]
   documents     ProductDocument[]
+  calendars     CalendarEntryProduct[]
 }
 
 // Attached files shown in the product card — conformity certificates, safety
@@ -172,6 +173,22 @@ model CalendarEntry {
   imageUrl4     String
   pdfUrl        String                     @default("")
   translations  CalendarEntryTranslation[]
+  products      CalendarEntryProduct[]
+}
+
+// Catalog products a crop calendar recommends — the ones named on its scheme
+// image. The set is the same for every language; `sortOrder` follows the order
+// of application through the season.
+model CalendarEntryProduct {
+  id              Int           @id @default(autoincrement())
+  calendarEntryId Int
+  calendarEntry   CalendarEntry @relation(fields: [calendarEntryId], references: [id], onDelete: Cascade)
+  productId       Int
+  product         Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sortOrder       Int           @default(0)
+
+  @@unique([calendarEntryId, productId])
+  @@index([calendarEntryId, sortOrder])
 }
 
 model CategoryTranslation {

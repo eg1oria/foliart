@@ -123,6 +123,8 @@ export type CalendarEntry = {
   imageUrl4: string;
   pdfUrl: string;
   imageUrls: string[];
+  /** Linked catalog products, in the order they are applied in the season. */
+  productIds?: number[];
   slugSourceTitle?: string;
   adminTranslation?: CalendarAdminTranslation;
 };

@@ -62,6 +62,20 @@ function appendCalendarPayload(
   payload.append('description', values.description);
 }
 
+// The picker is only rendered when the catalog loaded, so a form without its
+// marker must not touch the links the calendar already has.
+function appendCalendarProducts(payload: FormData, formData: FormData) {
+  if (!formData.has('productsField')) {
+    return;
+  }
+
+  const productIds = formData
+    .getAll('productIds')
+    .filter((value): value is string => typeof value === 'string' && /^\d+$/.test(value));
+
+  payload.append('productIds', productIds.join(','));
+}
+
 function hasFile(value: FormDataEntryValue | null): value is File {
   return value instanceof File && value.size > 0;
 }
@@ -119,6 +133,7 @@ export async function createCalendarAction(formData: FormData) {
 
   const payload = new FormData();
   appendCalendarPayload(payload, values, contentLocale);
+  appendCalendarProducts(payload, formData);
 
   for (const fieldName of imageFieldNames) {
     const image = formData.get(fieldName);
@@ -271,6 +286,7 @@ export async function updateCalendarAction(formData: FormData) {
 
   const payload = new FormData();
   appendCalendarPayload(payload, values, contentLocale);
+  appendCalendarProducts(payload, formData);
 
   for (const fieldName of imageFieldNames) {
     const image = formData.get(fieldName);

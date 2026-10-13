@@ -1,5 +1,5 @@
-import type { CalendarEntry } from './api';
-import { parseEntityId, slugify } from './catalog';
+import type { CalendarEntry, Category, Product } from './api';
+import { getProductHref, parseEntityId, slugify } from './catalog';
 
 type TitledPublicEntity = {
   title: string;
@@ -56,6 +56,35 @@ export function getCalendarImageSlots(
   };
 }
 
+/** The catalog products linked to a calendar, in its own order. */
+export function getCalendarProducts(
+  entry: Pick<CalendarEntry, 'productIds'>,
+  products: Product[],
+  categories: Category[],
+) {
+  const productsById = new Map(products.map((product) => [product.id, product]));
+  const categoriesById = new Map(categories.map((category) => [category.id, category]));
+
+  return (entry.productIds ?? []).flatMap((productId) => {
+    const product = productsById.get(productId);
+    const category = product ? categoriesById.get(product.categoryId) : undefined;
+
+    if (!product || !category) {
+      return [];
+    }
+
+    return [
+      {
+        id: product.id,
+        href: getProductHref(category, product),
+        name: product.name,
+        categoryName: category.name,
+        imageUrl: product.imageUrl,
+      },
+    ];
+  });
+}
+
 export function findCalendarByParam(entries: CalendarEntry[], value: string) {
   const parsedId = parseEntityId(value);
 
@@ -82,6 +111,8 @@ export function getCalendarsCopy(locale: string) {
       relatedEmpty: 'More calendar items will appear soon.',
       heroEyebrow: 'Foliart Calendar',
       listEyebrow: 'Crop directory',
+      productsTitle: 'Products in this calendar',
+      productsCatalogLink: 'Full catalog',
     };
   }
 
@@ -100,6 +131,8 @@ export function getCalendarsCopy(locale: string) {
       relatedEmpty: 'De nouvelles entrées du calendrier apparaîtront bientôt.',
       heroEyebrow: 'Calendrier Foliart',
       listEyebrow: 'Répertoire des cultures',
+      productsTitle: 'Produits de ce calendrier',
+      productsCatalogLink: 'Tout le catalogue',
     };
   }
 
@@ -118,6 +151,8 @@ export function getCalendarsCopy(locale: string) {
       relatedEmpty: 'Próximamente aparecerán nuevas entradas en el calendario.',
       heroEyebrow: 'Calendario Foliart',
       listEyebrow: 'Directorio de cultivos',
+      productsTitle: 'Productos de este calendario',
+      productsCatalogLink: 'Todo el catálogo',
     };
   }
 
@@ -133,6 +168,8 @@ export function getCalendarsCopy(locale: string) {
     relatedEmpty: 'Скоро здесь появятся новые записи календаря.',
     heroEyebrow: 'Календарь Foliart',
     listEyebrow: 'Каталог культур',
+    productsTitle: 'Препараты из календаря',
+    productsCatalogLink: 'Весь каталог',
   };
 }
 

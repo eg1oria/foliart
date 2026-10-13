@@ -118,6 +118,21 @@ function getRequestTextField(req: Request, fieldName: string) {
   return typeof value === 'string' ? value : undefined;
 }
 
+// The admin form sends the picked products as one comma-separated field. A
+// missing field means "leave the links alone", an empty one clears them.
+function parseProductIds(value?: string) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const ids = value
+    .split(',')
+    .map((item) => Number(item.trim()))
+    .filter((id) => Number.isInteger(id) && id > 0);
+
+  return Array.from(new Set(ids));
+}
+
 function getUploadedFile(
   files: UploadedCalendarFiles | undefined,
   fieldName: CalendarUploadField,
@@ -273,6 +288,7 @@ export class CalendarsController {
     const contentLocale = body.contentLocale?.trim().toLowerCase();
     const title = body.title?.trim() ?? '';
     const description = body.description?.trim() ?? '';
+    const productIds = parseProductIds(body.productIds);
     const uploadedImageFiles = calendarImageFields.map((fieldName) =>
       getUploadedFile(files, fieldName),
     );
@@ -334,6 +350,7 @@ export class CalendarsController {
         pdfUrl: uploadedPdfFile?.filename
           ? `calendars/${uploadedPdfFile.filename}`
           : '',
+        ...(productIds ? { productIds } : {}),
       });
     } catch (error) {
       removeUploadedFiles(uploadedFiles.map((file) => file?.path));
@@ -352,6 +369,7 @@ export class CalendarsController {
     const contentLocale = body.contentLocale?.trim().toLowerCase();
     const title = body.title?.trim() ?? '';
     const description = body.description?.trim() ?? '';
+    const productIds = parseProductIds(body.productIds);
     const uploadedImageFiles = calendarImageFields.map((fieldName) =>
       getUploadedFile(files, fieldName),
     );
@@ -407,6 +425,7 @@ export class CalendarsController {
         ...(uploadedPdfFile?.filename
           ? { pdfUrl: `calendars/${uploadedPdfFile.filename}` }
           : {}),
+        ...(productIds ? { productIds } : {}),
       });
       const previousLocalizedImageUrl3 =
         contentLocale === DEFAULT_CONTENT_LOCALE

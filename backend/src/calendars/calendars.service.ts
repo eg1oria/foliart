@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import {
   DEFAULT_CONTENT_LOCALE,
   isDefaultContentLocale,
@@ -29,6 +30,13 @@ type CalendarEntryWithLegacyAndTranslations = CalendarTextFields & {
   imageUrl4: string;
   pdfUrl: string;
   translations?: Array<CalendarTranslationFields & { locale: string }>;
+  products?: Array<{ productId: number }>;
+};
+
+// Linked products come back in the order they are applied through the season.
+const calendarProductsInclude = {
+  orderBy: [{ sortOrder: 'asc' as const }, { id: 'asc' as const }],
+  select: { productId: true },
 };
 
 type CreateCalendarEntryInput = CalendarTextFields & {
@@ -38,6 +46,7 @@ type CreateCalendarEntryInput = CalendarTextFields & {
   imageUrl3: string;
   imageUrl4: string;
   pdfUrl?: string;
+  productIds?: number[];
 };
 
 type UpdateCalendarEntryInput = CalendarTextFields & {
@@ -48,6 +57,8 @@ type UpdateCalendarEntryInput = CalendarTextFields & {
   imageUrl3?: string;
   imageUrl4?: string;
   pdfUrl?: string;
+  // Omitted leaves the linked products as they are; an empty list clears them.
+  productIds?: number[];
 };
 
 @Injectable()
@@ -111,7 +122,7 @@ export class CalendarsService {
       ? this.getTranslation(entry, adminLocale)
       : null;
 
-    const { translations: _translations, ...entryFields } = entry;
+    const { translations: _translations, products, ...entryFields } = entry;
     const resolvedImageUrl3 =
       locale && selected.imageUrl3.trim()
         ? selected.imageUrl3
@@ -146,6 +157,7 @@ export class CalendarsService {
         entry.imageUrl4,
       ].filter((url): url is string => Boolean(url?.trim())),
       slugSourceTitle: entry.title,
+      productIds: (products ?? []).map((link) => link.productId),
       ...(adminTranslation && adminLocale
         ? {
             adminTranslation: {
@@ -199,9 +211,25 @@ export class CalendarsService {
     return {};
   }
 
+  private async getExistingProductIds(productIds: number[]) {
+    const uniqueIds = Array.from(new Set(productIds));
+
+    if (uniqueIds.length === 0) {
+      return [];
+    }
+
+    const products = await this.prisma.product.findMany({
+      where: { id: { in: uniqueIds } },
+      select: { id: true },
+    });
+    const existingIds = new Set(products.map((product) => product.id));
+
+    return uniqueIds.filter((id) => existingIds.has(id));
+  }
+
   async findAll(locale?: string, contentLocale?: string) {
     const entries = await this.prisma.calendarEntry.findMany({
-      include: { translations: true },
+      include: { translations: true, products: calendarProductsInclude },
       orderBy: { id: 'asc' },
     });
 
@@ -213,7 +241,7 @@ export class CalendarsService {
   async findOne(id: number, locale?: string, contentLocale?: string) {
     const entry = await this.prisma.calendarEntry.findUnique({
       where: { id },
-      include: { translations: true },
+      include: { translations: true, products: calendarProductsInclude },
     });
 
     if (!entry) {
@@ -233,6 +261,7 @@ export class CalendarsService {
         }),
       ),
     );
+    const productIds = await this.getExistingProductIds(input.productIds ?? []);
 
     return this.prisma.calendarEntry.create({
       data: {
@@ -252,6 +281,12 @@ export class CalendarsService {
             pdfUrl: input.pdfUrl ?? '',
           },
         },
+        products: {
+          create: productIds.map((productId, sortOrder) => ({
+            productId,
+            sortOrder,
+          })),
+        },
       },
     });
   }
@@ -259,11 +294,35 @@ export class CalendarsService {
   async update(input: UpdateCalendarEntryInput) {
     const exists = await this.prisma.calendarEntry.findUnique({
       where: { id: input.id },
-      select: { id: true },
+      select: {
+        id: true,
+        products: { select: { productId: true, sortOrder: true } },
+      },
     });
 
     if (!exists) {
       throw new NotFoundException(`Calendar entry #${input.id} not found`);
+    }
+
+    // Products that stay keep their place, so the seasonal order survives an
+    // edit; newly picked ones go to the end.
+    const productsUpdate: Pick<Prisma.CalendarEntryUpdateInput, 'products'> =
+      {};
+    if (input.productIds) {
+      const productIds = await this.getExistingProductIds(input.productIds);
+      const linkedIds = new Set(exists.products.map((link) => link.productId));
+      const nextSortOrder =
+        Math.max(-1, ...exists.products.map((link) => link.sortOrder)) + 1;
+
+      productsUpdate.products = {
+        deleteMany: { productId: { notIn: productIds } },
+        create: productIds
+          .filter((productId) => !linkedIds.has(productId))
+          .map((productId, index) => ({
+            productId,
+            sortOrder: nextSortOrder + index,
+          })),
+      };
     }
 
     const contentLocale = normalizeContentLocale(input.contentLocale);
@@ -286,6 +345,7 @@ export class CalendarsService {
           : {}),
         ...(input.imageUrl4 ? { imageUrl4: input.imageUrl4 } : {}),
         ...(isDefaultLocale && input.pdfUrl ? { pdfUrl: input.pdfUrl } : {}),
+        ...productsUpdate,
         translations: {
           upsert: {
             where: {

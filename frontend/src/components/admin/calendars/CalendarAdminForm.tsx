@@ -7,7 +7,9 @@ import {
 import { AdminNotice } from '@/components/admin/AdminShell';
 import RichDescriptionEditor from '@/components/admin/RichDescriptionEditor';
 import MediaImage from '@/components/catalog/MediaImage';
-import type { CalendarEntry } from '@/lib/api';
+import type { CalendarEntry, Category, Product } from '@/lib/api';
+// Calendar products: hidden until the client approves the block — uncomment to bring it back.
+// import CalendarProductsPicker from './CalendarProductsPicker';
 import { getCalendarsAdminCopy } from '@/lib/calendars';
 import { resolveMediaUrl } from '@/lib/media';
 
@@ -240,17 +242,21 @@ function SharedCalendarImages({
 
 export default function CalendarAdminForm({
   calendar,
+  // categories = [],
   contentLocale,
   errorMessage,
   locale,
   mode,
+  // products = [],
   successMessage,
 }: {
   calendar?: CalendarEntry;
+  categories?: Category[];
   contentLocale: string;
   errorMessage?: string | null;
   locale: string;
   mode: 'create' | 'edit';
+  products?: Product[];
   successMessage?: string | null;
 }) {
   const copy = getCalendarsAdminCopy(locale);
@@ -367,6 +373,16 @@ export default function CalendarAdminForm({
         />
         <p className={adminCx('mt-2', adminHintClassName)}>{pdfCopy.replace}</p>
       </div>
+
+      {/* Calendar products: hidden until the client approves the block — uncomment to bring it back. */}
+      {/* {products.length > 0 && categories.length > 0 ? (
+        <CalendarProductsPicker
+          categories={categories}
+          locale={locale}
+          products={products}
+          selectedIds={calendar?.productIds ?? []}
+        />
+      ) : null} */}
 
       <div className="flex justify-end border-t border-[#0b5a45]/10 pt-6">
         <button type="submit" className={adminCx(adminPrimaryButtonClassName, 'w-full gap-2 sm:w-auto')}>

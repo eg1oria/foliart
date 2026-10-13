@@ -1,11 +1,14 @@
 import type { Metadata } from 'next';
+// Calendar products: hidden until the client approves the block — uncomment to bring it back.
+// import CalendarProducts from '@/components/calendar/CalendarProducts';
 import MediaImage from '@/components/catalog/MediaImage';
-import { getCalendars } from '@/lib/api';
+import { getCalendars /* , getCategories, getProducts */ } from '@/lib/api';
 import {
   findCalendarByParam,
   getCalendarsCopy,
   getCalendarHref,
   getCalendarImageSlots,
+  // getCalendarProducts,
   getCalendarSlug,
 } from '@/lib/calendars';
 import { resolveMediaUrl } from '@/lib/media';
@@ -79,6 +82,16 @@ export default async function CalendarDetailsPage({
   const detailsImage = resolveMediaUrl(detailsImagePath);
   const showcaseImage = resolveMediaUrl(showcaseImagePath);
   const showcaseBackgroundImage = resolveMediaUrl(showcaseBackgroundImagePath);
+  // Calendar products: hidden until the client approves the block — uncomment to bring it back.
+  // The catalog is only a companion block here: the page must still render
+  // when it cannot be loaded.
+  // const [catalogProducts, catalogCategories] = calendar.productIds?.length
+  //   ? await Promise.all([
+  //       getProducts(undefined, locale).catch(() => []),
+  //       getCategories(locale).catch(() => []),
+  //     ])
+  //   : [[], []];
+  // const calendarProducts = getCalendarProducts(calendar, catalogProducts, catalogCategories);
   const calendarPdf = resolveMediaUrl(calendar.pdfUrl);
   const calendarViewTarget = calendarPdf ?? showcaseImage;
   const descriptionHtml = renderRichDescription(calendar.description || copy.detailsEmpty);
@@ -209,6 +222,12 @@ export default async function CalendarDetailsPage({
           </div>
         </div>
       ) : null}
+
+      {/* <CalendarProducts
+        catalogLabel={copy.productsCatalogLink}
+        products={calendarProducts}
+        title={copy.productsTitle}
+      /> */}
     </main>
   );
 }

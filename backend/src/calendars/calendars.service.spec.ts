@@ -11,6 +11,9 @@ describe('CalendarsService', () => {
     findUnique: jest.fn(),
     update: jest.fn(),
   };
+  const productMock = {
+    findMany: jest.fn(),
+  };
 
   beforeEach(async () => {
     jest.resetAllMocks();
@@ -19,7 +22,7 @@ describe('CalendarsService', () => {
         CalendarsService,
         {
           provide: PrismaService,
-          useValue: { calendarEntry: calendarEntryMock },
+          useValue: { calendarEntry: calendarEntryMock, product: productMock },
         },
       ],
     }).compile();
@@ -231,5 +234,88 @@ describe('CalendarsService', () => {
     expect(updateData.translations.upsert.create.pdfUrl).toBe(
       'calendars/en.pdf',
     );
+  });
+
+  it('lists the linked product ids for an entry', async () => {
+    calendarEntryMock.findMany.mockResolvedValue([
+      {
+        id: 1,
+        slug: 'kukuruza',
+        title: 'Кукуруза',
+        titleEn: '',
+        description: 'Описание',
+        descriptionEn: '',
+        imageUrl1: 'calendars/1.webp',
+        imageUrl2: 'calendars/2.webp',
+        imageUrl3: '',
+        imageUrl4: '',
+        pdfUrl: '',
+        translations: [],
+        products: [{ productId: 22 }, { productId: 16 }],
+      },
+    ]);
+
+    const entries = await service.findAll('ru');
+
+    expect(entries[0]?.productIds).toEqual([22, 16]);
+    expect(entries[0]).not.toHaveProperty('products');
+  });
+
+  it('keeps the order of linked products and appends newly picked ones', async () => {
+    calendarEntryMock.findUnique.mockResolvedValue({
+      id: 1,
+      products: [
+        { productId: 22, sortOrder: 0 },
+        { productId: 16, sortOrder: 1 },
+        { productId: 7, sortOrder: 2 },
+      ],
+    });
+    productMock.findMany.mockResolvedValue([{ id: 7 }, { id: 9 }, { id: 22 }]);
+    calendarEntryMock.update.mockResolvedValue({ id: 1 });
+
+    await service.update({
+      id: 1,
+      contentLocale: 'ru',
+      title: 'Кукуруза',
+      description: 'Описание',
+      // 404 is not a product any more and must not be linked.
+      productIds: [7, 9, 22, 404],
+    });
+
+    type CalendarUpdateCall = {
+      data: {
+        products?: {
+          deleteMany: { productId: { notIn: number[] } };
+          create: Array<{ productId: number; sortOrder: number }>;
+        };
+      };
+    };
+    const updateCalls = calendarEntryMock.update.mock.calls as unknown as Array<
+      [CalendarUpdateCall]
+    >;
+    const products = updateCalls[0]?.[0].data.products;
+
+    expect(products?.deleteMany.productId.notIn).toEqual([7, 9, 22]);
+    expect(products?.create).toEqual([{ productId: 9, sortOrder: 3 }]);
+  });
+
+  it('leaves linked products untouched when none are submitted', async () => {
+    calendarEntryMock.findUnique.mockResolvedValue({ id: 1, products: [] });
+    calendarEntryMock.update.mockResolvedValue({ id: 1 });
+
+    await service.update({
+      id: 1,
+      contentLocale: 'en',
+      title: 'Corn',
+      description: 'Description',
+    });
+
+    type CalendarUpdateCall = { data: { products?: unknown } };
+    const updateCalls = calendarEntryMock.update.mock.calls as unknown as Array<
+      [CalendarUpdateCall]
+    >;
+
+    expect(updateCalls[0]?.[0].data.products).toBeUndefined();
+    expect(productMock.findMany).not.toHaveBeenCalled();
   });
 });

@@ -6,6 +6,7 @@ import CalendarAdminForm from '@/components/admin/calendars/CalendarAdminForm';
 import { adminCx, adminSecondaryButtonClassName } from '@/components/admin/adminStyles';
 import { Link } from '@/i18n/routing';
 import { requireAdminSection } from '@/lib/adminAuthServer';
+// import { getCategories, getProducts, noStoreApiFetchOptions } from '@/lib/api';
 import { getCalendarsAdminCopy } from '@/lib/calendars';
 import { normalizeContentLocale, withContentLocale } from '@/lib/contentLocales';
 
@@ -25,6 +26,11 @@ export default async function NewCalendarPage({
     redirect(`/${locale}/admin/calendars/new`);
   }
 
+  // Calendar products: hidden until the client approves the block — uncomment to bring it back.
+  // const [products, categories] = await Promise.all([
+  //   getProducts(undefined, locale, noStoreApiFetchOptions).catch(() => []),
+  //   getCategories(locale, noStoreApiFetchOptions).catch(() => []),
+  // ]);
   const copy = getCalendarsAdminCopy(locale);
 
   return (
@@ -54,10 +60,12 @@ export default async function NewCalendarPage({
               : 'Название, описание и первые два изображения обязательны. Остальные медиа можно добавить позже.'
           }>
           <CalendarAdminForm
+            // categories={categories}
             contentLocale="ru"
             errorMessage={query.error}
             locale={locale}
             mode="create"
+            // products={products}
           />
         </AdminPanel>
       </div>

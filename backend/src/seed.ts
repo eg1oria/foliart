@@ -83,6 +83,7 @@ async function main() {
         articleTranslations,
         calendarEntries,
         calendarEntryTranslations,
+        calendarEntryProducts,
       ] = await Promise.all([
         source.category.findMany({ orderBy: { id: 'asc' } }),
         source.categoryTranslation.findMany({ orderBy: { id: 'asc' } }),
@@ -96,6 +97,7 @@ async function main() {
         source.articleTranslation.findMany({ orderBy: { id: 'asc' } }),
         source.calendarEntry.findMany({ orderBy: { id: 'asc' } }),
         source.calendarEntryTranslation.findMany({ orderBy: { id: 'asc' } }),
+        source.calendarEntryProduct.findMany({ orderBy: { id: 'asc' } }),
       ]);
 
       const snapshotRows =
@@ -139,6 +141,7 @@ async function main() {
         articleTranslations: 0,
         calendarEntries: 0,
         calendarEntryTranslations: 0,
+        calendarEntryProducts: 0,
       };
 
       for (const category of categories) {
@@ -282,6 +285,35 @@ async function main() {
         }
       }
 
+      for (const link of calendarEntryProducts) {
+        const [exists, entryExists, productExists] = await Promise.all([
+          target.calendarEntryProduct.findUnique({
+            where: {
+              calendarEntryId_productId: {
+                calendarEntryId: link.calendarEntryId,
+                productId: link.productId,
+              },
+            },
+            select: { id: true },
+          }),
+          target.calendarEntry.findUnique({
+            where: { id: link.calendarEntryId },
+            select: { id: true },
+          }),
+          target.product.findUnique({
+            where: { id: link.productId },
+            select: { id: true },
+          }),
+        ]);
+
+        if (!exists && entryExists && productExists) {
+          await target.calendarEntryProduct.create({
+            data: withoutId(link),
+          });
+          created.calendarEntryProducts += 1;
+        }
+      }
+
       console.log(
         [
           'Seeded missing content from bundled snapshot:',
@@ -294,6 +326,7 @@ async function main() {
           `${created.articleTranslations}/${articleTranslations.length} article translations`,
           `${created.calendarEntries}/${calendarEntries.length} calendar entries`,
           `${created.calendarEntryTranslations}/${calendarEntryTranslations.length} calendar entry translations`,
+          `${created.calendarEntryProducts}/${calendarEntryProducts.length} calendar entry products`,
         ].join(' '),
       );
     } finally {

@@ -11,7 +11,13 @@ import CalendarAdminForm from '@/components/admin/calendars/CalendarAdminForm';
 import { adminCx, adminSecondaryButtonClassName } from '@/components/admin/adminStyles';
 import { Link } from '@/i18n/routing';
 import { requireAdminSection } from '@/lib/adminAuthServer';
-import { ApiError, getCalendar, noStoreApiFetchOptions } from '@/lib/api';
+import {
+  ApiError,
+  getCalendar,
+  // getCategories,
+  // getProducts,
+  noStoreApiFetchOptions,
+} from '@/lib/api';
 import { getCalendarHref, getCalendarsAdminCopy } from '@/lib/calendars';
 import { parseEntityId } from '@/lib/catalog';
 import { normalizeContentLocale, withContentLocale } from '@/lib/contentLocales';
@@ -43,6 +49,11 @@ export default async function EditCalendarPage({
     notFound();
   }
 
+  // Calendar products: hidden until the client approves the block — uncomment to bring it back.
+  // const [products, categories] = await Promise.all([
+  //   getProducts(undefined, locale, noStoreApiFetchOptions).catch(() => []),
+  //   getCategories(locale, noStoreApiFetchOptions).catch(() => []),
+  // ]);
   const copy = getCalendarsAdminCopy(locale);
   const calendar = calendarResult.calendar;
   const title = calendar?.adminTranslation?.title || calendar?.title || `#${calendarId}`;
@@ -112,10 +123,12 @@ export default async function EditCalendarPage({
             <CalendarAdminForm
               key={`${calendar.id}:${contentLocale}`}
               calendar={calendar}
+              // categories={categories}
               contentLocale={contentLocale}
               errorMessage={query.error}
               locale={locale}
               mode="edit"
+              // products={products}
               successMessage={successMessage}
             />
           )}
