@@ -1,10 +1,11 @@
 import { AdminNotice, AdminPanel, AdminShell } from '@/components/admin/AdminShell';
 import SiteImagesAdminBoard from '@/components/admin/site-images/SiteImagesAdminBoard';
 import { requireAdminSection } from '@/lib/adminAuthServer';
-import { canManageSection } from '@/lib/adminPermissions';
+import { canManageSection, isAdminScreenHidden } from '@/lib/adminPermissions';
 import { getCategories, getProducts, getSiteImages, noStoreApiFetchOptions } from '@/lib/api';
 import { getProductHref } from '@/lib/catalog';
 import { siteImageKeys, type SiteImageMap } from '@/lib/siteImages';
+import { notFound } from 'next/navigation';
 
 /**
  * The specialist portrait and the fallback certificate are only rendered on a
@@ -37,6 +38,10 @@ export default async function AdminSiteImagesPage({
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ error?: string; key?: string; status?: string }>;
 }) {
+  if (isAdminScreenHidden('site-images')) {
+    notFound();
+  }
+
   const { locale } = await params;
   const session = await requireAdminSection(
     locale,

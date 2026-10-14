@@ -107,5 +107,16 @@ export function getVisibleAdminSections(user: AdminSessionUser) {
 }
 
 export function getFirstAllowedSection(user: AdminSessionUser): AdminSection | null {
-  return getVisibleAdminSections(user)[0] ?? null;
+  return (
+    getVisibleAdminSections(user).find((section) => !isAdminScreenHidden(section)) ?? null
+  );
+}
+
+// Admin screens hidden at the client's request: they have no sidebar tab and
+// their URLs answer 404, while the stored data and permissions stay intact.
+// Remove a key to bring its screen back.
+export const hiddenAdminScreens: readonly string[] = ['site-images', 'backups'];
+
+export function isAdminScreenHidden(key: string) {
+  return hiddenAdminScreens.includes(key);
 }

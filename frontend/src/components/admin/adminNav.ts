@@ -1,5 +1,5 @@
 import type { AdminSection, AdminSessionUser } from '@/lib/adminPermissions';
-import { canViewSection } from '@/lib/adminPermissions';
+import { canViewSection, isAdminScreenHidden } from '@/lib/adminPermissions';
 import type { IconType } from 'react-icons';
 import {
   FiBookOpen,
@@ -166,6 +166,10 @@ export function getAdminNavStrings(locale: string) {
 // the whole database, password hashes included. Every content tab follows the
 // per-section permissions of whoever is signed in.
 export function isAdminTabVisible(key: AdminTabKey, session: AdminSessionUser) {
+  if (isAdminScreenHidden(key)) {
+    return false;
+  }
+
   if (key === 'admins' || key === 'backups') {
     return session.isSuperAdmin;
   }

@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { createAdminPermissions, type AdminSessionUser } from '@/lib/adminPermissions';
+import {
+  createAdminPermissions,
+  getFirstAllowedSection,
+  isAdminScreenHidden,
+  type AdminSessionUser,
+} from '@/lib/adminPermissions';
 
 import { adminNavItems, getActiveAdminTab, getVisibleAdminNavItems } from './adminNav';
 
@@ -19,18 +24,26 @@ const editor: AdminSessionUser = {
 };
 
 describe('admin navigation', () => {
-  it('shows every tab to the super admin', () => {
-    expect(getVisibleAdminNavItems(superAdmin)).toEqual(adminNavItems);
+  it('shows every tab except the hidden ones to the super admin', () => {
+    expect(getVisibleAdminNavItems(superAdmin)).toEqual(
+      adminNavItems.filter((item) => !isAdminScreenHidden(item.key)),
+    );
   });
 
-  it('shows the site images tab to whoever can view the section', () => {
-    expect(getVisibleAdminNavItems(editor).map((item) => item.key)).toContain('site-images');
+  it('hides the site images and backups tabs even from the super admin', () => {
+    const keys = getVisibleAdminNavItems(superAdmin).map((item) => item.key);
+
+    expect(keys).not.toContain('site-images');
+    expect(keys).not.toContain('backups');
+  });
+
+  it('never lands an admin on a hidden section', () => {
     expect(
-      getVisibleAdminNavItems({
+      getFirstAllowedSection({
         ...editor,
-        permissions: { ...editor.permissions, 'site-images': 'none' },
-      }).map((item) => item.key),
-    ).not.toContain('site-images');
+        permissions: { ...createAdminPermissions('none'), 'site-images': 'manage' },
+      }),
+    ).toBeNull();
   });
 
   it('keeps the admins and backups tabs to the super admin', () => {

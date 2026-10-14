@@ -4,6 +4,7 @@ import { getAdminApiHeaders } from '@/lib/adminApi';
 import { ADMIN_SESSION_COOKIE, verifyAdminSessionValue } from '@/lib/adminAuth';
 import { getAdminSession } from '@/lib/adminAuthServer';
 import { adminApiFetch } from '@/lib/adminBackend';
+import { isAdminScreenHidden } from '@/lib/adminPermissions';
 import { revalidateSiteAfterRestore } from '@/lib/backupRestoreRevalidation';
 import type { BackupRestoreStatus, BackupsOverview } from '@/lib/backups';
 
@@ -20,6 +21,10 @@ function reply(status: BackupRestoreStatus) {
  * account still exists is reported as `relogin` instead of a 401.
  */
 export async function GET() {
+  if (isAdminScreenHidden('backups')) {
+    return Response.json({ message: 'Not found' }, { status: 404, headers: noStore });
+  }
+
   const cookieStore = await cookies();
 
   if (!(await verifyAdminSessionValue(cookieStore.get(ADMIN_SESSION_COOKIE)?.value))) {

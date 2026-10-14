@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation';
 import { FiDownload } from 'react-icons/fi';
 
 import AdminDeleteButton from '@/components/admin/AdminDeleteButton';
@@ -17,6 +18,7 @@ import {
   adminSecondaryButtonClassName,
 } from '@/components/admin/adminStyles';
 import { requireSuperAdmin } from '@/lib/adminAuthServer';
+import { isAdminScreenHidden } from '@/lib/adminPermissions';
 import {
   formatBackupDate,
   formatBackupSize,
@@ -113,6 +115,10 @@ export default async function AdminBackupsPage({
   params: Promise<{ locale: string }>;
   searchParams: Promise<BackupsSearchParams>;
 }) {
+  if (isAdminScreenHidden('backups')) {
+    notFound();
+  }
+
   const { locale } = await params;
   await requireSuperAdmin(locale, `/${locale}/admin/backups`);
   const query = await searchParams;

@@ -1,6 +1,7 @@
 import { getAdminApiHeaders } from '@/lib/adminApi';
 import { getAdminSession } from '@/lib/adminAuthServer';
 import { adminApiFetch } from '@/lib/adminBackend';
+import { isAdminScreenHidden } from '@/lib/adminPermissions';
 import { isBackupName } from '@/lib/backups';
 
 type Context = { params: Promise<{ name: string }> };
@@ -9,6 +10,10 @@ type Context = { params: Promise<{ name: string }> };
 const downloadTimeoutMs = 60 * 60_000;
 
 export async function GET(_request: Request, context: Context) {
+  if (isAdminScreenHidden('backups')) {
+    return Response.json({ message: 'Not found' }, { status: 404 });
+  }
+
   const session = await getAdminSession();
 
   if (!session) {
