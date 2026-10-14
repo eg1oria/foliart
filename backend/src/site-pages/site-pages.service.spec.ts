@@ -40,6 +40,8 @@ describe('SitePagesService', () => {
     const { service } = createService({
       slug: 'promo',
       displayMode: 'fullscreen',
+      showTitle: false,
+      bandColor: '#2f5be0',
       translations: [
         {
           locale: 'ru',
@@ -61,6 +63,8 @@ describe('SitePagesService', () => {
     await expect(service.findPublished('promo', 'fr')).resolves.toEqual({
       slug: 'promo',
       displayMode: 'fullscreen',
+      showTitle: false,
+      bandColor: '#2f5be0',
       locale: 'fr',
       title: 'Promo',
       description: 'd',
@@ -100,7 +104,12 @@ describe('SitePagesService', () => {
     );
 
     await expect(
-      service.create({ slug: 'promo', displayMode: 'embedded' }),
+      service.create({
+        slug: 'promo',
+        displayMode: 'embedded',
+        showTitle: true,
+        bandColor: '#0e2438',
+      }),
     ).rejects.toBeInstanceOf(ConflictException);
   });
 
@@ -108,7 +117,12 @@ describe('SitePagesService', () => {
     const { service } = createService({ id: 1, slug: 'promo' });
 
     await expect(
-      service.updateSettings(1, { slug: 'renamed', displayMode: 'embedded' }),
+      service.updateSettings(1, {
+        slug: 'renamed',
+        displayMode: 'embedded',
+        showTitle: true,
+        bandColor: '#0e2438',
+      }),
     ).resolves.toEqual({ id: 1, slug: 'renamed', previousSlug: 'promo' });
   });
 

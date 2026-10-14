@@ -9,7 +9,13 @@ import {
   updateSitePageSettingsAction,
 } from '../../../app/[locale]/admin/site-pages/actions';
 import { slugify } from '@/lib/catalog';
-import type { SitePageDisplayMode } from '@/lib/sitePages';
+import {
+  defaultSitePageBandColor,
+  isLightSitePageBandColor,
+  normalizeSitePageBandColor,
+  sitePageBandColorPattern,
+  type SitePageDisplayMode,
+} from '@/lib/sitePages';
 
 import {
   adminCx,
@@ -21,6 +27,12 @@ import {
 } from '../adminStyles';
 
 const initialState: SitePageActionState = { status: 'idle' };
+
+const bandColorPresets = [
+  { value: defaultSitePageBandColor, label: 'Тёмно-синий сайта' },
+  { value: '#0b3e31', label: 'Тёмно-зелёный' },
+  { value: '#111111', label: 'Чёрный' },
+];
 
 const displayModeOptions: Array<{
   description: string;
@@ -52,21 +64,31 @@ function normalizeSlugInput(value: string) {
 }
 
 export default function SitePageSettingsForm({
+  bandColor = defaultSitePageBandColor,
   displayMode = 'embedded',
   locale,
   mode,
   pageId,
+  showTitle = true,
   slug = '',
 }: {
+  bandColor?: string;
   displayMode?: SitePageDisplayMode;
   locale: string;
   mode: 'create' | 'edit';
   pageId?: number;
+  showTitle?: boolean;
   slug?: string;
 }) {
   const action = mode === 'create' ? createSitePageAction : updateSitePageSettingsAction;
   const [state, formAction, pending] = useActionState(action, initialState);
   const [slugValue, setSlugValue] = useState(slug);
+  const [modeValue, setModeValue] = useState<SitePageDisplayMode>(displayMode);
+  const [showTitleValue, setShowTitleValue] = useState(showTitle);
+  const [bandColorValue, setBandColorValue] = useState(normalizeSitePageBandColor(bandColor));
+  // What is typed in the hex field; only a complete colour reaches the band.
+  const [bandColorText, setBandColorText] = useState(bandColorValue);
+  const bandIsLight = isLightSitePageBandColor(bandColorValue);
   const errorRef = useRef<HTMLDivElement>(null);
   const slugError = state.fieldErrors?.slug;
 
@@ -150,7 +172,8 @@ export default function SitePageSettingsForm({
                   type="radio"
                   name="displayMode"
                   value={option.value}
-                  defaultChecked={displayMode === option.value}
+                  checked={modeValue === option.value}
+                  onChange={() => setModeValue(option.value)}
                   className="mt-1 h-4 w-4 shrink-0 accent-[#0b5a45]"
                 />
                 <span className="min-w-0">
@@ -167,6 +190,121 @@ export default function SitePageSettingsForm({
           })}
         </div>
       </fieldset>
+
+      <input type="hidden" name="showTitle" value={showTitleValue ? 'true' : 'false'} />
+      <input type="hidden" name="bandColor" value={bandColorValue} />
+
+      {modeValue === 'embedded' ? (
+        <fieldset className="space-y-3 rounded-lg border border-[#0b5a45]/10 bg-white p-4">
+          <legend className={adminCx(adminLabelClassName, 'px-1')}>Полоса под шапкой сайта</legend>
+          <p className={adminHintClassName}>
+            Белая шапка сайта лежит поверх страницы, поэтому под ней всегда есть полоса — чтобы меню
+            было видно. Подберите её цвет под первый экран вашего HTML, и шва не будет заметно.
+          </p>
+
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,320px)]">
+            <div className="space-y-4">
+              <label className="inline-flex cursor-pointer items-center gap-2.5 text-sm font-semibold text-[#0b3e31]">
+                <input
+                  type="checkbox"
+                  checked={showTitleValue}
+                  onChange={(event) => setShowTitleValue(event.target.checked)}
+                  className="h-4 w-4 accent-[#0b5a45]"
+                />
+                Показывать заголовок страницы на полосе
+              </label>
+              <p className={adminCx('-mt-2', adminHintClassName)}>
+                Без заголовка полоса становится узкой — ровно по высоте меню. Если в вашем HTML есть
+                свой заголовок, отключите.
+              </p>
+
+              <div className="space-y-2">
+                <span className={adminLabelClassName}>Цвет полосы</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    type="color"
+                    value={bandColorValue}
+                    onChange={(event) => {
+                      setBandColorValue(event.target.value);
+                      setBandColorText(event.target.value);
+                    }}
+                    aria-label="Выбрать цвет полосы"
+                    className="h-10 w-12 cursor-pointer rounded-lg border border-[#0b5a45]/14 bg-white p-1"
+                  />
+                  <input
+                    type="text"
+                    value={bandColorText}
+                    onChange={(event) => {
+                      const value = event.target.value.trim();
+                      setBandColorText(value);
+                      if (sitePageBandColorPattern.test(value)) {
+                        setBandColorValue(value.toLowerCase());
+                      }
+                    }}
+                    onBlur={() => setBandColorText(bandColorValue)}
+                    maxLength={7}
+                    spellCheck={false}
+                    aria-label="Цвет полосы в формате #RRGGBB"
+                    className={adminCx(adminInputClassName, 'max-w-28 font-mono')}
+                  />
+                  {bandColorPresets.map((preset) => (
+                    <button
+                      key={preset.value}
+                      type="button"
+                      title={preset.label}
+                      aria-label={preset.label}
+                      aria-pressed={bandColorValue === preset.value}
+                      onClick={() => {
+                        setBandColorValue(preset.value);
+                        setBandColorText(preset.value);
+                      }}
+                      className={adminCx(
+                        'h-8 w-8 cursor-pointer rounded-full border-2 transition',
+                        bandColorValue === preset.value
+                          ? 'border-[#0b5a45] ring-2 ring-[#0b5a45]/20'
+                          : 'border-white shadow-[0_0_0_1px_rgba(11,90,69,0.2)]',
+                      )}
+                      style={{ backgroundColor: preset.value }}
+                    />
+                  ))}
+                </div>
+                <p className={adminHintClassName}>
+                  Можно вставить код цвета из вашего HTML, например #2f5be0.
+                </p>
+                {bandIsLight ? (
+                  <p className="text-xs font-medium leading-5 text-amber-700">
+                    Светлый цвет: белые меню и логотип сайта на нём будут плохо видны.
+                  </p>
+                ) : null}
+              </div>
+            </div>
+
+            <div aria-hidden="true" className="self-start overflow-hidden rounded-lg border border-[#0b5a45]/10">
+              <div className="px-4 pb-3 pt-3" style={{ backgroundColor: bandColorValue }}>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-white">Фолиарт</span>
+                  <span className="flex gap-1">
+                    {[0, 1, 2].map((item) => (
+                      <span key={item} className="h-3 w-3 rounded-full border border-white/70" />
+                    ))}
+                  </span>
+                </div>
+                <div className="mt-3 flex gap-3 border-b border-white/40 pb-1.5">
+                  {[0, 1, 2, 3].map((item) => (
+                    <span key={item} className="h-1.5 w-8 rounded bg-white/80" />
+                  ))}
+                </div>
+                {showTitleValue ? (
+                  <p className="mt-4 text-lg font-bold leading-tight text-white">Заголовок страницы</p>
+                ) : null}
+              </div>
+              <div className="flex h-12 items-center justify-center bg-[repeating-linear-gradient(45deg,#f1f4f1_0_8px,#fff_8px_16px)] text-[11px] font-semibold text-[#7e9088]">
+                ваш HTML
+              </div>
+            </div>
+          </div>
+        </fieldset>
+      ) : null}
 
       <div className="flex justify-end">
         <button

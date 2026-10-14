@@ -30,14 +30,34 @@ describe('site page validation', () => {
     );
   });
 
-  it('falls back to the embedded display mode', () => {
+  it('falls back to the embedded mode and the navy band with a title', () => {
     expect(parseSitePageSettingsBody({ slug: 'promo' })).toEqual({
       slug: 'promo',
       displayMode: 'embedded',
+      showTitle: true,
+      bandColor: '#0e2438',
     });
     expect(
-      parseSitePageSettingsBody({ slug: 'promo', displayMode: 'fullscreen' }),
-    ).toEqual({ slug: 'promo', displayMode: 'fullscreen' });
+      parseSitePageSettingsBody({
+        slug: 'promo',
+        displayMode: 'fullscreen',
+        showTitle: 'false',
+        bandColor: '#2F5BE0',
+      }),
+    ).toEqual({
+      slug: 'promo',
+      displayMode: 'fullscreen',
+      showTitle: false,
+      bandColor: '#2f5be0',
+    });
+  });
+
+  it('only accepts a six-digit hex band colour', () => {
+    for (const bandColor of ['blue', '#fff', '#12345g', 'url(x)']) {
+      expect(() =>
+        parseSitePageSettingsBody({ slug: 'promo', bandColor }),
+      ).toThrow(BadRequestException);
+    }
   });
 
   it('only accepts the content locales', () => {

@@ -14,6 +14,7 @@ import {
   maxSitePageDescriptionLength,
   maxSitePageHtmlBytes,
   maxSitePageTitleLength,
+  normalizeSitePageBandColor,
   normalizeSitePageDisplayMode,
   validateSitePageSlug,
 } from '@/lib/sitePages';
@@ -98,6 +99,8 @@ function settingsPayload(formData: FormData) {
   const payload = new FormData();
   payload.append('slug', slug);
   payload.append('displayMode', displayMode);
+  payload.append('showTitle', readText(formData, 'showTitle') === 'false' ? 'false' : 'true');
+  payload.append('bandColor', normalizeSitePageBandColor(readText(formData, 'bandColor')));
 
   return { slug, payload };
 }

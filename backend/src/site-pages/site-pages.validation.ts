@@ -7,6 +7,10 @@ import {
 export const SITE_PAGE_DISPLAY_MODES = ['embedded', 'fullscreen'] as const;
 export type SitePageDisplayMode = (typeof SITE_PAGE_DISPLAY_MODES)[number];
 
+/** The band colour pages get unless the admin picks another — the site's navy. */
+export const DEFAULT_SITE_PAGE_BAND_COLOR = '#0e2438';
+const bandColorPattern = /^#[0-9a-f]{6}$/;
+
 export const MAX_SITE_PAGE_SLUG_LENGTH = 80;
 export const MAX_SITE_PAGE_TITLE_LENGTH = 200;
 export const MAX_SITE_PAGE_DESCRIPTION_LENGTH = 500;
@@ -46,6 +50,8 @@ export const RESERVED_SITE_PAGE_SLUGS: readonly string[] = [
 export type SitePageSettingsInput = {
   slug: string;
   displayMode: SitePageDisplayMode;
+  showTitle: boolean;
+  bandColor: string;
 };
 
 export type SitePageTranslationInput = {
@@ -113,11 +119,26 @@ export function parseSitePageSlug(value: unknown) {
   return slug;
 }
 
+function readFlag(value: unknown, field: string, fallback: boolean) {
+  if (value === undefined || value === null || value === '') {
+    return fallback;
+  }
+
+  return ['true', 'on', '1'].includes(readString(value, field).trim());
+}
+
 export function parseSitePageSettingsBody(
   body: unknown,
 ): SitePageSettingsInput {
   const source = readBody(body);
   const displayMode = readString(source.displayMode, 'displayMode').trim();
+  const bandColor = readString(source.bandColor, 'bandColor')
+    .trim()
+    .toLowerCase();
+
+  if (bandColor && !bandColorPattern.test(bandColor)) {
+    fail('Band colour must be a hex colour like #0e2438');
+  }
 
   return {
     slug: parseSitePageSlug(source.slug),
@@ -126,6 +147,9 @@ export function parseSitePageSettingsBody(
     )
       ? (displayMode as SitePageDisplayMode)
       : 'embedded',
+    // A client that does not know about the band keeps today's look.
+    showTitle: readFlag(source.showTitle, 'showTitle', true),
+    bandColor: bandColor || DEFAULT_SITE_PAGE_BAND_COLOR,
   };
 }
 

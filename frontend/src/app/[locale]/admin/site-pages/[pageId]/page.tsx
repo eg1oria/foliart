@@ -152,12 +152,14 @@ export default async function EditSitePagePage({
               <AdminPanel
                 tone="muted"
                 title="Настройки страницы"
-                description="Общие для всех языков: адрес и вид страницы на сайте.">
+                description="Общие для всех языков: адрес, вид страницы и полоса под шапкой сайта.">
                 <SitePageSettingsForm
+                  bandColor={page.bandColor}
                   displayMode={page.displayMode}
                   locale={locale}
                   mode="edit"
                   pageId={page.id}
+                  showTitle={page.showTitle}
                   slug={page.slug}
                 />
               </AdminPanel>

@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { getSitePageLocaleStates, isSitePageSlug, validateSitePageSlug } from './sitePages';
+import {
+  getSitePageLocaleStates,
+  isLightSitePageBandColor,
+  isSitePageSlug,
+  normalizeSitePageBandColor,
+  validateSitePageSlug,
+} from './sitePages';
 
 describe('site pages', () => {
   it('accepts a lowercase hyphenated address', () => {
@@ -23,5 +29,18 @@ describe('site pages', () => {
         { locale: 'fr', published: false },
       ]),
     ).toEqual({ ru: 'published', en: 'empty', fr: 'draft', es: 'empty' });
+  });
+
+  it('falls back to the site navy for a missing or malformed band colour', () => {
+    expect(normalizeSitePageBandColor('#2F5BE0')).toBe('#2f5be0');
+    expect(normalizeSitePageBandColor('red')).toBe('#0e2438');
+    expect(normalizeSitePageBandColor(undefined)).toBe('#0e2438');
+  });
+
+  it('flags band colours too light for the white header', () => {
+    expect(isLightSitePageBandColor('#0e2438')).toBe(false);
+    expect(isLightSitePageBandColor('#2f5be0')).toBe(false);
+    expect(isLightSitePageBandColor('#ffffff')).toBe(true);
+    expect(isLightSitePageBandColor('#ffd400')).toBe(true);
   });
 });

@@ -327,11 +327,15 @@ model AdminUser {
 // the frontend serves it from a sandboxed frame route and shows it in an
 // iframe, so a page's scripts run in an opaque origin. `slug` is the address
 // under `/<locale>/`, the same for every language; `displayMode` is either
-// `embedded` (between the site header and footer) or `fullscreen`.
+// `embedded` (between the site header and footer) or `fullscreen`. An embedded
+// page starts below a band in `bandColor` that keeps the white site header
+// readable; `showTitle` puts the page title on that band.
 model SitePage {
   id           Int                   @id @default(autoincrement())
   slug         String                @unique
   displayMode  String                @default("embedded")
+  showTitle    Boolean               @default(true)
+  bandColor    String                @default("#0e2438")
   createdAt    DateTime              @default(now())
   updatedAt    DateTime              @updatedAt
   translations SitePageTranslation[]

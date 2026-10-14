@@ -132,7 +132,8 @@ const documentShellPattern = /<!doctype|<html[\s>]|<head[\s>]|<body[\s>]/i;
 
 /**
  * Turns the HTML an admin pasted into the document the frame serves. A bare
- * fragment gets a minimal shell around it; a whole document is kept as typed,
+ * fragment gets a minimal shell around it, without the default body margin; a
+ * whole document is kept as typed,
  * with a viewport tag added when it has none. The helper script goes last in
  * the body, after the page's own scripts.
  */
@@ -150,6 +151,9 @@ export function buildSitePageDocument(
       '<meta charset="utf-8">',
       '<meta name="viewport" content="width=device-width, initial-scale=1">',
       `<title>${escapeHtml(title)}</title>`,
+      // A fragment is meant to sit edge to edge under the band, not inside the
+      // browser's default 8px body margin.
+      '<style>html,body{margin:0}</style>',
       '</head>',
       '<body>',
       html,

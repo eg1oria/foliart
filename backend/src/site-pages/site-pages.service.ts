@@ -92,6 +92,8 @@ export class SitePagesService {
     return {
       slug: page.slug,
       displayMode: page.displayMode,
+      showTitle: page.showTitle,
+      bandColor: page.bandColor,
       locale,
       title: translation.title,
       description: translation.description,
@@ -131,7 +133,7 @@ export class SitePagesService {
   async create(input: SitePageSettingsInput) {
     try {
       return await this.prisma.sitePage.create({
-        data: { slug: input.slug, displayMode: input.displayMode },
+        data: input,
       });
     } catch (error) {
       if (isUniqueViolation(error)) {
@@ -149,7 +151,7 @@ export class SitePagesService {
     try {
       const page = await this.prisma.sitePage.update({
         where: { id },
-        data: { slug: input.slug, displayMode: input.displayMode },
+        data: input,
       });
 
       return { ...page, previousSlug: previous.slug };

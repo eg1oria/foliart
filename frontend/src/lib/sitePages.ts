@@ -3,6 +3,10 @@ import { contentLocales, type ContentLocale } from './contentLocales';
 export const sitePageDisplayModes = ['embedded', 'fullscreen'] as const;
 export type SitePageDisplayMode = (typeof sitePageDisplayModes)[number];
 
+/** The site's navy — what the band under the header shows by default. */
+export const defaultSitePageBandColor = '#0e2438';
+export const sitePageBandColorPattern = /^#[0-9a-f]{6}$/i;
+
 export const maxSitePageSlugLength = 80;
 export const maxSitePageTitleLength = 200;
 export const recommendedSitePageDescriptionLength = 160;
@@ -41,6 +45,8 @@ export const reservedSitePageSlugs: readonly string[] = [
 export type PublishedSitePage = {
   slug: string;
   displayMode: SitePageDisplayMode;
+  showTitle: boolean;
+  bandColor: string;
   locale: ContentLocale;
   title: string;
   description: string;
@@ -78,6 +84,8 @@ export type SitePageListItem = {
   id: number;
   slug: string;
   displayMode: SitePageDisplayMode;
+  showTitle: boolean;
+  bandColor: string;
   createdAt: string;
   updatedAt: string;
   translations: Array<Pick<SitePageTranslation, 'locale' | 'title' | 'published' | 'updatedAt'>>;
@@ -119,6 +127,27 @@ export function validateSitePageSlug(slug: string) {
   }
 
   return null;
+}
+
+/** The stored colour when it is a valid hex, the site's navy otherwise. */
+export function normalizeSitePageBandColor(value: unknown) {
+  return typeof value === 'string' && sitePageBandColorPattern.test(value.trim())
+    ? value.trim().toLowerCase()
+    : defaultSitePageBandColor;
+}
+
+/**
+ * The site header is drawn in white over the band, so a light band would hide
+ * it. Relative luminance per WCAG: above 0.3, white text falls below 3:1.
+ */
+export function isLightSitePageBandColor(color: string) {
+  const hex = normalizeSitePageBandColor(color).slice(1);
+  const [r, g, b] = [0, 2, 4].map((index) => {
+    const channel = Number.parseInt(hex.slice(index, index + 2), 16) / 255;
+    return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+  });
+
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.3;
 }
 
 export function getSitePageHref(slug: string) {

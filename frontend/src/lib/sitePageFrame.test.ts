@@ -20,6 +20,7 @@ describe('site page frame', () => {
     expect(document).toContain('<html lang="fr">');
     expect(document).toContain('<title>A &lt;b&gt; &amp; &quot;c&quot;</title>');
     expect(document).toContain('name="viewport"');
+    expect(document).toContain('<style>html,body{margin:0}</style>');
     expect(document.indexOf('<section>Hi</section>')).toBeLessThan(
       document.indexOf('data-foliart-site-page'),
     );
@@ -35,6 +36,7 @@ describe('site page frame', () => {
     expect(document.match(/name="viewport"/g)).toHaveLength(1);
     expect(document.indexOf('data-foliart-site-page')).toBeGreaterThan(document.indexOf('<p>x</p>'));
     expect(document.endsWith('</BODY></html>')).toBe(true);
+    expect(document).not.toContain('margin:0');
   });
 
   it('adds a viewport tag to a document without one', () => {
