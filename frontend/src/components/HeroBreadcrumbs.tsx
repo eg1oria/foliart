@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/routing';
 
 export type HeroBreadcrumbItem = {
@@ -5,54 +6,18 @@ export type HeroBreadcrumbItem = {
   href?: string;
 };
 
-export function getBreadcrumbCopy(locale: string) {
-  if (locale === 'en') {
-    return {
-      ariaLabel: 'Breadcrumbs',
-      home: 'Home',
-      catalog: 'Catalog',
-      articles: 'Useful articles',
-    };
-  }
-
-  if (locale === 'fr') {
-    return {
-      ariaLabel: "Fil d'Ariane",
-      home: 'Accueil',
-      catalog: 'Catalogue',
-      articles: 'Articles utiles',
-    };
-  }
-
-  if (locale === 'es') {
-    return {
-      ariaLabel: 'Migas de pan',
-      home: 'Inicio',
-      catalog: 'Catálogo',
-      articles: 'Artículos útiles',
-    };
-  }
-
-  return {
-    ariaLabel: 'Хлебные крошки',
-    home: 'Главная',
-    catalog: 'Каталог',
-    articles: 'Полезные статьи',
-  };
-}
-
-export default function HeroBreadcrumbs({
+export default async function HeroBreadcrumbs({
   items,
   locale,
 }: {
   items: HeroBreadcrumbItem[];
   locale: string;
 }) {
-  const copy = getBreadcrumbCopy(locale);
-  const breadcrumbs: HeroBreadcrumbItem[] = [{ label: copy.home, href: '/' }, ...items];
+  const t = await getTranslations({ locale, namespace: 'Breadcrumbs' });
+  const breadcrumbs: HeroBreadcrumbItem[] = [{ label: t('home'), href: '/' }, ...items];
 
   return (
-    <nav aria-label={copy.ariaLabel} className="w-full overflow-x-auto">
+    <nav aria-label={t('ariaLabel')} className="w-full overflow-x-auto">
       <ol className="flex w-max min-w-full items-stretch gap-1.5">
         {breadcrumbs.map((item, index) => {
           const isCurrent = index === breadcrumbs.length - 1;

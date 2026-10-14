@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
-import HeroBreadcrumbs, { getBreadcrumbCopy } from '@/components/HeroBreadcrumbs';
+import { getTranslations } from 'next-intl/server';
+import HeroBreadcrumbs from '@/components/HeroBreadcrumbs';
 import CategoryDropdown from '@/components/catalog/CategoryDropdown';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
 import { getCategories, getProducts } from '@/lib/api';
 import {
   findCategoryByParam,
-  getCatalogCopy,
   getProductHref,
   getCategoryHref,
   getCategorySlug,
@@ -40,7 +40,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string; categoryId: string }>;
 }): Promise<Metadata> {
   const { locale, categoryId: rawCategoryId } = await params;
-  const copy = getCatalogCopy(locale);
+  const t = await getTranslations({ locale, namespace: 'Catalog' });
 
   try {
     const { category } = await getCategoryPageData(rawCategoryId, locale);
@@ -49,20 +49,15 @@ export async function generateMetadata({
       locale,
       path: getCategoryHref(category),
       title: category.name,
-      description: richDescriptionToPlainText(category.description) || copy.emptyProducts,
+      description: richDescriptionToPlainText(category.description) || t('emptyProducts'),
       image: resolveMediaUrl(category.imageUrl),
     });
   } catch {
     return buildPageMetadata({
       locale,
       path: '/catalog',
-      title:
-        locale === 'ru'
-          ? 'Каталог удобрений'
-          : locale === 'es'
-            ? 'Catálogo de fertilizantes'
-            : 'Fertilizer catalog',
-      description: copy.subtitle,
+      title: t('title'),
+      description: t('subtitle'),
       image: (await getSiteImage('catalog-hero')).src,
     });
   }
@@ -74,28 +69,10 @@ export default async function CategoryProductsPage({
   params: Promise<{ locale: string; categoryId: string }>;
 }) {
   const { locale, categoryId: rawCategoryId } = await params;
-  const copy = getCatalogCopy(locale);
-  const breadcrumbCopy = getBreadcrumbCopy(locale);
-  const pageCopy =
-    locale === 'ru'
-      ? {
-          backLevel: 'На уровень выше',
-          otherCategories: 'Другие категории',
-        }
-      : locale === 'fr'
-        ? {
-            backLevel: 'Niveau supérieur',
-            otherCategories: 'Autres catégories',
-          }
-        : locale === 'es'
-          ? {
-              backLevel: 'Subir un nivel',
-              otherCategories: 'Otras categorías',
-            }
-          : {
-              backLevel: 'Up one level',
-              otherCategories: 'Other categories',
-            };
+  const [t, tBreadcrumbs] = await Promise.all([
+    getTranslations({ locale, namespace: 'Catalog' }),
+    getTranslations({ locale, namespace: 'Breadcrumbs' }),
+  ]);
   const { allProducts, categories, category, products } = await getCategoryPageData(
     rawCategoryId,
     locale,
@@ -122,8 +99,8 @@ export default async function CategoryProductsPage({
     }),
   );
   const breadcrumbSchema = buildBreadcrumbSchema(locale, [
-    { name: breadcrumbCopy.home, path: '/' },
-    { name: breadcrumbCopy.catalog, path: '/catalog' },
+    { name: tBreadcrumbs('home'), path: '/' },
+    { name: tBreadcrumbs('catalog'), path: '/catalog' },
     { name: category.name, path: getCategoryHref(category) },
   ]);
 
@@ -153,7 +130,7 @@ export default async function CategoryProductsPage({
             <HeroBreadcrumbs
               locale={locale}
               items={[
-                { label: breadcrumbCopy.catalog, href: '/catalog' },
+                { label: tBreadcrumbs('catalog'), href: '/catalog' },
                 { label: category.name, href: getCategoryHref(category) },
               ]}
             />
@@ -176,16 +153,16 @@ export default async function CategoryProductsPage({
         <div className="grid gap-6 min-[1000px]:grid-cols-[260px_minmax(0,1fr)] min-[1000px]:gap-14">
           <aside className="hidden min-[1000px]:sticky min-[1000px]:top-28 min-[1000px]:block min-[1000px]:self-start">
             <CategoryDropdown
-              label={pageCopy.otherCategories}
+              label={t('otherCategories')}
               items={categoryMenuItems}
-              backLabel={pageCopy.backLevel}
+              backLabel={t('backLevel')}
               backHref="/catalog"
             />
           </aside>
 
           {products.length === 0 ? (
             <div className="flex min-h-[360px] items-center justify-center rounded-[2rem] border border-dashed border-[#0b5a45]/20 bg-[#f7f6f1] px-8 py-16 text-center text-[#48665c]">
-              {copy.emptyProducts}
+              {t('emptyProducts')}
             </div>
           ) : (
             <div className="grid grid-cols-2 min-[551px]:grid-cols-3 min-[1400px]:grid-cols-4">
@@ -206,7 +183,7 @@ export default async function CategoryProductsPage({
                         className="object-contain pt-[20px] px-[20px] min-[500px]:pt-[40px] min-[500px]:px-[40px] md:pt-[30px] md:px-[30px]"
                         emptyState={
                           <div className="flex h-full w-full items-center justify-center px-12 text-center text-sm leading-6 text-[#6d6d63]">
-                            {copy.productPlaceholder}
+                            {t('productPlaceholder')}
                           </div>
                         }
                       />
@@ -222,7 +199,7 @@ export default async function CategoryProductsPage({
                       <div className="md:border-t mt-auto flex flex-col items-center border-transparent  min-[900px]:border-[#ece7da] min-[900px]:bg-[#f8f5eb] px-2 py-5 min-[900px]:pointer-events-none min-[900px]:absolute min-[900px]:inset-x-0 min-[900px]:bottom-0 min-[900px]:translate-y-full min-[900px]:opacity-0 min-[900px]:transition min-[900px]:duration-300 min-[900px]:group-hover:translate-y-0 min-[900px]:group-hover:opacity-100">
                         <span className="inline-flex items-center gap-2 text-base text-[#337ab7]">
                           <FiInfo size={14} className="shrink-0 text-[#0b3e31]" />
-                          <span className="text-sm md:text-lg">{copy.learnMore}</span>
+                          <span className="text-sm md:text-lg">{t('learnMore')}</span>
                         </span>
                       </div>
                     </div>

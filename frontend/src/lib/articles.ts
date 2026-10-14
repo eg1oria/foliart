@@ -78,17 +78,9 @@ export function toDateInputValue(value?: string) {
   return parsed.toISOString().slice(0, 10);
 }
 
-export function getArticlesCopy(locale: string) {
+export function getArticlesAdminCopy(locale: string) {
   if (locale === 'en') {
     return {
-      title: 'Useful Articles',
-      emptyState: 'Articles will appear here after they are added in the admin panel.',
-      readMore: 'Read article',
-      backToArticles: 'Back to article list',
-      relatedTitle: 'More articles',
-      relatedEmpty: 'More articles will be published soon.',
-      metadataViewsLabel: 'views',
-      detailsEmpty: 'The article content will be added soon.',
       adminSectionLabel: 'Articles',
       adminTitle: 'Article editor',
       adminSubtitle:
@@ -128,15 +120,6 @@ export function getArticlesCopy(locale: string) {
 
   if (locale === 'fr') {
     return {
-      title: 'Articles utiles',
-      emptyState:
-        "Les articles apparaîtront ici après leur ajout dans le panneau d'administration.",
-      readMore: "Lire l'article",
-      backToArticles: 'Retour à la liste des articles',
-      relatedTitle: 'Autres articles',
-      relatedEmpty: 'De nouveaux articles seront publiés prochainement.',
-      metadataViewsLabel: 'vues',
-      detailsEmpty: "Le contenu de l'article sera ajouté prochainement.",
       adminSectionLabel: 'Articles',
       adminTitle: "Éditeur d'articles",
       adminSubtitle:
@@ -178,14 +161,6 @@ export function getArticlesCopy(locale: string) {
 
   if (locale === 'es') {
     return {
-      title: 'Artículos útiles',
-      emptyState: 'Los artículos aparecerán aquí una vez añadidos en el panel de administración.',
-      readMore: 'Leer artículo',
-      backToArticles: 'Volver a la lista de artículos',
-      relatedTitle: 'Más artículos',
-      relatedEmpty: 'Próximamente se publicarán nuevos artículos.',
-      metadataViewsLabel: 'vistas',
-      detailsEmpty: 'El contenido del artículo se añadirá próximamente.',
       adminSectionLabel: 'Artículos',
       adminTitle: 'Editor de artículos',
       adminSubtitle:
@@ -226,14 +201,6 @@ export function getArticlesCopy(locale: string) {
   }
 
   return {
-    title: 'Полезные статьи',
-    emptyState: 'Статьи появятся здесь после добавления в админке.',
-    readMore: 'Читать статью',
-    backToArticles: 'К списку статей раздела',
-    relatedTitle: 'Другие статьи',
-    relatedEmpty: 'Скоро здесь появятся новые материалы.',
-    metadataViewsLabel: 'просмотров',
-    detailsEmpty: 'Содержимое статьи будет добавлено позже.',
     adminSectionLabel: 'Статьи',
     adminTitle: 'Редактор статей',
     adminSubtitle:

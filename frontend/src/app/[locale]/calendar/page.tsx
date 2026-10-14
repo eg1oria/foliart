@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
 import { getCalendars } from '@/lib/api';
-import { getCalendarHref, getCalendarsCopy, getCalendarImages } from '@/lib/calendars';
+import { getCalendarHref, getCalendarImages } from '@/lib/calendars';
 import { resolveMediaUrl } from '@/lib/media';
 import { richDescriptionToPlainText } from '@/lib/richDescription';
 import { buildPageMetadata } from '@/lib/seo';
@@ -15,27 +16,20 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const copy = getCalendarsCopy(locale);
+  const t = await getTranslations({ locale, namespace: 'Calendar' });
 
   return buildPageMetadata({
     locale,
     path: '/calendar',
-    title:
-      locale === 'ru'
-        ? 'Сельскохозяйственный календарь'
-        : locale === 'fr'
-          ? 'Calendrier agricole'
-          : locale === 'es'
-            ? 'Calendario agrícola'
-            : 'Agricultural calendar',
-    description: copy.subtitle,
+    title: t('title'),
+    description: t('subtitle'),
     image: (await getSiteImage('calendar-hero')).src,
   });
 }
 
 export default async function CalendarPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
-  const copy = getCalendarsCopy(locale);
+  const t = await getTranslations({ locale, namespace: 'Calendar' });
   const calendars = await getCalendars(locale);
   const hero = await getSiteImage('calendar-hero');
 
@@ -54,14 +48,14 @@ export default async function CalendarPage({ params }: { params: Promise<{ local
         <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
 
         <h1 className="relative z-10 max-w-4xl text-3xl font-bold text-white md:text-5xl">
-          {copy.title}
+          {t('title')}
         </h1>
       </section>
 
       <section className="catalog-header py-10">
         {calendars.length === 0 ? (
           <div className="rounded-[2rem] border border-dashed border-[#0b5a45]/20 bg-[#f7f6f1] px-8 py-16 text-center text-base text-[#5f726b]">
-            {copy.emptyState}
+            {t('emptyState')}
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -88,16 +82,16 @@ export default async function CalendarPage({ params }: { params: Promise<{ local
 
                   <article className="flex flex-1 flex-col p-6">
                     <p className="text-xs font-medium uppercase tracking-[0.24em] text-[#6f7f77]">
-                      {copy.heroEyebrow}
+                      {t('cardEyebrow')}
                     </p>
                     <h2 className="mt-4 text-[1.35rem] font-semibold leading-tight text-[#10283d] transition group-hover:text-[#0b5a45]">
                       {calendar.title}
                     </h2>
                     <p className="mt-4 line-clamp-3 text-[0.95rem] leading-7 text-[#53646b]">
-                      {richDescriptionToPlainText(calendar.description) || copy.detailsEmpty}
+                      {richDescriptionToPlainText(calendar.description) || t('detailsEmpty')}
                     </p>
                     <span className="mt-6 inline-flex text-[1rem] font-medium text-[#0b5a45]">
-                      {copy.openEntry}
+                      {t('openEntry')}
                     </span>
                   </article>
                 </Link>

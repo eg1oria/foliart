@@ -17,12 +17,15 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: 'Contacts' });
+  const [t, tSeo] = await Promise.all([
+    getTranslations({ locale, namespace: 'Contacts' }),
+    getTranslations({ locale, namespace: 'Seo' }),
+  ]);
 
   return buildPageMetadata({
     locale,
     path: '/contacts',
-    title: locale === 'ru' ? 'Контакты' : 'Contacts',
+    title: tSeo('contactsTitle'),
     description: t('subtitle'),
     image: (await getSiteImage('contacts-hero')).src,
   });

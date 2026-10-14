@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import ContactModalTrigger from '@/components/ContactModalTrigger';
-import HeroBreadcrumbs, { getBreadcrumbCopy } from '@/components/HeroBreadcrumbs';
+import HeroBreadcrumbs from '@/components/HeroBreadcrumbs';
 import CompositionList from '@/components/catalog/CompositionList';
 import MediaImage from '@/components/catalog/MediaImage';
 import ProductImageLightbox from '@/components/catalog/ProductImageLightbox';
@@ -10,7 +11,6 @@ import { getCategories, getProducts } from '@/lib/api';
 import {
   findCategoryByParam,
   findProductByParam,
-  getCatalogCopy,
   getCategoryHref,
   getCategorySlug,
   getProductHref,
@@ -20,7 +20,6 @@ import {
   parseComposition,
 } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
-import { getProductCompatibilityNote } from '@/lib/productCompatibility';
 import { getProductDocumentLabel } from '@/lib/productDocuments';
 import { renderRichDescription } from '@/lib/renderRichDescription';
 import { richDescriptionToPlainText } from '@/lib/richDescription';
@@ -60,7 +59,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string; categoryId: string; productId: string }>;
 }): Promise<Metadata> {
   const { locale, categoryId: rawCategoryId, productId: rawProductId } = await params;
-  const copy = getCatalogCopy(locale);
+  const t = await getTranslations({ locale, namespace: 'Catalog' });
 
   try {
     const { category, product } = await getProductPageData(rawCategoryId, rawProductId, locale);
@@ -72,20 +71,15 @@ export async function generateMetadata({
       description:
         richDescriptionToPlainText(product.description) ||
         richDescriptionToPlainText(category.description) ||
-        copy.detailsFallback,
+        t('detailsFallback'),
       image: resolveMediaUrl(product.imageUrl),
     });
   } catch {
     return buildPageMetadata({
       locale,
       path: '/catalog',
-      title:
-        locale === 'ru'
-          ? 'Каталог удобрений'
-          : locale === 'es'
-            ? 'Catálogo de fertilizantes'
-            : 'Fertilizer catalog',
-      description: copy.subtitle,
+      title: t('title'),
+      description: t('subtitle'),
       image: (await getSiteImage('catalog-hero')).src,
     });
   }
@@ -97,8 +91,11 @@ export default async function ProductDetailsPage({
   params: Promise<{ locale: string; categoryId: string; productId: string }>;
 }) {
   const { locale, categoryId: rawCategoryId, productId: rawProductId } = await params;
-  const copy = getCatalogCopy(locale);
-  const breadcrumbCopy = getBreadcrumbCopy(locale);
+  const [t, tProduct, tBreadcrumbs] = await Promise.all([
+    getTranslations({ locale, namespace: 'Catalog' }),
+    getTranslations({ locale, namespace: 'Product' }),
+    getTranslations({ locale, namespace: 'Breadcrumbs' }),
+  ]);
   const { category, product } = await getProductPageData(rawCategoryId, rawProductId, locale);
 
   if (rawCategoryId !== getCategorySlug(category) || rawProductId !== getProductSlug(product)) {
@@ -110,52 +107,20 @@ export default async function ProductDetailsPage({
   // Products carry their own documents; the bundled scan is what a card with
   // none of them still links.
   const certificateImage = (await getSiteImage('catalog-certificate-fallback')).src;
-  const certificateLabel =
-    locale === 'ru'
-      ? 'Сертификат соответствия'
-      : locale === 'fr'
-        ? 'Certificat de conformité'
-        : locale === 'es'
-          ? 'Certificado de conformidad'
-          : 'Certificate of conformity';
+  const certificateLabel = tProduct('certificate');
   const compositionItems = parseComposition(product.composition);
   const advantages = parseAdvantageItems(product.advantages);
   const applicationItems = parseApplication(product.application);
-  const overviewSource = product.description || category.description || copy.detailsFallback;
+  const overviewSource = product.description || category.description || t('detailsFallback');
   const overviewHtml = renderRichDescription(overviewSource);
   const overviewText = richDescriptionToPlainText(overviewHtml);
-  const pageCopy =
-    locale === 'ru'
-      ? {
-          sectionsLabel: 'Разделы товара',
-          compositionTitle: 'Состав',
-          applicationTitle: 'Регламент применения',
-          specialistTitle: 'Помощь специалиста',
-          advantagesLabel: `Преимущества ${product.name}`,
-        }
-      : locale === 'fr'
-        ? {
-            sectionsLabel: 'Sections du produit',
-            compositionTitle: 'Composition',
-            applicationTitle: "Guide d'application",
-            specialistTitle: "Aide d'un spécialiste",
-            advantagesLabel: `Avantages de ${product.name}`,
-          }
-        : locale === 'es'
-          ? {
-              sectionsLabel: 'Secciones del producto',
-              compositionTitle: 'Composición',
-              applicationTitle: 'Guía de aplicación',
-              specialistTitle: 'Ayuda de un especialista',
-              advantagesLabel: `Ventajas de ${product.name}`,
-            }
-          : {
-              sectionsLabel: 'Product sections',
-              compositionTitle: 'Composition',
-              applicationTitle: 'Application guide',
-              specialistTitle: 'Specialist help',
-              advantagesLabel: `Advantages of ${product.name}`,
-            };
+  const pageCopy = {
+    sectionsLabel: tProduct('sectionsLabel'),
+    compositionTitle: tProduct('compositionTitle'),
+    applicationTitle: tProduct('applicationTitle'),
+    specialistTitle: tProduct('specialistTitle'),
+    advantagesLabel: tProduct('advantagesTitle', { name: product.name }),
+  };
   // Sections without content are hidden entirely, together with their nav links.
   const contentSections = [
     ...(compositionItems.length > 0
@@ -167,16 +132,13 @@ export default async function ProductDetailsPage({
       : []),
     { id: 'specialist', label: pageCopy.specialistTitle },
   ];
-  const sectionLinks = [{ id: 'description', label: copy.descriptionTitle }, ...contentSections];
-  const askQuestionLabel =
-    locale === 'ru'
-      ? 'Задать вопрос'
-      : locale === 'fr'
-        ? 'Poser une question'
-        : locale === 'es'
-          ? 'Hacer una pregunta'
-          : 'Ask a question';
-  const compatibilityNote = getProductCompatibilityNote(product, locale);
+  const sectionLinks = [
+    { id: 'description', label: tProduct('descriptionTitle') },
+    ...contentSections,
+  ];
+  const askQuestionLabel = tProduct('askQuestion');
+  // A blank per-product note falls back to the standard tank-mix text.
+  const compatibilityNote = product.compatibility?.trim() || tProduct('compatibilityDefault');
   // A product carries its own files — several of them, named per language.
   const productDocuments = (product.documents ?? []).filter((document) =>
     Boolean(resolveMediaUrl(document.fileUrl)),
@@ -213,8 +175,8 @@ export default async function ProductDetailsPage({
     ) : null;
   const productPath = getProductHref(category, product);
   const breadcrumbSchema = buildBreadcrumbSchema(locale, [
-    { name: breadcrumbCopy.home, path: '/' },
-    { name: breadcrumbCopy.catalog, path: '/catalog' },
+    { name: tBreadcrumbs('home'), path: '/' },
+    { name: tBreadcrumbs('catalog'), path: '/catalog' },
     { name: category.name, path: getCategoryHref(category) },
     { name: product.name, path: productPath },
   ]);
@@ -257,7 +219,7 @@ export default async function ProductDetailsPage({
             <HeroBreadcrumbs
               locale={locale}
               items={[
-                { label: breadcrumbCopy.catalog, href: '/catalog' },
+                { label: tBreadcrumbs('catalog'), href: '/catalog' },
                 { label: category.name, href: getCategoryHref(category) },
               ]}
             />
@@ -291,7 +253,7 @@ export default async function ProductDetailsPage({
                       href={getCategoryHref(category)}
                       className="inline-flex items-center gap-2 text-base text-[#8a8e91] transition hover:text-[#0b5a45]">
                       <TbArrowBackUp className="shrink-0" />
-                      {copy.backToCategory}
+                      {t('backToCategory')}
                     </Link>
                   </li>
                 </ul>
@@ -305,11 +267,10 @@ export default async function ProductDetailsPage({
                 src={productImage}
                 alt={product.name}
                 productName={product.name}
-                locale={locale}
                 sizes="(max-width: 1024px) 100vw, 34vw"
                 emptyState={
                   <div className="flex h-full w-full items-center justify-center rounded-[1.75rem] bg-[#f4f0e7] px-10 text-center text-sm leading-6 text-[#6d6d63]">
-                    {copy.productPlaceholder}
+                    {t('productPlaceholder')}
                   </div>
                 }
               />
@@ -325,7 +286,7 @@ export default async function ProductDetailsPage({
             <a
               href={`#${contentSections[0].id}`}
               className="mt-6 inline-flex items-center gap-2 text-sm text-[#3b76f6] transition hover:text-[#0b5a45]">
-              <span>{copy.learnMore}</span>
+              <span>{t('learnMore')}</span>
               <FiChevronDown size={16} className="shrink-0" />
             </a>
 

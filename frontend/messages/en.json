@@ -17,7 +17,13 @@
     "sunflower": "Sunflower"
   },
   "Articles": {
-    "title": "Useful Articles"
+    "title": "Useful Articles",
+    "metaDescription": "Useful articles about plant nutrition, stress recovery, and fertilizer systems from Foliart specialists.",
+    "emptyState": "Articles will appear here after they are added in the admin panel.",
+    "detailsEmpty": "The article content will be added soon.",
+    "backToArticles": "Back to article list",
+    "relatedTitle": "More articles",
+    "relatedEmpty": "More articles will be published soon."
   },
   "Contacts": {
     "title": "Contact Information",
@@ -269,5 +275,69 @@
     "recentTitle": "Recent searches",
     "recentClear": "Clear history",
     "openPage": "Open page"
+  },
+  "Breadcrumbs": {
+    "ariaLabel": "Breadcrumbs",
+    "home": "Home",
+    "catalog": "Catalog",
+    "articles": "Useful articles",
+    "calendar": "Calendar"
+  },
+  "Catalog": {
+    "title": "Fertilizer Catalog",
+    "subtitle": "We know how to take care of your plants",
+    "viewCatalog": "View catalog",
+    "productCount": "{count, plural, =1 {1 product} other {# products}}",
+    "emptyCategories": "Categories will appear here after they are added.",
+    "emptyProducts": "There are no products in this category yet.",
+    "productPlaceholder": "Product photo will be added soon.",
+    "learnMore": "Learn more",
+    "otherCategories": "Other categories",
+    "backLevel": "Up one level",
+    "backToCategory": "Back to products",
+    "detailsFallback": "Detailed product information will be added later."
+  },
+  "Product": {
+    "sectionsLabel": "Product sections",
+    "descriptionTitle": "Description",
+    "compositionTitle": "Composition",
+    "advantagesTitle": "Advantages of {name}",
+    "applicationTitle": "Application guide",
+    "specialistTitle": "Specialist help",
+    "askQuestion": "Ask a question",
+    "certificate": "Certificate of conformity",
+    "compatibilityDefault": "The product is compatible with most fertilizers and crop protection products. Mixing with copper- and sulfur-based products in the same tank is not allowed. A compatibility test is required before use.",
+    "openImage": "View {name} image",
+    "closeImage": "Close"
+  },
+  "Calendar": {
+    "title": "Agricultural Calendar",
+    "subtitle": "Crop pages with descriptions and four supporting photos for each agricultural entry.",
+    "cardEyebrow": "Foliart Calendar",
+    "emptyState": "Calendar items will appear here after they are added in the admin panel.",
+    "openEntry": "Open page",
+    "detailsEmpty": "The description for this crop will be added soon.",
+    "viewCalendar": "View calendar",
+    "productsTitle": "Products in this calendar",
+    "productsCatalogLink": "Full catalog"
+  },
+  "Seo": {
+    "homeTitle": "Foliart — the art of fertilization",
+    "homeDescription": "Foliart develops organo-mineral fertilizer systems for farms with laboratory-backed agronomy support and plant nutrition expertise.",
+    "aboutTitle": "About the company",
+    "contactsTitle": "Contacts",
+    "partnersTitle": "Partners",
+    "partnersDescription": "Regional partners and distributors of Foliart products in Krasnodar and Crimea."
+  },
+  "NotFound": {
+    "title": "Page not found",
+    "description": "The link may be outdated.",
+    "home": "Go home"
+  },
+  "ErrorPage": {
+    "title": "The page could not be loaded",
+    "description": "Check your connection and try again.",
+    "retry": "Try again",
+    "home": "Go home"
   }
 }

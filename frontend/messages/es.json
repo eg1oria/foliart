@@ -17,7 +17,13 @@
     "sunflower": "Girasol"
   },
   "Articles": {
-    "title": "Artículos útiles"
+    "title": "Artículos útiles",
+    "metaDescription": "Artículos útiles sobre nutrición vegetal, recuperación tras el estrés y sistemas de fertilización de los especialistas de Foliart.",
+    "emptyState": "Los artículos aparecerán aquí una vez añadidos en el panel de administración.",
+    "detailsEmpty": "El contenido del artículo se añadirá próximamente.",
+    "backToArticles": "Volver a la lista de artículos",
+    "relatedTitle": "Más artículos",
+    "relatedEmpty": "Próximamente se publicarán nuevos artículos."
   },
   "Contacts": {
     "title": "Información de contacto",
@@ -269,5 +275,69 @@
     "recentTitle": "Búsquedas recientes",
     "recentClear": "Borrar el historial",
     "openPage": "Abrir la página"
+  },
+  "Breadcrumbs": {
+    "ariaLabel": "Migas de pan",
+    "home": "Inicio",
+    "catalog": "Catálogo",
+    "articles": "Artículos útiles",
+    "calendar": "Calendario"
+  },
+  "Catalog": {
+    "title": "Catálogo de fertilizantes",
+    "subtitle": "Sabemos cómo cuidar sus plantas",
+    "viewCatalog": "Ver catálogo",
+    "productCount": "{count, plural, =1 {1 producto} other {# productos}}",
+    "emptyCategories": "Las categorías aparecerán aquí una vez añadidas.",
+    "emptyProducts": "Esta categoría aún no tiene productos.",
+    "productPlaceholder": "La foto del producto se añadirá próximamente.",
+    "learnMore": "Saber más",
+    "otherCategories": "Otras categorías",
+    "backLevel": "Subir un nivel",
+    "backToCategory": "Volver a los productos",
+    "detailsFallback": "La información detallada del producto se añadirá más adelante."
+  },
+  "Product": {
+    "sectionsLabel": "Secciones del producto",
+    "descriptionTitle": "Descripción",
+    "compositionTitle": "Composición",
+    "advantagesTitle": "Ventajas de {name}",
+    "applicationTitle": "Guía de aplicación",
+    "specialistTitle": "Ayuda de un especialista",
+    "askQuestion": "Hacer una pregunta",
+    "certificate": "Certificado de conformidad",
+    "compatibilityDefault": "El producto es compatible con la mayoría de fertilizantes y productos fitosanitarios. No está permitida la mezcla en cuba con productos a base de cobre o azufre. Es obligatorio realizar un test de compatibilidad antes del uso.",
+    "openImage": "Ver la imagen de {name}",
+    "closeImage": "Cerrar"
+  },
+  "Calendar": {
+    "title": "Calendario agrícola",
+    "subtitle": "Páginas de cultivos con descripción y cuatro fotos para cada entrada del calendario.",
+    "cardEyebrow": "Calendario Foliart",
+    "emptyState": "Las entradas del calendario aparecerán aquí una vez añadidas en el panel de administración.",
+    "openEntry": "Abrir página",
+    "detailsEmpty": "La descripción de este cultivo se añadirá próximamente.",
+    "viewCalendar": "Ver calendario",
+    "productsTitle": "Productos de este calendario",
+    "productsCatalogLink": "Todo el catálogo"
+  },
+  "Seo": {
+    "homeTitle": "Foliart — el arte de la fertilización",
+    "homeDescription": "Foliart desarrolla sistemas de fertilización organo-mineral para explotaciones con soporte de laboratorio y experiencia agronómica.",
+    "aboutTitle": "Sobre nosotros",
+    "contactsTitle": "Contactos",
+    "partnersTitle": "Socios",
+    "partnersDescription": "Socios regionales y distribuidores de los productos Foliart en Krasnodar y Crimea."
+  },
+  "NotFound": {
+    "title": "Página no encontrada",
+    "description": "Es posible que el enlace esté desactualizado.",
+    "home": "Ir al inicio"
+  },
+  "ErrorPage": {
+    "title": "No se pudo cargar la página",
+    "description": "Compruebe su conexión e inténtelo de nuevo.",
+    "retry": "Reintentar",
+    "home": "Ir al inicio"
   }
 }

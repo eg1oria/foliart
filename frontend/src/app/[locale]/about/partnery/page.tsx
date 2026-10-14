@@ -18,17 +18,13 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'Seo' });
 
   return buildPageMetadata({
     locale,
     path: '/about/partnery',
-    title: locale === 'ru' ? 'Партнеры' : locale === 'es' ? 'Socios' : 'Partners',
-    description:
-      locale === 'ru'
-        ? 'Региональные партнеры и дистрибьюторы продукции Фолиарт в Краснодаре и Крыму.'
-        : locale === 'es'
-          ? 'Socios regionales y distribuidores de los productos Foliart en Krasnodar y Crimea.'
-          : 'Regional partners and distributors of Foliart products in Krasnodar and Crimea.',
+    title: t('partnersTitle'),
+    description: t('partnersDescription'),
     image: (await getSiteImage('partners-hero')).src,
   });
 }

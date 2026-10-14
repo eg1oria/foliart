@@ -14,19 +14,15 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: 'About' });
+  const [t, tSeo] = await Promise.all([
+    getTranslations({ locale, namespace: 'About' }),
+    getTranslations({ locale, namespace: 'Seo' }),
+  ]);
 
   return buildPageMetadata({
     locale,
     path: '/about',
-    title:
-      locale === 'ru'
-        ? 'О компании'
-        : locale === 'fr'
-          ? 'À propos'
-          : locale === 'es'
-            ? 'Sobre nosotros'
-            : 'About the company',
+    title: tSeo('aboutTitle'),
     description: t('subtitle'),
     image: (await getSiteImage('about-hero')).src,
   });

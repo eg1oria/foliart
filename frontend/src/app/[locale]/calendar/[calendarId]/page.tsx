@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 // Calendar products: hidden until the client approves the block — uncomment to bring it back.
 // import CalendarProducts from '@/components/calendar/CalendarProducts';
 import MediaImage from '@/components/catalog/MediaImage';
 import { getCalendars /* , getCategories, getProducts */ } from '@/lib/api';
 import {
   findCalendarByParam,
-  getCalendarsCopy,
   getCalendarHref,
   getCalendarImageSlots,
   // getCalendarProducts,
@@ -24,7 +24,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string; calendarId: string }>;
 }): Promise<Metadata> {
   const { locale, calendarId: rawCalendarId } = await params;
-  const copy = getCalendarsCopy(locale);
+  const t = await getTranslations({ locale, namespace: 'Calendar' });
   const calendars = await getCalendars(locale).catch(() => []);
   const calendar = findCalendarByParam(calendars, rawCalendarId);
 
@@ -32,15 +32,8 @@ export async function generateMetadata({
     return buildPageMetadata({
       locale,
       path: '/calendar',
-      title:
-        locale === 'ru'
-          ? 'Сельскохозяйственный календарь'
-          : locale === 'fr'
-            ? 'Calendrier agricole'
-            : locale === 'es'
-              ? 'Calendario agrícola'
-              : 'Agricultural calendar',
-      description: copy.subtitle,
+      title: t('title'),
+      description: t('subtitle'),
       image: (await getSiteImage('calendar-hero')).src,
     });
   }
@@ -49,7 +42,7 @@ export async function generateMetadata({
     locale,
     path: getCalendarHref(calendar),
     title: calendar.title,
-    description: richDescriptionToPlainText(calendar.description) || copy.detailsEmpty,
+    description: richDescriptionToPlainText(calendar.description) || t('detailsEmpty'),
     image: resolveMediaUrl(getCalendarImageSlots(calendar).heroImage),
   });
 }
@@ -60,7 +53,10 @@ export default async function CalendarDetailsPage({
   params: Promise<{ locale: string; calendarId: string }>;
 }) {
   const { locale, calendarId: rawCalendarId } = await params;
-  const copy = getCalendarsCopy(locale);
+  const [t, tBreadcrumbs] = await Promise.all([
+    getTranslations({ locale, namespace: 'Calendar' }),
+    getTranslations({ locale, namespace: 'Breadcrumbs' }),
+  ]);
   const calendars = await getCalendars(locale);
   const calendar = findCalendarByParam(calendars, rawCalendarId);
 
@@ -94,39 +90,11 @@ export default async function CalendarDetailsPage({
   // const calendarProducts = getCalendarProducts(calendar, catalogProducts, catalogCategories);
   const calendarPdf = resolveMediaUrl(calendar.pdfUrl);
   const calendarViewTarget = calendarPdf ?? showcaseImage;
-  const descriptionHtml = renderRichDescription(calendar.description || copy.detailsEmpty);
-  const viewCalendarLabel =
-    locale === 'ru'
-      ? 'Смотреть календарь'
-      : locale === 'fr'
-        ? 'Voir le calendrier'
-        : locale === 'es'
-          ? 'Ver calendario'
-          : 'View calendar';
+  const descriptionHtml = renderRichDescription(calendar.description || t('detailsEmpty'));
   const calendarPath = getCalendarHref(calendar);
   const breadcrumbSchema = buildBreadcrumbSchema(locale, [
-    {
-      name:
-        locale === 'ru'
-          ? 'Главная'
-          : locale === 'fr'
-            ? 'Accueil'
-            : locale === 'es'
-              ? 'Inicio'
-              : 'Home',
-      path: '/',
-    },
-    {
-      name:
-        locale === 'ru'
-          ? 'Календарь'
-          : locale === 'fr'
-            ? 'Calendrier'
-            : locale === 'es'
-              ? 'Calendario'
-              : 'Calendar',
-      path: '/calendar',
-    },
+    { name: tBreadcrumbs('home'), path: '/' },
+    { name: tBreadcrumbs('calendar'), path: '/calendar' },
     { name: calendar.title, path: calendarPath },
   ]);
 
@@ -217,16 +185,16 @@ export default async function CalendarDetailsPage({
               target="_blank"
               rel="noreferrer"
               className="mt-8 inline-flex items-center rounded-full bg-[#014c3c] px-8 py-4 text-base font-semibold text-white transition hover:bg-[#013a2e]">
-              {viewCalendarLabel}
+              {t('viewCalendar')}
             </a>
           </div>
         </div>
       ) : null}
 
       {/* <CalendarProducts
-        catalogLabel={copy.productsCatalogLink}
+        catalogLabel={t('productsCatalogLink')}
         products={calendarProducts}
-        title={copy.productsTitle}
+        title={t('productsTitle')}
       /> */}
     </main>
   );

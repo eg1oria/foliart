@@ -6,6 +6,7 @@ import { Link } from '@/i18n/routing';
 import { buildPageMetadata } from '@/lib/seo';
 import { getSiteImage } from '@/lib/siteImagesServer';
 import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 
 export async function generateMetadata({
   params,
@@ -13,25 +14,13 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const titles: Record<string, string> = {
-    ru: 'Фолиарт — искусство удобрения',
-    en: 'Foliart — the art of fertilization',
-    fr: "Foliart — l'art de la fertilisation",
-    es: 'Foliart — el arte de la fertilización',
-  };
-
-  const descriptions: Record<string, string> = {
-    ru: 'Фолиарт разрабатывает органо-минеральные комплексы и системы питания растений для хозяйств с лабораторным сопровождением и агрономической экспертизой.',
-    en: 'Foliart develops organo-mineral fertilizer systems for farms with laboratory-backed agronomy support and plant nutrition expertise.',
-    fr: 'Foliart développe des systèmes de fertilisation organo-minérale pour les exploitations avec un suivi de laboratoire et une expertise agronomique.',
-    es: 'Foliart desarrolla sistemas de fertilización organo-mineral para explotaciones con soporte de laboratorio y experiencia agronómica.',
-  };
+  const t = await getTranslations({ locale, namespace: 'Seo' });
 
   return buildPageMetadata({
     locale,
     path: '/',
-    title: titles[locale] ?? titles.en,
-    description: descriptions[locale] ?? descriptions.en,
+    title: t('homeTitle'),
+    description: t('homeDescription'),
     image: (await getSiteImage('home-hero')).src,
   });
 }

@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
-import HeroBreadcrumbs, { getBreadcrumbCopy } from '@/components/HeroBreadcrumbs';
+import { getTranslations } from 'next-intl/server';
+import HeroBreadcrumbs from '@/components/HeroBreadcrumbs';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
-import { getArticleHref, getArticlesCopy, formatArticleDate } from '@/lib/articles';
+import { getArticleHref, formatArticleDate } from '@/lib/articles';
 import { getArticles } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
 import { buildBreadcrumbSchema, buildPageMetadata, stringifyJsonLd } from '@/lib/seo';
@@ -15,39 +16,28 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'Articles' });
 
   return buildPageMetadata({
     locale,
     path: '/articles',
-    title:
-      locale === 'ru'
-        ? 'Полезные статьи'
-        : locale === 'fr'
-          ? 'Articles utiles'
-          : locale === 'es'
-            ? 'Artículos útiles'
-            : 'Useful articles',
-    description:
-      locale === 'ru'
-        ? 'Полезные статьи о питании растений, восстановлении после стресса и системах удобрения от специалистов Фолиарт.'
-        : locale === 'fr'
-          ? 'Articles utiles sur la nutrition des plantes, la récupération après le stress et les systèmes de fertilisation par les spécialistes de Foliart.'
-          : locale === 'es'
-            ? 'Artículos útiles sobre nutrición vegetal, recuperación tras el estrés y sistemas de fertilización de los especialistas de Foliart.'
-            : 'Useful articles about plant nutrition, stress recovery, and fertilizer systems from Foliart specialists.',
+    title: t('title'),
+    description: t('metaDescription'),
     image: (await getSiteImage('articles-hero')).src,
   });
 }
 
 export default async function ArticlesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
-  const copy = getArticlesCopy(locale);
-  const breadcrumbCopy = getBreadcrumbCopy(locale);
+  const [t, tBreadcrumbs] = await Promise.all([
+    getTranslations({ locale, namespace: 'Articles' }),
+    getTranslations({ locale, namespace: 'Breadcrumbs' }),
+  ]);
   const hero = await getSiteImage('articles-hero');
   const articles = await getArticles(locale);
   const breadcrumbSchema = buildBreadcrumbSchema(locale, [
-    { name: breadcrumbCopy.home, path: '/' },
-    { name: breadcrumbCopy.articles, path: '/articles' },
+    { name: tBreadcrumbs('home'), path: '/' },
+    { name: tBreadcrumbs('articles'), path: '/articles' },
   ]);
 
   return (
@@ -72,17 +62,17 @@ export default async function ArticlesPage({ params }: { params: Promise<{ local
           <div className="mb-3 md:mb-5">
             <HeroBreadcrumbs
               locale={locale}
-              items={[{ label: breadcrumbCopy.articles, href: '/articles' }]}
+              items={[{ label: tBreadcrumbs('articles'), href: '/articles' }]}
             />
           </div>
-          <h1 className="max-w-4xl text-3xl font-bold text-white md:text-5xl">{copy.title}</h1>
+          <h1 className="max-w-4xl text-3xl font-bold text-white md:text-5xl">{t('title')}</h1>
         </div>
       </section>
 
       <section className="catalog-header py-10">
         {articles.length === 0 ? (
           <div className="rounded-[2rem] border border-dashed border-[#0b5a45]/20 bg-[#f7f6f1] px-8 py-16 text-center text-base text-[#5f726b]">
-            {copy.emptyState}
+            {t('emptyState')}
           </div>
         ) : (
           <div className="grid items-stretch gap-2  md:gap-x-8 md:gap-y-4 md:grid-cols-2 xl:grid-cols-4">

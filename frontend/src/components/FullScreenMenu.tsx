@@ -5,7 +5,6 @@ import { useEffect, useState, useTransition } from 'react';
 import { FiChevronDown, FiSearch } from 'react-icons/fi';
 import { RxCross1 } from 'react-icons/rx';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
-import { formatProductCount } from '@/lib/catalog';
 import { getFullLogo } from '@/lib/logo';
 import type { SocialLinkItem } from '@/lib/socialLinks';
 import { useLocale, useTranslations } from 'next-intl';
@@ -37,6 +36,7 @@ export default function FullscreenMenu({
   socialLinks = [],
 }: FullscreenMenuProps) {
   const t = useTranslations('Header');
+  const catalogT = useTranslations('Catalog');
   const footerT = useTranslations('Footer');
   const searchT = useTranslations('Search');
   const locale = useLocale();
@@ -201,7 +201,7 @@ export default function FullscreenMenu({
                       </p>
                       {item.count !== undefined && (
                         <p className="mt-1.5 text-sm text-white/45">
-                          {formatProductCount(item.count, locale)}
+                          {catalogT('productCount', { count: item.count })}
                         </p>
                       )}
                     </div>

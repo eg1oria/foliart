@@ -8,7 +8,6 @@ import { BsTelephoneInbound } from 'react-icons/bs';
 import { FiChevronDown } from 'react-icons/fi';
 import { RxHamburgerMenu } from 'react-icons/rx';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
-import { formatProductCount } from '@/lib/catalog';
 import { getFullLogo } from '@/lib/logo';
 import { maxSocialLinksInRow, type SocialLinkItem } from '@/lib/socialLinks';
 import { useLocale, useTranslations } from 'next-intl';
@@ -54,6 +53,7 @@ export default function Header({
   const desktopMenuCloseTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollFrame = useRef<number | null>(null);
   const t = useTranslations('Header');
+  const catalogT = useTranslations('Catalog');
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
@@ -395,7 +395,7 @@ export default function Header({
                       </p>
                       {item.count !== undefined && (
                         <p className="mt-1.5 text-sm text-[#8b8b8b]">
-                          {formatProductCount(item.count, locale)}
+                          {catalogT('productCount', { count: item.count })}
                         </p>
                       )}
                     </div>

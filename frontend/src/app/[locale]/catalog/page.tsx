@@ -1,14 +1,10 @@
 import type { Metadata } from 'next';
-import HeroBreadcrumbs, { getBreadcrumbCopy } from '@/components/HeroBreadcrumbs';
+import { getTranslations } from 'next-intl/server';
+import HeroBreadcrumbs from '@/components/HeroBreadcrumbs';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
 import { getCategories, getProducts } from '@/lib/api';
-import {
-  formatProductCount,
-  getCatalogCopy,
-  getCategoryHref,
-  getCategoryProductCount,
-} from '@/lib/catalog';
+import { getCategoryHref, getCategoryProductCount } from '@/lib/catalog';
 import { resolveMediaUrl } from '@/lib/media';
 import { buildBreadcrumbSchema, buildPageMetadata, stringifyJsonLd } from '@/lib/seo';
 import { getSiteImage } from '@/lib/siteImagesServer';
@@ -20,44 +16,32 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const copy = getCatalogCopy(locale);
+  const t = await getTranslations({ locale, namespace: 'Catalog' });
 
   return buildPageMetadata({
     locale,
     path: '/catalog',
-    title:
-      locale === 'ru'
-        ? 'Каталог удобрений'
-        : locale === 'fr'
-          ? 'Catalogue des engrais'
-          : locale === 'es'
-            ? 'Catálogo de fertilizantes'
-            : 'Fertilizer catalog',
-    description: copy.subtitle,
+    title: t('title'),
+    description: t('subtitle'),
     image: (await getSiteImage('catalog-hero')).src,
   });
 }
 
 export default async function CatalogPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
-  const copy = getCatalogCopy(locale);
+  const [t, tBreadcrumbs] = await Promise.all([
+    getTranslations({ locale, namespace: 'Catalog' }),
+    getTranslations({ locale, namespace: 'Breadcrumbs' }),
+  ]);
   const hero = await getSiteImage('catalog-hero');
-  const breadcrumbCopy = getBreadcrumbCopy(locale);
-  const categoryCta =
-    locale === 'ru'
-      ? 'Посмотреть каталог'
-      : locale === 'fr'
-        ? 'Voir le catalogue'
-        : locale === 'es'
-          ? 'Ver catálogo'
-          : 'View catalog';
+  const categoryCta = t('viewCatalog');
   const [categories, products] = await Promise.all([
     getCategories(locale),
     getProducts(undefined, locale),
   ]);
   const breadcrumbSchema = buildBreadcrumbSchema(locale, [
-    { name: breadcrumbCopy.home, path: '/' },
-    { name: breadcrumbCopy.catalog, path: '/catalog' },
+    { name: tBreadcrumbs('home'), path: '/' },
+    { name: tBreadcrumbs('catalog'), path: '/catalog' },
   ]);
 
   return (
@@ -81,19 +65,19 @@ export default async function CatalogPage({ params }: { params: Promise<{ locale
           <div className="mb-3 md:mb-5">
             <HeroBreadcrumbs
               locale={locale}
-              items={[{ label: breadcrumbCopy.catalog, href: '/catalog' }]}
+              items={[{ label: tBreadcrumbs('catalog'), href: '/catalog' }]}
             />
           </div>
           <h1 className="font-bold text-3xl md:text-5xl text-white mb-4 text-start">
-            {copy.title}
+            {t('title')}
           </h1>
-          <p className="mb-2 text-start text-lg text-white/85 md:text-xl">{copy.subtitle}</p>
+          <p className="mb-2 text-start text-lg text-white/85 md:text-xl">{t('subtitle')}</p>
         </div>
       </div>
 
       {categories.length === 0 ? (
         <section className="border border-dashed border-[#0b5a45]/25 bg-[#f7f6f1] px-8 py-16 text-center text-[#48665c]">
-          {copy.emptyCategories}
+          {t('emptyCategories')}
         </section>
       ) : (
         <section className="catalog-grid mt-12 mb-16 grid auto-rows-[220px] grid-cols-1 gap-2.5 md:mt-16 md:mb-20 md:auto-rows-[250px] min-[1000px]:mt-20 min-[900px]:auto-rows-[250px] min-[900px]:grid-cols-4">
@@ -145,7 +129,7 @@ export default async function CatalogPage({ params }: { params: Promise<{ locale
                   <div className="max-w-[34rem] transition-transform duration-500 ease-out group-hover:-translate-y-24 group-focus-visible:-translate-y-24 min-[1000px]:group-hover:-translate-y-[7.5rem] min-[1000px]:group-focus-visible:-translate-y-[7.5rem]">
                     <h2 className="text-xl font-bold leading-tight md:text-2xl">{category.name}</h2>
                     <span className="mt-1.5 block text-base font-medium text-white">
-                      {formatProductCount(productCount, locale)}
+                      {t('productCount', { count: productCount })}
                     </span>
                   </div>
                   <span className="absolute bottom-6 left-6 inline-flex translate-y-[calc(100%+1.5rem)] items-center justify-center rounded-full bg-[#074031] px-6 py-3.5 text-sm text-white opacity-0 shadow-[0_16px_28px_-18px_rgba(0,0,0,0.85)] transition-all duration-500 ease-out group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 md:bottom-7 md:left-7 md:px-7">

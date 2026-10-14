@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
 import Lightbox, { type ZoomRef } from 'yet-another-react-lightbox';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
@@ -13,7 +14,6 @@ type ProductImageLightboxProps = {
   alt: string;
   sizes: string;
   emptyState: ReactNode;
-  locale: string;
 };
 
 export default function ProductImageLightbox({
@@ -22,8 +22,8 @@ export default function ProductImageLightbox({
   alt,
   sizes,
   emptyState,
-  locale,
 }: ProductImageLightboxProps) {
+  const t = useTranslations('Product');
   const [open, setOpen] = useState(false);
   const initialZoomAppliedRef = useRef(false);
   const slides = useMemo(
@@ -47,9 +47,8 @@ export default function ProductImageLightbox({
     initialZoomAppliedRef.current = false;
     setOpen(true);
   };
-  const openLabel =
-    locale === 'en' ? `View ${productName} image` : `Посмотреть фото ${productName}`;
-  const closeLabel = locale === 'en' ? 'Close' : 'Закрыть';
+  const openLabel = t('openImage', { name: productName });
+  const closeLabel = t('closeImage');
 
   if (!src) {
     return (

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import HeroBreadcrumbs, { getBreadcrumbCopy } from '@/components/HeroBreadcrumbs';
+import { getTranslations } from 'next-intl/server';
+import HeroBreadcrumbs from '@/components/HeroBreadcrumbs';
 import MediaImage from '@/components/catalog/MediaImage';
 import { Link, routing } from '@/i18n/routing';
 import {
@@ -7,7 +8,6 @@ import {
   getArticleHref,
   getArticleLocalesById,
   getArticleSlug,
-  getArticlesCopy,
 } from '@/lib/articles';
 import { getArticle, getArticleBySlug, getArticles, type Article } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
@@ -50,29 +50,15 @@ export async function generateMetadata({
   params: Promise<{ locale: string; articleId: string }>;
 }): Promise<Metadata> {
   const { locale, articleId: rawArticleId } = await params;
-  const copy = getArticlesCopy(locale);
+  const t = await getTranslations({ locale, namespace: 'Articles' });
   const article = await getArticleByRouteParam(rawArticleId, locale);
 
   if (!article) {
     return buildPageMetadata({
       locale,
       path: '/articles',
-      title:
-        locale === 'ru'
-          ? 'Полезные статьи'
-          : locale === 'fr'
-            ? 'Articles utiles'
-            : locale === 'es'
-              ? 'Artículos útiles'
-              : 'Useful articles',
-      description:
-        locale === 'ru'
-          ? 'Полезные статьи о питании растений, восстановлении после стресса и системах удобрения от специалистов Фолиарт.'
-          : locale === 'fr'
-            ? 'Articles utiles sur la nutrition des plantes, la récupération après le stress et les systèmes de fertilisation par les spécialistes de Foliart.'
-            : locale === 'es'
-              ? 'Artículos útiles sobre nutrición vegetal, recuperación tras el estrés y sistemas de fertilización de los especialistas de Foliart.'
-              : 'Useful articles about plant nutrition, stress recovery, and fertilizer systems from Foliart specialists.',
+      title: t('title'),
+      description: t('metaDescription'),
       image: (await getSiteImage('articles-hero')).src,
     });
   }
@@ -82,7 +68,7 @@ export async function generateMetadata({
     locale,
     path: getArticleHref(article),
     title: article.title,
-    description: article.excerpt || stripHtml(renderedContent) || copy.detailsEmpty,
+    description: article.excerpt || stripHtml(renderedContent) || t('detailsEmpty'),
     image: resolveMediaUrl(article.imageUrl),
     type: 'article',
     availableLocales: await getArticleLocales(article.id, locale),
@@ -95,8 +81,10 @@ export default async function ArticleDetailsPage({
   params: Promise<{ locale: string; articleId: string }>;
 }) {
   const { locale, articleId: rawArticleId } = await params;
-  const copy = getArticlesCopy(locale);
-  const breadcrumbCopy = getBreadcrumbCopy(locale);
+  const [t, tBreadcrumbs] = await Promise.all([
+    getTranslations({ locale, namespace: 'Articles' }),
+    getTranslations({ locale, namespace: 'Breadcrumbs' }),
+  ]);
   const [article, articles] = await Promise.all([
     getArticleByRouteParam(rawArticleId, locale),
     getArticles(locale),
@@ -114,14 +102,14 @@ export default async function ArticleDetailsPage({
   const renderedContent = renderArticleContent(article.contentPayload, article.content ?? '');
   const imageSrc = resolveMediaUrl(article.imageUrl);
   const breadcrumbSchema = buildBreadcrumbSchema(locale, [
-    { name: breadcrumbCopy.home, path: '/' },
-    { name: breadcrumbCopy.articles, path: '/articles' },
+    { name: tBreadcrumbs('home'), path: '/' },
+    { name: tBreadcrumbs('articles'), path: '/articles' },
     { name: article.title, path: getArticleHref(article) },
   ]);
   const articleSchema = buildArticleSchema({
     locale,
     title: article.title,
-    description: article.excerpt || stripHtml(renderedContent) || copy.detailsEmpty,
+    description: article.excerpt || stripHtml(renderedContent) || t('detailsEmpty'),
     path: getArticleHref(article),
     image: imageSrc,
     publishedAt: article.publishedAt,
@@ -158,7 +146,7 @@ export default async function ArticleDetailsPage({
           <div className="mb-3 md:mb-5">
             <HeroBreadcrumbs
               locale={locale}
-              items={[{ label: breadcrumbCopy.articles, href: '/articles' }]}
+              items={[{ label: tBreadcrumbs('articles'), href: '/articles' }]}
             />
           </div>
           <h1 className="max-w-5xl text-3xl font-bold leading-[1.18] text-white md:text-4xl">
@@ -178,12 +166,16 @@ export default async function ArticleDetailsPage({
               </span>
             </div>
 
-            <div
-              className="article-content max-w-none"
-              dangerouslySetInnerHTML={{
-                __html: renderedContent || `<p>${copy.detailsEmpty}</p>`,
-              }}
-            />
+            {renderedContent ? (
+              <div
+                className="article-content max-w-none"
+                dangerouslySetInnerHTML={{ __html: renderedContent }}
+              />
+            ) : (
+              <div className="article-content max-w-none">
+                <p>{t('detailsEmpty')}</p>
+              </div>
+            )}
           </article>
 
           <aside className="min-[1000px]:pt-2">
@@ -192,14 +184,14 @@ export default async function ArticleDetailsPage({
                 href="/articles"
                 className="inline-flex items-center gap-3 text-[1.03rem] text-[#908c87] transition hover:text-[#0b5a45]">
                 <FiArrowLeft className="shrink-0" />
-                {copy.backToArticles}
+                {t('backToArticles')}
               </Link>
 
               <div className="mt-6 border-t border-[#e6e8ea] pt-8">
-                <h2 className="text-lg font-medium text-[#0e2438]">{copy.relatedTitle}</h2>
+                <h2 className="text-lg font-medium text-[#0e2438]">{t('relatedTitle')}</h2>
 
                 {relatedArticles.length === 0 ? (
-                  <p className="mt-4 text-sm leading-6 text-[#768287]">{copy.relatedEmpty}</p>
+                  <p className="mt-4 text-sm leading-6 text-[#768287]">{t('relatedEmpty')}</p>
                 ) : (
                   <div className="mt-8 grid gap-6 md:max-[999px]:grid-cols-2">
                     {relatedArticles.map((relatedArticle) => {

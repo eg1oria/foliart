@@ -6,7 +6,7 @@ import ArticleDraftForm from '@/components/admin/ArticleDraftForm';
 import { adminCx, adminSecondaryButtonClassName } from '@/components/admin/adminStyles';
 import { Link } from '@/i18n/routing';
 import { requireAdminSection } from '@/lib/adminAuthServer';
-import { getArticlesCopy } from '@/lib/articles';
+import { getArticlesAdminCopy } from '@/lib/articles';
 import { normalizeContentLocale, withContentLocale } from '@/lib/contentLocales';
 
 export default async function NewArticlePage({
@@ -23,7 +23,7 @@ export default async function NewArticlePage({
   if (contentLocale !== 'ru') {
     redirect(`/${locale}/admin/articles/new`);
   }
-  const copy = getArticlesCopy(locale);
+  const copy = getArticlesAdminCopy(locale);
 
   return (
     <AdminShell

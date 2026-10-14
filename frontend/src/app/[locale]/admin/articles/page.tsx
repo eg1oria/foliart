@@ -16,7 +16,7 @@ import MediaImage from '@/components/catalog/MediaImage';
 import { Link } from '@/i18n/routing';
 import { requireAdminSection } from '@/lib/adminAuthServer';
 import { canManageSection } from '@/lib/adminPermissions';
-import { formatArticleDate, getArticleHref, getArticlesCopy } from '@/lib/articles';
+import { formatArticleDate, getArticleHref, getArticlesAdminCopy } from '@/lib/articles';
 import { getArticles, noStoreApiFetchOptions, type Article } from '@/lib/api';
 import {
   getContentLocaleLabel,
@@ -57,7 +57,7 @@ export default async function AdminArticlesPage({
   } = await searchParams;
   const contentLocale = normalizeContentLocale(contentLocaleParam);
   const contentLocaleLabel = getContentLocaleLabel(contentLocale);
-  const copy = getArticlesCopy(locale);
+  const copy = getArticlesAdminCopy(locale);
   const articles = await getArticles(contentLocale, noStoreApiFetchOptions, contentLocale);
   const editArticleId = parseEntityId(edit ?? '');
   const topLevelError = error && !editArticleId ? error : null;

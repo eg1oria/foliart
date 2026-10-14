@@ -17,7 +17,13 @@
     "sunflower": "Tournesol"
   },
   "Articles": {
-    "title": "Articles utiles"
+    "title": "Articles utiles",
+    "metaDescription": "Articles utiles sur la nutrition des plantes, la récupération après le stress et les systèmes de fertilisation par les spécialistes de Foliart.",
+    "emptyState": "Les articles apparaîtront ici après leur ajout dans le panneau d'administration.",
+    "detailsEmpty": "Le contenu de l'article sera ajouté prochainement.",
+    "backToArticles": "Retour à la liste des articles",
+    "relatedTitle": "Autres articles",
+    "relatedEmpty": "De nouveaux articles seront publiés prochainement."
   },
   "Contacts": {
     "title": "Informations de contact",
@@ -269,5 +275,69 @@
     "recentTitle": "Recherches récentes",
     "recentClear": "Effacer l’historique",
     "openPage": "Ouvrir la page"
+  },
+  "Breadcrumbs": {
+    "ariaLabel": "Fil d'Ariane",
+    "home": "Accueil",
+    "catalog": "Catalogue",
+    "articles": "Articles utiles",
+    "calendar": "Calendrier"
+  },
+  "Catalog": {
+    "title": "Catalogue des engrais",
+    "subtitle": "Nous savons comment prendre soin de vos plantes",
+    "viewCatalog": "Voir le catalogue",
+    "productCount": "{count, plural, =1 {1 produit} other {# produits}}",
+    "emptyCategories": "Les catégories apparaîtront ici après leur ajout.",
+    "emptyProducts": "Cette catégorie ne contient pas encore de produits.",
+    "productPlaceholder": "La photo du produit sera ajoutée prochainement.",
+    "learnMore": "En savoir plus",
+    "otherCategories": "Autres catégories",
+    "backLevel": "Niveau supérieur",
+    "backToCategory": "Retour aux produits",
+    "detailsFallback": "Les informations détaillées sur le produit seront ajoutées ultérieurement."
+  },
+  "Product": {
+    "sectionsLabel": "Sections du produit",
+    "descriptionTitle": "Description",
+    "compositionTitle": "Composition",
+    "advantagesTitle": "Avantages de {name}",
+    "applicationTitle": "Guide d'application",
+    "specialistTitle": "Aide d'un spécialiste",
+    "askQuestion": "Poser une question",
+    "certificate": "Certificat de conformité",
+    "compatibilityDefault": "Le produit est compatible avec la plupart des engrais et produits phytosanitaires. Le mélange en cuve avec des produits à base de cuivre ou de soufre est interdit. Un test de compatibilité est requis avant utilisation.",
+    "openImage": "Voir l'image de {name}",
+    "closeImage": "Fermer"
+  },
+  "Calendar": {
+    "title": "Calendrier agricole",
+    "subtitle": "Pages des cultures avec descriptions et quatre photos pour chaque entrée du calendrier.",
+    "cardEyebrow": "Calendrier Foliart",
+    "emptyState": "Les entrées du calendrier apparaîtront ici après leur ajout dans le panneau d'administration.",
+    "openEntry": "Ouvrir la page",
+    "detailsEmpty": "La description de cette culture sera ajoutée prochainement.",
+    "viewCalendar": "Voir le calendrier",
+    "productsTitle": "Produits de ce calendrier",
+    "productsCatalogLink": "Tout le catalogue"
+  },
+  "Seo": {
+    "homeTitle": "Foliart — l'art de la fertilisation",
+    "homeDescription": "Foliart développe des systèmes de fertilisation organo-minérale pour les exploitations avec un suivi de laboratoire et une expertise agronomique.",
+    "aboutTitle": "À propos",
+    "contactsTitle": "Contacts",
+    "partnersTitle": "Partenaires",
+    "partnersDescription": "Partenaires régionaux et distributeurs des produits Foliart à Krasnodar et en Crimée."
+  },
+  "NotFound": {
+    "title": "Page introuvable",
+    "description": "Le lien est peut-être obsolète.",
+    "home": "Retour à l'accueil"
+  },
+  "ErrorPage": {
+    "title": "Impossible de charger la page",
+    "description": "Vérifiez votre connexion et réessayez.",
+    "retry": "Réessayer",
+    "home": "Retour à l'accueil"
   }
 }

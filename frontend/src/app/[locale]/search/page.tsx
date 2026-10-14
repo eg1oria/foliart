@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 import { FiArrowRight, FiSearch } from 'react-icons/fi';
-import HeroBreadcrumbs, { getBreadcrumbCopy } from '@/components/HeroBreadcrumbs';
+import HeroBreadcrumbs from '@/components/HeroBreadcrumbs';
 import MediaImage from '@/components/catalog/MediaImage';
 import SearchField from '@/components/search/SearchField';
 import SearchMatchedTags from '@/components/search/SearchMatchedTags';
@@ -66,7 +66,7 @@ export async function generateMetadata({
 export default async function SearchPage({ params, searchParams }: SearchPageProps) {
   const [{ locale }, resolvedSearchParams] = await Promise.all([params, searchParams]);
   const t = await getTranslations({ locale, namespace: 'Search' });
-  const breadcrumbCopy = getBreadcrumbCopy(locale);
+  const tBreadcrumbs = await getTranslations({ locale, namespace: 'Breadcrumbs' });
   const hero = await getSiteImage('search-hero');
 
   const query = normalizeSearchQuery(readParam(resolvedSearchParams.q));
@@ -93,7 +93,7 @@ export default async function SearchPage({ params, searchParams }: SearchPagePro
   const showPreparedAnswers = !hasQuery || allHits.length === 0;
 
   const breadcrumbSchema = buildBreadcrumbSchema(locale, [
-    { name: breadcrumbCopy.home, path: '/' },
+    { name: tBreadcrumbs('home'), path: '/' },
     { name: t('breadcrumb'), path: '/search' },
   ]);
 
