@@ -1,10 +1,18 @@
 import type { MetadataRoute } from 'next';
 import { routing } from '@/i18n/routing';
-import { getArticles, getCalendars, getCategories, getProducts, type Article } from '@/lib/api';
+import {
+  getArticles,
+  getCalendars,
+  getCategories,
+  getProducts,
+  getPublishedSitePages,
+  type Article,
+} from '@/lib/api';
 import { getArticleHref, getArticleLocalesById } from '@/lib/articles';
 import { getCalendarHref } from '@/lib/calendars';
 import { getCategoryHref, getProductHref } from '@/lib/catalog';
 import { getSiteOrigin, getLocalizedPath } from '@/lib/seo';
+import { getSitePageHref } from '@/lib/sitePages';
 
 // Rendered per request rather than prerendered. Under ISR this route was baked
 // into the image at `docker build` time, where the backend is not on the network
@@ -62,11 +70,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Ошибку намеренно не глушим: пустой ответ здесь неотличим от «раздела больше нет»,
   // и краулер получил бы 200 с sitemap, где не хватает большей части сайта. Пусть
   // лучше маршрут отдаст 5xx — поисковики просто повторят запрос позже.
-  const [[categories, products, calendars], articleLists] = await Promise.all([
+  const [[categories, products, calendars, sitePages], articleLists] = await Promise.all([
     Promise.all([
       getCategories(routing.defaultLocale),
       getProducts(undefined, routing.defaultLocale),
       getCalendars(routing.defaultLocale),
+      getPublishedSitePages(),
     ]),
     Promise.all(routing.locales.map((locale) => getArticles(locale))),
   ]);
@@ -134,11 +143,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     };
   });
 
+  // Pages built in the admin go live one language at a time, so like articles
+  // they list only the languages that are published.
+  const sitePageEntries: MetadataRoute.Sitemap = sitePages.flatMap((page) => {
+    if (!page.locales.length) return [];
+    const path = getSitePageHref(page.slug);
+    const primaryLocale = page.locales.includes(routing.defaultLocale)
+      ? routing.defaultLocale
+      : page.locales[0];
+    return [
+      {
+        url: `${siteOrigin}${getLocalizedPath(primaryLocale, path)}`,
+        lastModified: page.updatedAt ? new Date(page.updatedAt) : now,
+        changeFrequency: 'monthly' as const,
+        priority: 0.6,
+        alternates: buildAlternates(path, siteOrigin, page.locales),
+      },
+    ];
+  });
+
   return [
     ...staticEntries,
     ...categoryEntries,
     ...productEntries,
     ...articleEntries,
     ...calendarEntries,
+    ...sitePageEntries,
   ];
 }

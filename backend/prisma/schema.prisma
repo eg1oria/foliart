@@ -321,3 +321,52 @@ model AdminUser {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 }
+
+// Pages assembled in the admin from pasted HTML — whole landing pages with
+// their own styles and scripts. The markup is never put into the site's DOM:
+// the frontend serves it from a sandboxed frame route and shows it in an
+// iframe, so a page's scripts run in an opaque origin. `slug` is the address
+// under `/<locale>/`, the same for every language; `displayMode` is either
+// `embedded` (between the site header and footer) or `fullscreen`.
+model SitePage {
+  id           Int                   @id @default(autoincrement())
+  slug         String                @unique
+  displayMode  String                @default("embedded")
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  translations SitePageTranslation[]
+  images       SitePageImage[]
+}
+
+// One row per language. A language without a published row answers 404, so a
+// page goes live one translation at a time.
+model SitePageTranslation {
+  id          Int      @id @default(autoincrement())
+  pageId      Int
+  page        SitePage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  locale      String
+  title       String   @default("")
+  description String   @default("")
+  html        String   @default("")
+  published   Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+
+  @@unique([pageId, locale])
+  @@index([locale])
+}
+
+// Images uploaded for use inside a page's HTML. They are shared by every
+// language of the page and removed together with it.
+model SitePageImage {
+  id           Int      @id @default(autoincrement())
+  pageId       Int
+  page         SitePage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  imageUrl     String
+  originalName String   @default("")
+  width        Int      @default(0)
+  height       Int      @default(0)
+  byteSize     Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  @@index([pageId])
+}

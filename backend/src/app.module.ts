@@ -15,6 +15,7 @@ import { ProductsModule } from './products/products.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RegionalContactsModule } from './regional-contacts/regional-contacts.module';
 import { SiteImagesModule } from './site-images/site-images.module';
+import { SitePagesModule } from './site-pages/site-pages.module';
 import { SocialLinksModule } from './social-links/social-links.module';
 import { UiMessagesModule } from './ui-messages/ui-messages.module';
 
@@ -39,6 +40,7 @@ import { UiMessagesModule } from './ui-messages/ui-messages.module';
     ContactModule,
     PrismaModule,
     SiteImagesModule,
+    SitePagesModule,
     SocialLinksModule,
     UiMessagesModule,
   ],

@@ -110,7 +110,11 @@ const createConfig = (): NextConfig => {
     async headers() {
       return [
         {
-          source: '/(.*)',
+          // `/page-frame/*` serves the sandboxed documents of pages built in
+          // the admin. They must be frameable by the site and may load their
+          // own CDNs, so the route sets its own CSP (see `lib/sitePageFrame.ts`)
+          // instead of the site-wide one below.
+          source: '/((?!page-frame/).*)',
           headers: [
             { key: 'Content-Security-Policy', value: contentSecurityPolicy },
             { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -119,6 +123,23 @@ const createConfig = (): NextConfig => {
               key: 'Referrer-Policy',
               value: 'strict-origin-when-cross-origin',
             },
+            {
+              key: 'Permissions-Policy',
+              value: 'camera=(), microphone=(), geolocation=()',
+            },
+            ...(isHttpsDeployment
+              ? [
+                  {
+                    key: 'Strict-Transport-Security',
+                    value: 'max-age=31536000; includeSubDomains',
+                  },
+                ]
+              : []),
+          ],
+        },
+        {
+          source: '/page-frame/:path*',
+          headers: [
             {
               key: 'Permissions-Policy',
               value: 'camera=(), microphone=(), geolocation=()',

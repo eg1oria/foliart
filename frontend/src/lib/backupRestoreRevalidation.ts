@@ -12,6 +12,7 @@ import {
   productsCacheTag,
   regionalContactsCacheTag,
   siteImagesCacheTag,
+  sitePagesCacheTag,
   socialLinksCacheTag,
 } from './api';
 import type { LastRestore } from './backups';
@@ -24,6 +25,7 @@ const contentCacheTags = [
   productsCacheTag,
   regionalContactsCacheTag,
   siteImagesCacheTag,
+  sitePagesCacheTag,
   socialLinksCacheTag,
 ];
 

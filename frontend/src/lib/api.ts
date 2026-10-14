@@ -1,4 +1,5 @@
 import type { SiteImageMap } from './siteImages';
+import type { PublishedSitePage, PublishedSitePageSummary } from './sitePages';
 import type { SocialLink } from './socialLinks';
 import { PUBLIC_REVALIDATE_SECONDS } from './seo';
 
@@ -186,6 +187,7 @@ export const partnersCacheTag = 'partners';
 export const regionalContactsCacheTag = 'regional-contacts';
 export const siteImagesCacheTag = 'site-images';
 export const socialLinksCacheTag = 'social-links';
+export const sitePagesCacheTag = 'site-pages';
 
 function resolveFetchOptions(fetchOptions?: ApiFetchOptions): ApiFetchOptions {
   const resolved = fetchOptions ?? publicApiFetchOptions;
@@ -391,5 +393,25 @@ export async function getSocialLinks(
   return fetchJson<SocialLink[]>(
     `/api/social-links/${encodeURIComponent(locale)}`,
     withCacheTag(fetchOptions, socialLinksCacheTag),
+  );
+}
+
+export async function getSitePage(
+  slug: string,
+  locale: string,
+  fetchOptions?: ApiFetchOptions,
+): Promise<PublishedSitePage> {
+  return fetchJson<PublishedSitePage>(
+    appendSearchParam(`/api/site-pages/public/${encodeURIComponent(slug)}`, 'locale', locale),
+    withCacheTag(fetchOptions, sitePagesCacheTag),
+  );
+}
+
+export async function getPublishedSitePages(
+  fetchOptions?: ApiFetchOptions,
+): Promise<PublishedSitePageSummary[]> {
+  return fetchJson<PublishedSitePageSummary[]>(
+    '/api/site-pages/public',
+    withCacheTag(fetchOptions, sitePagesCacheTag),
   );
 }

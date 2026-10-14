@@ -30,6 +30,7 @@ describe('admin permissions', () => {
       contacts: 'none',
       'site-images': 'none',
       'social-links': 'none',
+      'site-pages': 'none',
       messages: 'none',
     });
   });
@@ -62,6 +63,7 @@ describe('admin permissions', () => {
       'contacts',
       'site-images',
       'social-links',
+      'site-pages',
       'messages',
     ]);
     expect(canManageSection(superAdmin, 'messages')).toBe(true);

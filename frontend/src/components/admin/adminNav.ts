@@ -10,6 +10,7 @@ import {
   FiFolder,
   FiGlobe,
   FiImage,
+  FiLayout,
   FiMapPin,
   FiShare2,
   FiUser,
@@ -68,6 +69,10 @@ const navI18n: Record<string, Record<AdminTabKey, AdminNavStrings>> = {
       label: 'Social links',
       description: 'Network badges in the header, per language',
     },
+    'site-pages': {
+      label: 'Pages',
+      description: 'Landing pages built from your own HTML',
+    },
     messages: {
       label: 'Translations',
       description: 'Public interface messages',
@@ -118,6 +123,10 @@ const navI18n: Record<string, Record<AdminTabKey, AdminNavStrings>> = {
       label: 'Соцсети в шапке',
       description: 'Кнопки соцсетей в шапке сайта — отдельно для каждого языка',
     },
+    'site-pages': {
+      label: 'Страницы',
+      description: 'Новые страницы сайта из собственного HTML',
+    },
     messages: {
       label: 'Переводы',
       description: 'Интерфейсные тексты публичного сайта',
@@ -147,6 +156,7 @@ export const adminNavItems: AdminNavItem[] = [
   { key: 'contacts', href: '/admin/contacts', icon: FiMapPin },
   { key: 'site-images', href: '/admin/site-images', icon: FiImage },
   { key: 'social-links', href: '/admin/social-links', icon: FiShare2 },
+  { key: 'site-pages', href: '/admin/site-pages', icon: FiLayout },
   { key: 'messages', href: '/admin/messages', icon: FiGlobe },
   { key: 'admins', href: '/admin/admins', icon: FiUsers },
   { key: 'backups', href: '/admin/backups', icon: FiDatabase },

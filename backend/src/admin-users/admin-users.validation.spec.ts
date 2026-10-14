@@ -55,6 +55,7 @@ describe('admin users validation', () => {
       contacts: 'none',
       'site-images': 'none',
       'social-links': 'none',
+      'site-pages': 'none',
       messages: 'none',
     });
   });
@@ -83,6 +84,7 @@ describe('admin users validation', () => {
         contacts: 'none',
         'site-images': 'none',
         'social-links': 'none',
+        'site-pages': 'none',
         messages: 'none',
       },
     });
